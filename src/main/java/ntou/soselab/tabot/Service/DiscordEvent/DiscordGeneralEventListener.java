@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class DiscordGeneralEventListener extends ListenerAdapter {
 
-    private final String testUserId = "286145047169335298";
     private final String serverId;
 
     @Autowired
