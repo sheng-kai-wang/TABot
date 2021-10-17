@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class DiscordGeneralEventListener extends ListenerAdapter {
 
+    private final String testUserId = "286145047169335298";
     private final String serverId;
 
     @Autowired
@@ -25,16 +26,19 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
+        // all jda entity loaded successfully
         System.out.println(">> onReady");
     }
 
     @Override
     public void onGuildReady(@NotNull GuildReadyEvent event) {
+        // jda will start dispatching events related to this guild, initialize service depend on this guild
         System.out.println(">> onGuildReady");
     }
 
     @Override
     public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {
+        // todo: give role when correct nickname format detected on guild-member nickname change
     }
 
     @Override
