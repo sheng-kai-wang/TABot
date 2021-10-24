@@ -34,3 +34,5 @@ build/
 
 ## ignore properties setting
 application.properties
+## ignore whatever setting in json format
+*.json
