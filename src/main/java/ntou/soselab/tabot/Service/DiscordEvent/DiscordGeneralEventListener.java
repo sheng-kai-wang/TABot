@@ -1,5 +1,7 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,8 +25,10 @@ import java.util.regex.Pattern;
 @Service
 public class DiscordGeneralEventListener extends ListenerAdapter {
 
+    private final String testUserId = "286145047169335298";
     private final String serverId;
     private final String studentRoleId;
+    public static HashMap<String, MessageChannel> channelMap;
 
     @Autowired
     public DiscordGeneralEventListener(Environment env){
@@ -35,6 +40,18 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
     public void onReady(@NotNull ReadyEvent event) {
         // all jda entity loaded successfully
         System.out.println(">> onReady");
+        /*
+        * load channel setting from property and create map instance,
+        * all existed setting should be TextChannel,
+        * assume only one guild exist in this server/application for now
+        */
+        System.out.println("[JDA onReady]: try to initialize channel map.");
+        channelMap = new HashMap<>();
+        for(TextChannel channel: event.getJDA().getGuildById(serverId).getTextChannels()){
+            channelMap.put(channel.getName(), channel);
+        }
+        System.out.println(channelMap);
+        System.out.println("[JDA onReady]: channel map init complete.");
     }
 
     @Override

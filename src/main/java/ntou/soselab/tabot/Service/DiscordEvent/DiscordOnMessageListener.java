@@ -1,5 +1,6 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -7,6 +8,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Button;
 import ntou.soselab.tabot.Service.IntentHandleService;
 import ntou.soselab.tabot.Service.JDAMessageHandleService;
 import ntou.soselab.tabot.Service.RasaService;
@@ -40,21 +43,54 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if(event.getAuthor().isBot()) return; // ignore all message from bot
 
+        // print received message
+        System.out.println("[onMessage]: try to print received message.");
+        System.out.println("> [content raw] " + event.getMessage().getContentRaw());
+        System.out.println("> [embed] " + event.getMessage().getEmbeds());
+        System.out.println("> [attachment] " + event.getMessage().getAttachments());
+        if(event.getMessage().getAttachments().size() > 0){
+            for(Message.Attachment attachment: event.getMessage().getAttachments()){
+                System.out.println("  > [attach id] " + attachment.getId());
+                System.out.println("  > [attach type] " + attachment.getContentType());
+                System.out.println("  > [attach url] " + attachment.getUrl());
+                System.out.println("  > [attach proxy url] " + attachment.getProxyUrl());
+            }
+        }
+        System.out.println("---");
+        System.out.println("[TEST] try to send received message out.");
+        MessageBuilder builder = new MessageBuilder();
+        builder.append(event.getMessage().getContentRaw());
+        builder.append(event.getMessage().getAttachments().get(0).getUrl());
+        jdaMsgHandleService.sendPublicMessageWithReference(builder.build(), event.getMessageId(), "test-channel", event);
+
         // check if message come from manager channel (used to send message as bot by administrator)
-        if(isFromAdmin(event.getChannel())){
+        if(isFromAdmin(event.getChannel())) {
             // todo: add prefix to check if admin want to send message by adding id himself ?
             // message come from admin channel, try to send direct message
             // todo: maybe check private or not ?, use private as default for now
-            jdaMsgHandleService.sendPrivateMessageOnReply(extractStudentIdFromMessageLog(event.getMessage()), event);
+            // todo: reply message
+            /* reply private message to private channel from manager channel */
+//            jdaMsgHandleService.sendPrivateMessageOnReply(extractStudentIdFromMessageLog(event.getMessage()), event);
+            /* button testing block */
+//            MessageBuilder msgBuilder = new MessageBuilder();
+//            msgBuilder.append("special test message");
+//            msgBuilder.setActionRows(ActionRow.of(Button.primary("yes", "Yes"), Button.danger("no", "No")));
+//            event.getTextChannel().sendMessage(msgBuilder.build()).queue();
         }
 
-        // only react to stuff if bot got mentioned in general channels (student user available channel, to be specific)
+        // only react to incoming message if bot got mentioned in general channels (student user available channel, to be specific)
         if(isBotMentioned(event)) {
             if (event.isFromType(ChannelType.PRIVATE)) {
                 // todo: handle private message
             } else {
                 // todo: handle public message
             }
+        }
+
+        if(event.isFromType(ChannelType.PRIVATE)){
+            /* this message is send from private channel */
+        }else{
+            /* this message is send from general channel, in our case, this should only be text-channel */
         }
     }
 
@@ -82,14 +118,13 @@ public class DiscordOnMessageListener extends ListenerAdapter {
 
     /**
      * extract student id from chat log and return correspond discord id
+     * expect chat log has format like this: '[student id][student name] bla bla bla'
      * note: need to search database if discord id is not available in replied message log
      * this method should ONLY be used when REPLYING message (this message MUST have a reference message)
      * @param messageObj replied message
      * @return student discord id
      */
     private String extractStudentIdFromMessageLog(Message messageObj){
-        // expect '[student id][student name] bla bla bla'
-        // todo : maybe add discord id in log message to ?
         Message referenceMsg = messageObj.getReferencedMessage();
         System.out.println(referenceMsg);
         String targetStudentId = "nothing here dude";
