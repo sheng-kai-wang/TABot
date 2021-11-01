@@ -1,5 +1,8 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
+import com.github.pemistahl.lingua.api.Language;
+import com.github.pemistahl.lingua.api.LanguageDetector;
+import com.github.pemistahl.lingua.api.LanguageDetectorBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
@@ -32,11 +35,17 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     private final String botId;
     private JDAMessageHandleService jdaMsgHandleService;
 
+    /* language detector */
+    private final LanguageDetector languageDetector;
+
     @Autowired
     public DiscordOnMessageListener(RasaService rasa, IntentHandleService intentHandle, JDAMessageHandleService jdaMsgHandle, Environment env){
         this.adminChannelId = env.getProperty("discord.admin.channel.id");
         this.botId = env.getProperty("discord.application.id");
         this.jdaMsgHandleService = jdaMsgHandle;
+
+        // initialize language detector with english and chinese
+        this.languageDetector = LanguageDetectorBuilder.fromLanguages(Language.ENGLISH, Language.CHINESE).build();
     }
 
     @Override
@@ -92,6 +101,26 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         }else{
             /* this message is send from general channel, in our case, this should only be text-channel */
         }
+    }
+
+    /**
+     * detect input message is in chinese or english
+     * @param msg input message
+     * @return 'zh' if chinese (default), 'en' if english
+     */
+    private String checkLanguage(String msg){
+        Language detectedLang = languageDetector.detectLanguageOf(msg);
+        System.out.println("[onMessage][lang detect][conf]:" + languageDetector.computeLanguageConfidenceValues(msg));
+        if(detectedLang == Language.CHINESE){
+            System.out.println("[onMessage][lang detect]: chinese.");
+            return "zh";
+        }
+        if(detectedLang == Language.ENGLISH){
+            System.out.println("[onMessage][lang detect]: english.");
+            return "en";
+        }
+        /* return chinese by default */
+        return "zh";
     }
 
     /**
