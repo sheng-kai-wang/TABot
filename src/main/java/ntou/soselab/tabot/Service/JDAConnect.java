@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import ntou.soselab.tabot.Service.DiscordEvent.DiscordGeneralEventListener;
-import ntou.soselab.tabot.Service.DiscordEvent.DiscordOnButtonClickListener;
 import ntou.soselab.tabot.Service.DiscordEvent.DiscordOnMessageListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -24,14 +23,12 @@ public class JDAConnect {
 
     private JDA jda;
     private DiscordOnMessageListener onMessageListener;
-    private DiscordOnButtonClickListener buttonListener;
     private DiscordGeneralEventListener generalEventListener;
     private final String appToken;
 
     @Autowired
-    public JDAConnect(Environment env, DiscordOnMessageListener onMessageListener, DiscordGeneralEventListener generalEventListener, DiscordOnButtonClickListener buttonEvt){
+    public JDAConnect(Environment env, DiscordOnMessageListener onMessageListener, DiscordGeneralEventListener generalEventListener){
         this.onMessageListener = onMessageListener;
-        this.buttonListener = buttonEvt;
         this.generalEventListener = generalEventListener;
         this.appToken = env.getProperty("discord.application.token");
     }
@@ -63,8 +60,6 @@ public class JDAConnect {
         builder.addEventListeners(generalEventListener);
         // add customized MessageListener
         builder.addEventListeners(onMessageListener);
-        // add customized Button onClick listener
-        builder.addEventListeners(buttonListener);
         jda = builder.build();
     }
 
