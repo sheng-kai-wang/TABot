@@ -1,13 +1,13 @@
 # Google sheets configuration
 sheets:
-  applicationName: "Google Sheets API"
-  credentialsFilePath: "/credentials.json"
-  spreadsheetIdSE: "16CQb3_yp33rMm7jvRs9yNueiI6Ym-1QLAKoJA_hO4wM"
-  spreadsheetIdjava: "1wpGvAZUYD1UMV7oKt5MF_w-yiZgrTfA9kK-PERrgU88"
+  application-name: "Google Sheets API"
+  credentials-file-path: "/credentials.json"
+  spread-sheet-id-SE: "16CQb3_yp33rMm7jvRs9yNueiI6Ym-1QLAKoJA_hO4wM"
+  spread-sheet-id-java: "1wpGvAZUYD1UMV7oKt5MF_w-yiZgrTfA9kK-PERrgU88"
 
 # neo4j configuration
 neo4j:
-#  url: "bolt://localhost:7687"
-  url: "bolt://140.121.197.130:10027"
+#  url: "bolt://140.121.197.130:10027"
+  url: "bolt://localhost:7687"
   username: "neo4j"
   password: "root"

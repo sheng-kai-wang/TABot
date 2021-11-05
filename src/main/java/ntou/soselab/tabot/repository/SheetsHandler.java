@@ -30,7 +30,6 @@ public class SheetsHandler {
     private String credentialsFilePath;
     private final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
 
-    private Map<String, Map<String, String>> data;
     private Gson gson;
 
     /**
@@ -42,11 +41,17 @@ public class SheetsHandler {
      */
     public SheetsHandler(String course) {
         InputStream inputStream = getClass().getResourceAsStream("/application.yml");
-        data = new Yaml().load(inputStream);
+        Map<String, Map<String, String>> configData = new Yaml().load(inputStream);
 
-        this.applicationName = data.get("sheets").get("applicationName");
-        this.spreadsheetId = data.get("sheets").get("spreadsheetId" + course);
-        this.credentialsFilePath = data.get("sheets").get("credentialsFilePath");
+        this.applicationName = configData.get("sheets").get("application-name");
+        this.spreadsheetId = configData.get("sheets").get("spread-sheet-id-" + course);
+        this.credentialsFilePath = configData.get("sheets").get("credentials-file-path");
+        try {
+            assert inputStream != null;
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         this.sheetsService = getSheetsService();
 
@@ -140,7 +145,7 @@ public class SheetsHandler {
      *                  If you submit an empty string like this "", it will respond the content of the entire worksheet.
      * @return is a string of the sheet content, similar in form to a matrix.
      */
-    public String readSheets(String worksheet, String range) {
+    public String readContent(String worksheet, String range) {
         System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
 
         String requestRange = null;
@@ -171,9 +176,9 @@ public class SheetsHandler {
      * @return It will return a JSONObject containing the header of the worksheet and the value to be queried,
      * just like "{'問題':['...'],'意圖名稱':['...'],'回答':['...']}".
      */
-    public JSONObject readByKey(String worksheet, String key) {
+    public JSONObject readContentByKey(String worksheet, String key) {
         JSONObject result = new JSONObject();
-        JSONArray sheetsContent = new JSONArray(readSheets(worksheet, ""));
+        JSONArray sheetsContent = new JSONArray(readContent(worksheet, ""));
         JSONArray headers = new JSONArray(sheetsContent.get(0).toString());
         for (int i = 1; i < sheetsContent.length(); i++) {
             JSONArray rows = new JSONArray(sheetsContent.get(i).toString());
@@ -192,7 +197,7 @@ public class SheetsHandler {
      * @param worksheet is the name of the worksheet like "FAQ".
      * @param contents  is the data you will add in unit of row, and you can add multiple rows at once by List.
      */
-    public void createSheets(String worksheet, List<List<Object>> contents) {
+    public void createContent(String worksheet, List<List<Object>> contents) {
         ValueRange body = new ValueRange().setValues(contents);
 
         try {
@@ -215,7 +220,7 @@ public class SheetsHandler {
      * @param range     is the name of range block like "A17:C18".
      * @param contents  is the data you will add in unit of row, and you can add multiple rows at once by List.
      */
-    public void updateSheets(String worksheet, String range, List<List<Object>> contents) {
+    public void updateContent(String worksheet, String range, List<List<Object>> contents) {
         ValueRange body = new ValueRange().setValues(contents);
 
         try {
@@ -234,10 +239,10 @@ public class SheetsHandler {
      * @param worksheet The worksheet will be deleted some data.
      * @param index     The row index will be deleted.
      */
-    public void deleteSheets(String worksheet, int index) {
+    public void deleteContent(String worksheet, int index) {
 
 //        delete by "read" and "update" methods
-        JSONArray sheetsContent = new JSONArray(readSheets(worksheet, ""));
+        JSONArray sheetsContent = new JSONArray(readContent(worksheet, ""));
         int columnNum = new JSONArray(sheetsContent).get(0).toString().length();
 
         ArrayList<Object> list = new ArrayList<>();
@@ -245,7 +250,7 @@ public class SheetsHandler {
             list.add("");
         }
         List<List<Object>> contents = List.of(list);
-        updateSheets(worksheet, index + ":" + index, contents);
+        updateContent(worksheet, index + ":" + index, contents);
 
 
 //        delete by "DeleteDimensionRequest"
@@ -278,25 +283,25 @@ public class SheetsHandler {
      */
     public static void main(String[] args) {
         // read
-//        String response = new SheetsHandler("java").readSheets("FAQ", "A1:C3");
-//        System.out.println(response);
+        String response = new SheetsHandler("java").readContent("FAQ", "A1:C3");
+        System.out.println(response);
 
         // read by key-value
-        JSONObject value = new SheetsHandler("java").readByKey("FAQ", "常見問題_Java亂碼");
+        JSONObject value = new SheetsHandler("java").readContentByKey("FAQ", "常見問題_Java亂碼");
         System.out.println(value);
 
         // create
-//        List<List<Object>> lists = new ArrayList<>(List.of(new ArrayList<>(List.of("aaa", 123, true))));
-//        new SheetsHandler("java").createSheets("FAQ", lists);
+        List<List<Object>> lists = new ArrayList<>(List.of(new ArrayList<>(List.of("aaa", 123, true))));
+        new SheetsHandler("java").createContent("FAQ", lists);
 
         // update
-//        List<List<Object>> lists2 = new ArrayList<>(List.of(
-//                new ArrayList<>(List.of("00111", "00222", "00333")),
-//                new ArrayList<>(List.of("00444", "00555", "00666"))));
-//        new SheetsHandler("java").updateSheets("FAQ", "A17:C18", lists2);
+        List<List<Object>> lists2 = new ArrayList<>(List.of(
+                new ArrayList<>(List.of("00111", "00222", "00333")),
+                new ArrayList<>(List.of("00444", "00555", "00666"))));
+        new SheetsHandler("java").updateContent("FAQ", "A17:C18", lists2);
 
         // delete
-//        new SheetsHandler("java").deleteSheets("FAQ", 17);
-//        new SheetsHandler("java").deleteSheets("FAQ", 18);
+        new SheetsHandler("java").deleteContent("FAQ", 17);
+        new SheetsHandler("java").deleteContent("FAQ", 18);
     }
 }
