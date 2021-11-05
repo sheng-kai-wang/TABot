@@ -68,14 +68,14 @@ public class Neo4jHandler implements AutoCloseable {
     /**
      * Called by the following other functions.
      *
-     * @param cypher for do something on neo4f.
+     * @param cypherString for do something on neo4f.
      * @return Get the returned data from neo4j.
      */
-    public List<String> doCypher(final String cypher) {
+    public List<String> doCypher(final String cypherString) {
         try (Session session = driver.session()) {
             List<String> response = session.writeTransaction((Transaction tx) -> {
                 List<String> dataList = new ArrayList<>();
-                final Result result = tx.run(cypher);
+                final Result result = tx.run(cypherString);
                 while (result.hasNext()) {
                     Record record = result.next();
                     dataList.add(gson.toJson(record));
@@ -94,7 +94,7 @@ public class Neo4jHandler implements AutoCloseable {
      * @return Use JSON string to describe the Section list in the Chapter.
      */
     public String readCurriculumMap(String chapterName) {
-        String cypherString = cypherData.get("read-curriculum-map").replace("<chapterName>", chapterName);
+        String cypherString = cypherData.get("read-curriculum-map").replace("<<chapterName>>", chapterName);
         List<String> cypherResponses = doCypher(cypherString);
         List<String> results = new ArrayList<>();
         for (String cypherResponse : cypherResponses) {
@@ -110,7 +110,7 @@ public class Neo4jHandler implements AutoCloseable {
      * @return the URL of the Section's slideshow.
      */
     public String readSlideshow(String sectionName) {
-        String cypherString = cypherData.get("read-slideshow").replace("<sectionName>", sectionName);
+        String cypherString = cypherData.get("read-slideshow").replace("<<sectionName>>", sectionName);
         List<String> cypherResponses = doCypher(cypherString);
         return JsonPath.read(cypherResponses.get(0), "$.values[0].val");
     }
@@ -124,9 +124,9 @@ public class Neo4jHandler implements AutoCloseable {
      */
     public void addReference(String sectionName, String referenceName, String referenceURL) {
         String cypherString = cypherData.get("add-reference")
-                .replace("<sectionName>", sectionName)
-                .replace("<referenceName>", referenceName)
-                .replace("<referenceURL>", referenceURL);
+                .replace("<<sectionName>>", sectionName)
+                .replace("<<referenceName>>", referenceName)
+                .replace("<<referenceURL>>", referenceURL);
         doCypher(cypherString);
     }
 
@@ -137,7 +137,7 @@ public class Neo4jHandler implements AutoCloseable {
      * @return the test belonging to weakness.
      */
     public String readPersonalizedTest(String studentID) {
-        String cypherString = cypherData.get("read-personalized-test").replace("<studentID>", studentID);
+        String cypherString = cypherData.get("read-personalized-test").replace("<<studentID>>", studentID);
         List<String> cypherResponses = doCypher(cypherString);
         List<String> results = new ArrayList<>();
         for (String cypherResponse : cypherResponses) {
@@ -153,7 +153,7 @@ public class Neo4jHandler implements AutoCloseable {
      * @return the Section belonging to weakness.
      */
     public String readPersonalizedSubjectMatter(String studentID) {
-        String cypherString = cypherData.get("read-personalized-subject-matter").replace("<studentID>", studentID);
+        String cypherString = cypherData.get("read-personalized-subject-matter").replace("<<studentID>>", studentID);
         List<String> cypherResponses = doCypher(cypherString);
         Set<String> results = new HashSet<>();
         for (String cypherResponse : cypherResponses) {
@@ -167,22 +167,22 @@ public class Neo4jHandler implements AutoCloseable {
      */
     public static void main(String[] args) {
 //        查課程地圖
-//        String result = new Neo4jHandler().readCurriculumMap("Methods");
-//        System.out.println("result: " + result);
+        String result = new Neo4jHandler().readCurriculumMap("Methods");
+        System.out.println("result: " + result);
 
 //        查投影片
-//        String result2 = new Neo4jHandler().readSlideshow("Introducing enum Types");
-//        System.out.println("result: " + result2);
+        String result2 = new Neo4jHandler().readSlideshow("Introducing enum Types");
+        System.out.println("result: " + result2);
 
 //        擴增課程地圖
-//        new Neo4jHandler().addReference("Control Statements", "test", "testURL");
+        new Neo4jHandler().addReference("Control Statements", "test", "testURL");
 
 //        查個人化考題
-//        String result3 = new Neo4jHandler().readPersonalizedTest("0076D053");
-//        System.out.println(result3);
+        String result3 = new Neo4jHandler().readPersonalizedTest("0076D053");
+        System.out.println(result3);
 
 //        查個人化教材
-//        String result4 = new Neo4jHandler().readPersonalizedSubjectMatter("0076D053");
-//        System.out.println("result: " + result4);
+        String result4 = new Neo4jHandler().readPersonalizedSubjectMatter("0076D053");
+        System.out.println("result: " + result4);
     }
 }

@@ -2,29 +2,29 @@
 
 #查課程地圖
 read-curriculum-map: |
-  MATCH (:Chapter {name: "<chapterName>"})-[:Item]->(s:Section)
+  MATCH (:Chapter {name: "<<chapterName>>"})-[:Item]->(s:Section)
   RETURN s
 
 #查投影片
 read-slideshow: |
-  MATCH (s:Section {name: "<sectionName>"})
+  MATCH (s:Section {name: "<<sectionName>>"})
   RETURN s.URL
 
 #擴增課程地圖 maybe variable-length arguments
 add-reference: |
-  MERGE (ref:Reference {name: "<referenceName>", URL:"<referenceURL>"})
+  MERGE (ref:Reference {name: "<<referenceName>>", URL:"<<referenceURL>>"})
   WITH ref
-  MATCH (s:Section {name: "<sectionName>"})-[:Item]-(c:Chapter)
+  MATCH (s:Section {name: "<<sectionName>>"})-[:Item]-(c:Chapter)
   MERGE (ref)<-[:Reference]-(s)
   MERGE (ref)<-[:Reference]-(c)
 
 #查個人化考題
 read-personalized-test: |
-  MATCH (:Student {name:"<studentID>"})-[:Weakness]-(t:Test)
+  MATCH (:Student {name:"<<studentID>>"})-[:Weakness]-(t:Test)
   RETURN t
 
 #查個人化教材 目前neo4j缺範例程式、練習題 所以暫時無法實作
 read-personalized-subject-matter: |
-  MATCH (:Student {name:"<studentID>"})-[:Weakness]-(t:Test)
+  MATCH (:Student {name:"<<studentID>>"})-[:Weakness]-(t:Test)
   MATCH (t)-[:Test]-(s:Section)
   RETURN s
