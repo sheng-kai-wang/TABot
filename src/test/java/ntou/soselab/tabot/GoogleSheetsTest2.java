@@ -25,7 +25,7 @@ public class GoogleSheetsTest2 {
     private static final String APPLICATION_NAME = "Goog+le Sheets API";
     private static final String SPREADSHEET_ID = "1sqlqVZ-JoCJ27U4M_7oxhTz8XFuIkNoE-F-bVgKrglQ";
     private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
-    private static final String CREDENTIALS_FILE_PATH = "/oath2.0.json";
+    private static final String CREDENTIALS_FILE_PATH = "/oauth2.0.json";
 
 
 
