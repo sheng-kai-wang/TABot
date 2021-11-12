@@ -54,8 +54,8 @@ public class SheetsHandler {
         }
 
         this.sheetsService = getSheetsService();
-
         this.gson = new Gson();
+        trimWorksheet();
     }
 
     /**
@@ -135,6 +135,37 @@ public class SheetsHandler {
 //            e.printStackTrace();
 //        }
 //        return null;
+    }
+
+    /**
+     * Clear the unwanted content in the worksheet like "(blank)", "..."
+     */
+    public void trimWorksheet() {
+        List<Sheet> worksheetList = null;
+        try {
+            worksheetList = sheetsService.spreadsheets()
+                    .get(spreadsheetId)
+                    .setIncludeGridData(false)
+                    .execute()
+                    .getSheets();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        assert worksheetList != null;
+        for (Sheet sheet : worksheetList) {
+            String titleString = sheet.getProperties().getTitle();
+            JSONArray sheetsContent = new JSONArray(readContent(titleString, ""));
+            int columnNum = new JSONArray(new JSONArray(sheetsContent).get(0).toString()).length();
+            int rowNum = new JSONArray(sheetsContent).length();
+            List<List<Object>> contents = new ArrayList<>();
+            for (int i = 0; i < rowNum; i++) {
+                contents.add(new ArrayList<>(List.of("", "", "")));
+            }
+            updateContent(titleString,
+                    (char) (65 + columnNum) + "1" + ":" + (char) (65 + columnNum + 2) + rowNum,
+                    contents);
+        }
     }
 
     /**
@@ -243,7 +274,7 @@ public class SheetsHandler {
 
 //        delete by "read" and "update" methods
         JSONArray sheetsContent = new JSONArray(readContent(worksheet, ""));
-        int columnNum = new JSONArray(sheetsContent).get(0).toString().length();
+        int columnNum = new JSONArray(new JSONArray(sheetsContent).get(0).toString()).length();
 
         ArrayList<Object> list = new ArrayList<>();
         for (int i = 0; i < columnNum; i++) {
@@ -282,26 +313,28 @@ public class SheetsHandler {
      * Just a main function for test.
      */
     public static void main(String[] args) {
+        new SheetsHandler("Java");
         // read
-        String response = new SheetsHandler("java").readContent("FAQ", "A1:C3");
+//        String response = new SheetsHandler("Java").readContent("FAQ", "A1:C3");
+        String response = new SheetsHandler("Java").readContent("FAQ", "");
         System.out.println(response);
 
         // read by key-value
-        JSONObject value = new SheetsHandler("java").readContentByKey("FAQ", "常見問題_Java亂碼");
+        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "常見問題_Java亂碼");
         System.out.println(value);
 
         // create
         List<List<Object>> lists = new ArrayList<>(List.of(new ArrayList<>(List.of("aaa", 123, true))));
-        new SheetsHandler("java").createContent("FAQ", lists);
+        new SheetsHandler("Java").createContent("FAQ", lists);
 
         // update
         List<List<Object>> lists2 = new ArrayList<>(List.of(
                 new ArrayList<>(List.of("00111", "00222", "00333")),
                 new ArrayList<>(List.of("00444", "00555", "00666"))));
-        new SheetsHandler("java").updateContent("FAQ", "A17:C18", lists2);
+        new SheetsHandler("Java").updateContent("FAQ", "A17:C18", lists2);
 
         // delete
-        new SheetsHandler("java").deleteContent("FAQ", 17);
-        new SheetsHandler("java").deleteContent("FAQ", 18);
+        new SheetsHandler("Java").deleteContent("FAQ", 17);
+        new SheetsHandler("Java").deleteContent("FAQ", 18);
     }
 }
