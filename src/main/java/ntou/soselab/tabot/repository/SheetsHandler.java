@@ -284,7 +284,7 @@ public class SheetsHandler {
         updateContent(worksheet, index + ":" + index, contents);
 
 
-//        delete by "DeleteDimensionRequest"
+//        Delete by "DeleteDimensionRequest"
 //        response = sheetsService.spreadsheets().values()
 //                    .get(spreadsheetId, range)
 //                    .execute();
@@ -307,34 +307,5 @@ public class SheetsHandler {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-    }
-
-    /**
-     * Just a main function for test.
-     */
-    public static void main(String[] args) {
-        new SheetsHandler("Java");
-        // read
-//        String response = new SheetsHandler("Java").readContent("FAQ", "A1:C3");
-        String response = new SheetsHandler("Java").readContent("FAQ", "");
-        System.out.println(response);
-
-        // read by key-value
-        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "常見問題_Java亂碼");
-        System.out.println(value);
-
-        // create
-        List<List<Object>> lists = new ArrayList<>(List.of(new ArrayList<>(List.of("aaa", 123, true))));
-        new SheetsHandler("Java").createContent("FAQ", lists);
-
-        // update
-        List<List<Object>> lists2 = new ArrayList<>(List.of(
-                new ArrayList<>(List.of("00111", "00222", "00333")),
-                new ArrayList<>(List.of("00444", "00555", "00666"))));
-        new SheetsHandler("Java").updateContent("FAQ", "A17:C18", lists2);
-
-        // delete
-        new SheetsHandler("Java").deleteContent("FAQ", 17);
-        new SheetsHandler("Java").deleteContent("FAQ", 18);
     }
 }
