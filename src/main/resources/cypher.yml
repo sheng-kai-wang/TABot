@@ -2,8 +2,8 @@
 
 #查課程地圖
 read-curriculum-map: |
-  MATCH (:Chapter {name: "<<chapterName>>"})-[:Item]->(s:Section)
-  RETURN s
+  MATCH ({name: "<<queryName>>"})-[:Item]-(n)
+  RETURN n
 
 #查投影片
 read-slideshow: |

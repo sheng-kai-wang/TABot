@@ -37,7 +37,7 @@ public class SheetsHandler {
      * we configure member variables by application.yml,
      * and initialize the "getSheetsService" method.
      *
-     * @param course like "SE" or "java"
+     * @param course like "SE" or "Java"
      */
     public SheetsHandler(String course) {
         InputStream inputStream = getClass().getResourceAsStream("/application.yml");

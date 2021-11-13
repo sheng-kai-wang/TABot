@@ -3,7 +3,6 @@ package ntou.soselab.tabot.repository;
 import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
 import org.neo4j.driver.*;
-import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
@@ -14,7 +13,6 @@ import java.util.*;
  * Cypher statement for curriculum map related functions,
  * currently java and SE are in the same database.
  */
-@Service
 public class Neo4jHandler implements AutoCloseable {
 
     private String url;
@@ -29,12 +27,14 @@ public class Neo4jHandler implements AutoCloseable {
      * It's the constructor,
      * we configure member variables by application.yml,
      * and "cypher" statement is come from cypher.yml.
+     *
+     * @param course like "SE" or "Java"
      */
-    public Neo4jHandler() {
+    public Neo4jHandler(String course) {
         InputStream configInputStream = getClass().getResourceAsStream("/application.yml");
         Map<String, Map<String, String>> configData = new Yaml().load(configInputStream);
 
-        this.url = configData.get("neo4j").get("url");
+        this.url = configData.get("neo4j").get(course + "Url");
         this.username = configData.get("neo4j").get("username");
         this.password = configData.get("neo4j").get("password");
         this.driver = GraphDatabase.driver(url, AuthTokens.basic(username, password));
@@ -82,7 +82,7 @@ public class Neo4jHandler implements AutoCloseable {
                 }
                 return dataList;
             });
-            close();
+            System.out.println("response: " + response);
             return response;
         }
     }
@@ -90,13 +90,13 @@ public class Neo4jHandler implements AutoCloseable {
     /**
      * read curriculum map content.
      *
-     * @param chapterName the Chapter name of curriculum map you want to read.
+     * @param queryName the Chapter name of curriculum map you want to read.
      * @return Use JSON string to describe the Section list in the Chapter.
      */
-    public String readCurriculumMap(String chapterName) {
-        String cypherString = cypherData.get("read-curriculum-map").replace("<<chapterName>>", chapterName);
+    public String readCurriculumMap(String queryName) {
+        String cypherString = cypherData.get("read-curriculum-map").replace("<<queryName>>", queryName);
         List<String> cypherResponses = doCypher(cypherString);
-        List<String> results = new ArrayList<>();
+        Set<String> results = new HashSet<>();
         for (String cypherResponse : cypherResponses) {
             results.add(JsonPath.read(cypherResponse, "$.values[0].adapted.properties.name.val"));
         }
@@ -160,29 +160,5 @@ public class Neo4jHandler implements AutoCloseable {
             results.add(JsonPath.read(cypherResponse, "$.values[0].adapted.properties.name.val"));
         }
         return gson.toJson(results);
-    }
-
-    /**
-     * Just a main function for test.
-     */
-    public static void main(String[] args) {
-//        查課程地圖
-        String result = new Neo4jHandler().readCurriculumMap("Methods");
-        System.out.println("result: " + result);
-
-//        查投影片
-        String result2 = new Neo4jHandler().readSlideshow("Introducing enum Types");
-        System.out.println("result: " + result2);
-
-//        擴增課程地圖
-        new Neo4jHandler().addReference("Control Statements", "test", "testURL");
-
-//        查個人化考題
-        String result3 = new Neo4jHandler().readPersonalizedTest("0076D053");
-        System.out.println(result3);
-
-//        查個人化教材
-        String result4 = new Neo4jHandler().readPersonalizedSubjectMatter("0076D053");
-        System.out.println("result: " + result4);
     }
 }
