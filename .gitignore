@@ -1,6 +1,7 @@
 HELP.md
 target/
-!.mvn/wrapper/maven-wrapper.jar
+token/
+.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -34,5 +35,8 @@ build/
 
 ## ignore properties setting
 application.properties
-## ignore whatever setting in json format
-*.json
+
+## configuration file
+application.yml
+credentials.json
+oauth2.0.json
