@@ -1,19 +1,21 @@
 package ntou.soselab.tabot.Entity.Rasa;
 
 public class Intent {
+    /* chat username */
     public String recipient_id;
-    public IntentSet text;
+    /* response object from rasa */
+    public IntentSet custom;
 
-    public void setText(IntentSet text) {
-        this.text = text;
+    public void setCustom(IntentSet custom) {
+        this.custom = custom;
     }
 
     public void setRecipient_id(String recipient_id) {
         this.recipient_id = recipient_id;
     }
 
-    public IntentSet getText() {
-        return text;
+    public IntentSet getCustom() {
+        return custom;
     }
 
     public String getRecipient_id() {
@@ -24,7 +26,7 @@ public class Intent {
     public String toString() {
         return "Intent{" +
                 "recipient_id='" + recipient_id + '\'' +
-                ", text=" + text +
+                ", custom=" + custom +
                 '}';
     }
 
