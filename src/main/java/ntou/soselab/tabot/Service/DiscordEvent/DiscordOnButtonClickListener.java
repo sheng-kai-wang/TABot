@@ -27,16 +27,17 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
     }
 
     private void testButton(ButtonClickEvent event){
-        if (event.getComponentId().equals("yes")){
-            event.reply("Yes Button clicked.").queue();
-        } else if (event.getComponentId().equals("no")){
-//            event.editMessage("no, Update stuff.").queue();
-            event.replyEmbeds(new EmbedBuilder().setDescription("You clicked no.").build()).queue();
-//            event.editButton(event.getButton().asDisabled()).queue();
-            event.editButton(null).queue();
-//            event.editButton(event);
-//            event.editMessage(new MessageBuilder(event.getMessage()).setActionRows().build()).queue();
-        }
-
+        String componentId = event.getComponentId();
+//        if (event.getComponentId().equals("yes")){
+//            event.reply("Yes Button clicked.").queue();
+//        } else if (event.getComponentId().equals("no")){
+////            event.editMessage("no, Update stuff.").queue();
+//            event.replyEmbeds(new EmbedBuilder().setDescription("You clicked no.").build()).queue();
+////            event.editButton(event.getButton().asDisabled()).queue();
+//            event.editButton(null).queue();
+////            event.editButton(event);
+////            event.editMessage(new MessageBuilder(event.getMessage()).setActionRows().build()).queue();
+//        }
+        /* personal quiz handle */
     }
 }

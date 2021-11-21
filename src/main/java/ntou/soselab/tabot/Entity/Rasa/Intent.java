@@ -1,7 +1,7 @@
 package ntou.soselab.tabot.Entity.Rasa;
 
 public class Intent {
-    /* chat username */
+    /* chat user id, assume this is 'discord user' id */
     public String recipient_id;
     /* response object from rasa */
     public IntentSet custom;

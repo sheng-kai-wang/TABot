@@ -8,6 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 //@SpringBootTest
 class TaBotApplicationTests {
@@ -29,6 +32,39 @@ class TaBotApplicationTests {
 //        System.out.println(test);
         System.out.println(testMsg2);
         System.out.println(detector.detectLanguageOf(testMsg2));
+    }
+
+    @Test
+    void unicodeTest(){
+        String test = "\u597d\u7684";
+        System.out.println(test);
+    }
+
+    @Test
+    void matcherTest(){
+        String test = "0000A000-abcd";
+        String result = "";
+        Pattern pattern = Pattern.compile("^[0-9A-Z]{8}-(.*)$");
+        Matcher matcher = pattern.matcher(test);
+        matcher.find();
+        result = matcher.group(1);
+//        if(matcher.find())
+//            result = matcher.group(1);
+        System.out.println(result);
+    }
+
+    @Test
+    void allMatchTest(){
+        List<String> components = Arrays.asList("[Sender ID]", "[Ref]", "[Channel]");
+        String test = "[Sender ID][Channel]123";
+        System.out.println(components.stream().allMatch(test::contains));
+    }
+
+    @Test
+    void extractIdTest(){
+        String rawMessage = "[fads]asfds \nafeafea \nfaegfa \n[Message ID] 456789\ntgfaga4eg";
+        String temp = Arrays.stream(rawMessage.split("\n")).filter(line -> line.strip().startsWith("[Message ID] ")).findFirst().get().replace("[Message ID] ", "").strip();
+        System.out.println(temp);
     }
 
 }

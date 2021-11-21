@@ -4,7 +4,7 @@ public class IntentSet {
     public String intent;
     public String entity;
     public boolean reviewResult;
-    public String target;
+    public String responseMessage;
     public boolean endOfChat;
 
     public void setIntent(String intent) {
@@ -19,12 +19,12 @@ public class IntentSet {
         this.endOfChat = endOfChat;
     }
 
-    public void setTarget(String target) {
-        this.target = target;
-    }
-
     public void setReviewResult(boolean reviewResult) {
         this.reviewResult = reviewResult;
+    }
+
+    public void setResponseMessage(String responseMessage) {
+        this.responseMessage = responseMessage;
     }
 
     public String getIntent() {
@@ -39,12 +39,12 @@ public class IntentSet {
         return endOfChat;
     }
 
-    public String getTarget() {
-        return target;
-    }
-
     public boolean isReviewResult() {
         return reviewResult;
+    }
+
+    public String getResponseMessage() {
+        return responseMessage;
     }
 
     public boolean isEndOfChat() {
@@ -57,7 +57,7 @@ public class IntentSet {
                 "intent='" + intent + '\'' +
                 ", entity='" + entity + '\'' +
                 ", reviewResult=" + reviewResult +
-                ", target='" + target + '\'' +
+                ", responseMessage='" + responseMessage + '\'' +
                 ", endOfChat=" + endOfChat +
                 '}';
     }

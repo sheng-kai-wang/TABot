@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import ntou.soselab.tabot.Service.DiscordEvent.DiscordGeneralEventListener;
 import ntou.soselab.tabot.Service.DiscordEvent.DiscordOnButtonClickListener;
 import ntou.soselab.tabot.Service.DiscordEvent.DiscordOnMessageListener;
+import ntou.soselab.tabot.Service.DiscordEvent.DiscordSlashCommandListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -26,13 +27,15 @@ public class JDAConnect {
     private DiscordOnMessageListener onMessageListener;
     private DiscordOnButtonClickListener buttonListener;
     private DiscordGeneralEventListener generalEventListener;
+    private DiscordSlashCommandListener slashCommandListener;
     private final String appToken;
 
     @Autowired
-    public JDAConnect(Environment env, DiscordOnMessageListener onMessageListener, DiscordGeneralEventListener generalEventListener, DiscordOnButtonClickListener buttonEvt){
+    public JDAConnect(Environment env, DiscordOnMessageListener onMessageListener, DiscordGeneralEventListener generalEventListener, DiscordOnButtonClickListener buttonEvt, DiscordSlashCommandListener slashCmdListener){
         this.onMessageListener = onMessageListener;
         this.buttonListener = buttonEvt;
         this.generalEventListener = generalEventListener;
+        this.slashCommandListener = slashCmdListener;
         this.appToken = env.getProperty("discord.application.token");
     }
 
@@ -65,6 +68,8 @@ public class JDAConnect {
         builder.addEventListeners(onMessageListener);
         // add customized Button onClick listener
         builder.addEventListeners(buttonListener);
+        // add customized slash command listener
+        builder.addEventListeners(slashCommandListener);
         jda = builder.build();
     }
 

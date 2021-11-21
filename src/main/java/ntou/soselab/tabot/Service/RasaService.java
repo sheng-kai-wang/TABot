@@ -1,5 +1,8 @@
 package ntou.soselab.tabot.Service;
 
+import com.github.pemistahl.lingua.api.Language;
+import com.github.pemistahl.lingua.api.LanguageDetector;
+import com.github.pemistahl.lingua.api.LanguageDetectorBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import ntou.soselab.tabot.Entity.Rasa.Intent;
@@ -16,11 +19,17 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class RasaService {
 
-    private final String rasaEndpoint;
+    private final String rasaChinese;
+    private final String rasaEnglish;
+    /* language detector */
+    private final LanguageDetector languageDetector;
 
     @Autowired
     public RasaService(Environment env){
-        this.rasaEndpoint = env.getProperty("env.setting.rasa.url");
+        this.rasaChinese = env.getProperty("env.setting.rasa.zh");
+        this.rasaEnglish = env.getProperty("env.setting.rasa.en");
+        // initialize language detector with english and chinese
+        this.languageDetector = LanguageDetectorBuilder.fromLanguages(Language.ENGLISH, Language.CHINESE).build();
     }
 
     /**
@@ -35,7 +44,14 @@ public class RasaService {
     public Intent analyze(String author, String msg){
         Gson gson = new Gson();
         RestTemplate template = new RestTemplate();
-        String path = rasaEndpoint + "/webhooks/rest/webhook";
+        String path;
+        // detect language type
+        String language = checkLanguage(msg);
+        // switch pipeline with different language
+        if(language.equals("zh"))
+            path = rasaChinese + "/webhooks/rest/webhook";
+        else
+            path = rasaEnglish + "/webhooks/rest/webhook";
 
         // setup request parameter
         JsonObject content = new JsonObject();
@@ -93,5 +109,25 @@ public class RasaService {
             output.append(second[i]);
         }
         return output.toString();
+    }
+
+    /**
+     * detect input message is in chinese or english
+     * @param msg input message
+     * @return 'zh' if chinese (default), 'en' if english
+     */
+    private String checkLanguage(String msg){
+        Language detectedLang = languageDetector.detectLanguageOf(msg);
+        System.out.println("[lang detect][conf]:" + languageDetector.computeLanguageConfidenceValues(msg));
+        if(detectedLang == Language.CHINESE){
+            System.out.println("[lang detect]: chinese.");
+            return "zh";
+        }
+        if(detectedLang == Language.ENGLISH){
+            System.out.println("[lang detect]: english.");
+            return "en";
+        }
+        /* return chinese by default */
+        return "zh";
     }
 }
