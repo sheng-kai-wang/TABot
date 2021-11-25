@@ -27,7 +27,7 @@ public class GoogleSheetsTest {
 
     @Test
     public void readByValueTest() {
-        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "常見問題_Java亂碼");
+        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "garbage_collection");
         System.out.println(value);
     }
 
