@@ -61,7 +61,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         if(event.getAuthor().isBot()) return; // ignore all message from bot
 
         // print received message
-        System.out.println(" ----- ");
+        System.out.println(" ================ ");
         System.out.println("[onMessage]: try to print received message.");
         System.out.println("> [content raw] " + event.getMessage().getContentRaw());
         System.out.println("> [content display] " + event.getMessage().getContentDisplay());
@@ -160,7 +160,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         /* ----- end of testing block ----- */
         System.out.println("[DEBUG][normal handle] " + rawMsg);
         // send message to rasa
-        Intent intent = rasa.analyze(event.getMember().getId(), rawMsg);
+        Intent intent = rasa.analyze(senderId, rawMsg);
         System.out.println(intent);
         // store current chatting status
         // todo: save/remove chat status

@@ -40,8 +40,15 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
         /* personal quiz handle */
         // todo: maybe need to check student id from discord id
         // get full quiz data from previous event
+        System.out.println("--- [DEBUG][onButton] triggered button id: " + componentId);
         String studentId = event.getUser().getId();
+        /* test block: change id */
+        System.out.println("##### change detected user id for testing purpose #####");
+        if(studentId.equals("286145047169335298"))
+            studentId = "0076D053";
+        System.out.println("--- [DEBUG][onButton] triggered student id: " + studentId);
         JsonObject quiz = IntentHandleService.ongoingQuizMap.get(studentId);
+        System.out.println("--- [DEBUG][onButton] retrieve quiz: " + quiz);
         String ansOpt = quiz.get("ans").getAsString();
         String ansContent = quiz.get("opt" + ansOpt).getAsString();
         if(componentId.equals(ansOpt)){
@@ -49,7 +56,7 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
             event.reply("Correct !").queue();
         }else{
             // wrong
-            event.reply("Wrong. Correct answer is " + ansContent).queue();
+            event.reply("Wrong. Correct answer is `" + ansContent + "`").queue();
         }
 //        switch(componentId){
 //            case "A":

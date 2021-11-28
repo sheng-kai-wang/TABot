@@ -106,7 +106,7 @@ public class IntentHandleService {
         // todo: add Google form link for suggestion
         MessageBuilder builder = new MessageBuilder();
         builder.append("That's sound good, check out link below to contribute material, thanks.");
-        builder.append(new EmbedBuilder().addField("Suggest form", "", false).build());
+        builder.setEmbeds(new EmbedBuilder().addField("Suggest form", "", false).build());
         return builder.build();
     }
 
@@ -139,10 +139,10 @@ public class IntentHandleService {
         // check query result from neo4j
         String chapterTitle = removeBrackets(new Neo4jHandler("Java").readCurriculumMap(sectionName));
         System.out.println("--- [DEBUG][search class map][neo4j] found correspond chapter title: " + chapterTitle);
-        String slideLink = new Neo4jHandler("Java").readSlideshow(sectionName);
-        System.out.println("--- [DEBUG][search class map][neo4j] found slideLink: " + slideLink);
+        String slideLink = new Neo4jHandler("Java").readSlideshowByName(sectionName);
+        System.out.println("--- [DEBUG][search class map][neo4j] found section slideLink: " + slideLink);
         // build response message
-        Message result = generateSearchClassMapResponseMessage(sectionName, sectionName, slideLink);
+        Message result = generateSearchClassMapResponseMessage(sectionName, chapterTitle, slideLink);
         return result;
     }
 
@@ -150,16 +150,16 @@ public class IntentHandleService {
      * generate response message for class map search
      * response message should contain keyword, correspond chapter title and slide link
      * chapter title and slide link will be placed in an embed object
-     * @param keyword
+     * @param sectionName
      * @param chapterTitle correspond chapter title
      * @param slideLink slide link
      * @return
      */
-    private Message generateSearchClassMapResponseMessage(String keyword, String chapterTitle, String slideLink){
+    private Message generateSearchClassMapResponseMessage(String sectionName, String chapterTitle, String slideLink){
         MessageBuilder builder = new MessageBuilder();
-        builder.append("Your are searching about '" + keyword + "'.\n");
+        builder.append("Looks like you are searching about `" + sectionName + "` .\n");
         builder.append("Maybe you can checkout more from link below. :sunglasses:");
-        builder.setEmbeds(new EmbedBuilder().addField("", "[" + chapterTitle + "](" + slideLink + ")", false).build());
+        builder.setEmbeds(new EmbedBuilder().addField("Section '" + sectionName + "' from Chapter '" + chapterTitle + "'", "[" + sectionName + "](" + slideLink + ")", false).build());
         return builder.build();
     }
 
@@ -205,7 +205,7 @@ public class IntentHandleService {
         String intentName = personalIntent.getCustom().getIntent();
         String scoreQueryTarget = personalIntent.getCustom().getEntity();
         // check if entity extraction successfully captured values
-        if(scoreQueryTarget == null || scoreQueryTarget.equals("None") || scoreQueryTarget.isEmpty())
+        if(intentName.contains("score") && (scoreQueryTarget == null || scoreQueryTarget.equals("None") || scoreQueryTarget.isEmpty()))
             return sendErrorMessage(personalIntent);
         switch(intentName){
             case "personal_score_query":
@@ -233,11 +233,11 @@ public class IntentHandleService {
         // search neo4j for each slide data
         HashMap<String, String> resultMap = new HashMap<>();
         for(JsonElement chapterName: queryResult){
-            String chapterData = new Neo4jHandler("Java").readSlideshow(chapterName.getAsString());
+            String chapterData = new Neo4jHandler("Java").readSlideshowByName(chapterName.getAsString());
             System.out.println("--- [DEBUG][personal textbook] chapterData: " + chapterData);
             resultMap.put(chapterName.getAsString(), chapterData);
         }
-        return generatePersonalTextbookMsg(resultMap);
+        return generatePersonalTextbookMsg(resultMap, queryResp);
     }
 
     /**
@@ -246,15 +246,25 @@ public class IntentHandleService {
      * @param textbookMap
      * @return
      */
-    private Message generatePersonalTextbookMsg(HashMap<String, String> textbookMap){
+    private Message generatePersonalTextbookMsg(HashMap<String, String> textbookMap, String titleList){
+        System.out.println("[DEBUG][personal textbook] start to generate response message.");
         MessageBuilder builder = new MessageBuilder();
-        builder.append("I found some textbook information just for you !");
+        builder.append("I found some textbook information just for you !\n");
+        builder.append("Looks like you might want to checkout " + titleList);
+        builder.setEmbeds(getTextbookEmbedList(textbookMap));
+        return builder.build();
+    }
+
+    private List<MessageEmbed> getTextbookEmbedList(HashMap<String, String> textbookMap){
+        ArrayList<MessageEmbed> resultList = new ArrayList<>();
         for(Map.Entry<String, String> textbook: textbookMap.entrySet()){
             String name = textbook.getKey();
+            System.out.println("--- [DEBUG][generate textbook resp msg] textbook name: " + name);
             String link = textbook.getValue();
-            builder.append(new EmbedBuilder().addField(name, "[link](" + link + ")", false).build());
+            System.out.println("--- [DEBUG][generate textbook resp msg] textbook link: " + link);
+            resultList.add(new EmbedBuilder().addField(name, "[textbook link](" + link + ")", false).build());
         }
-        return builder.build();
+        return resultList;
     }
 
     public Message getPersonalQuiz(String studentId){
@@ -358,7 +368,7 @@ public class IntentHandleService {
      */
     private Message generatePersonalScoreQueryResponse(String score){
         MessageBuilder builder = new MessageBuilder();
-        builder.append("Your score of is **" + score + "**");
+        builder.append("Your score is **" + score + "**");
         return builder.build();
     }
 
