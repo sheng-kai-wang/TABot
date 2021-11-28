@@ -1,10 +1,9 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
+import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.components.Button;
+import ntou.soselab.tabot.Service.IntentHandleService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -23,10 +22,10 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
 
     @Override
     public void onButtonClick(@NotNull ButtonClickEvent event) {
-        testButton(event);
+        handleQuizButton(event);
     }
 
-    private void testButton(ButtonClickEvent event){
+    private void handleQuizButton(ButtonClickEvent event){
         String componentId = event.getComponentId();
 //        if (event.getComponentId().equals("yes")){
 //            event.reply("Yes Button clicked.").queue();
@@ -39,5 +38,33 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
 ////            event.editMessage(new MessageBuilder(event.getMessage()).setActionRows().build()).queue();
 //        }
         /* personal quiz handle */
+        // todo: maybe need to check student id from discord id
+        // get full quiz data from previous event
+        String studentId = event.getUser().getId();
+        JsonObject quiz = IntentHandleService.ongoingQuizMap.get(studentId);
+        String ansOpt = quiz.get("ans").getAsString();
+        String ansContent = quiz.get("opt" + ansOpt).getAsString();
+        if(componentId.equals(ansOpt)){
+            // correct
+            event.reply("Correct !").queue();
+        }else{
+            // wrong
+            event.reply("Wrong. Correct answer is " + ansContent).queue();
+        }
+//        switch(componentId){
+//            case "A":
+//                break;
+//            case "B":
+//                break;
+//            case "C":
+//                break;
+//            case "D":
+//                break;
+//            default:
+//                event.reply("Something goes wrong. please report this to TA, thanks.").queue();
+//                System.out.println("[DEBUG][onButton click] unavailable option.");
+//        }
+        // remove quiz from ongoing quiz map
+        IntentHandleService.ongoingQuizMap.remove(studentId);
     }
 }

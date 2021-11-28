@@ -148,13 +148,13 @@ class TaBotApplicationTests {
             result.addProperty(keyName, value);
         }
         System.out.println(result);
-//        System.out.println(result.get("question").getAsString());
-//        System.out.println(result.get("ans").getAsString());
-//        System.out.println(result.get("optA").getAsString());
-        for(Map.Entry<String, JsonElement> entry: result.entrySet()){
-            System.out.println(entry.getKey());
-            System.out.println(entry.getValue().getAsString());
-        }
+        System.out.println(result.get("question").getAsString());
+        System.out.println(result.get("ans").getAsString());
+        System.out.println(result.get("optA").getAsString());
+//        for(Map.Entry<String, JsonElement> entry: result.entrySet()){
+//            System.out.println(entry.getKey());
+//            System.out.println(entry.getValue().getAsString());
+//        }
     }
 
     @Test

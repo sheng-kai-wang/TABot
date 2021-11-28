@@ -28,18 +28,24 @@ import java.util.regex.Pattern;
 @Service
 public class IntentHandleService {
 
+    public static HashMap<String, JsonObject> ongoingQuizMap;
+
     @Autowired
     public IntentHandleService(Environment env){
+        ongoingQuizMap = new HashMap<>();
     }
 
     /**
      * declare what bot should do with each intent
+     * <br>Note: expect STUDENT id passed as parameter
+     * @param userId student id
      * @param intent incoming intent
      */
     public Message checkIntent(String userId, Intent intent){
         String intentName = intent.getCustom().getIntent();
         switch (intentName){
             case "greet":
+                System.out.println("[DEBUG]");
                 return generateGreetingsMessage();
             case "classmap_search":
                 return searchClassMap(intent);
@@ -80,6 +86,7 @@ public class IntentHandleService {
         String faqName = faqIntent.getCustom().getIntent().replace("faq/", "");
         // call google sheet api to query correspond result of faq
         JSONObject searchResult = new SheetsHandler("Java").readContentByKey("FAQ", faqName);
+        System.out.println("--- [DEBUG][faq] searchResult: " + searchResult);
         String response = searchResult.getJSONArray("answer").get(0).toString();
         return new MessageBuilder().append(response).build();
     }
@@ -120,18 +127,22 @@ public class IntentHandleService {
      */
     private Message searchClassMap(Intent intent){
         String queryTarget = intent.getCustom().getEntity();
+        System.out.println("--- [DEBUG][search class map] try to query '" + queryTarget + "'.");
         // check if entity extraction successfully captured values
         if(queryTarget == null || queryTarget.equals("None") || queryTarget.isEmpty())
             return sendErrorMessage(intent);
-        // check keyword from Google sheet
-        String keyword = searchKeywordSheet(queryTarget);
-        if(keyword.isEmpty())
+        // check section name from Google sheet 'keyword' page
+        String sectionName = searchKeywordSheet(queryTarget);
+        System.out.println("--- [DEBUG][search class map] found section '" + sectionName + "' from google sheet.");
+        if(sectionName.isEmpty())
             return sendErrorMessage(intent);
         // check query result from neo4j
-        String chapterTitle = removeBrackets(new Neo4jHandler("Java").readCurriculumMap(keyword));
-        String slideLink = new Neo4jHandler("Java").readSlideshow(chapterTitle);
+        String chapterTitle = removeBrackets(new Neo4jHandler("Java").readCurriculumMap(sectionName));
+        System.out.println("--- [DEBUG][search class map][neo4j] found correspond chapter title: " + chapterTitle);
+        String slideLink = new Neo4jHandler("Java").readSlideshow(sectionName);
+        System.out.println("--- [DEBUG][search class map][neo4j] found slideLink: " + slideLink);
         // build response message
-        Message result = generateSearchClassMapResponseMessage(keyword, chapterTitle, slideLink);
+        Message result = generateSearchClassMapResponseMessage(sectionName, sectionName, slideLink);
         return result;
     }
 
@@ -169,6 +180,7 @@ public class IntentHandleService {
 
     private String searchKeywordSheet(String target){
         String rawKeywordSheet = new SheetsHandler("Java").readContent("Keyword", "");
+        System.out.println("--- [DEBUG][class map search] retrieve all keyword data from google sheet.");
         Gson gson = new Gson();
         JsonArray keywordSheet = gson.fromJson(rawKeywordSheet, JsonArray.class);
         String resultKeyword = "";
@@ -182,6 +194,13 @@ public class IntentHandleService {
         return resultKeyword;
     }
 
+    /**
+     * handle personal-related function, include score query, textbook query and quiz query<br>
+     * Note: expect student id as parameter, NOT discord id
+     * @param studentId student id
+     * @param personalIntent detected intent
+     * @return result Message
+     */
     public Message personalFuncHandler(String studentId, Intent personalIntent){
         String intentName = personalIntent.getCustom().getIntent();
         String scoreQueryTarget = personalIntent.getCustom().getEntity();
@@ -208,12 +227,14 @@ public class IntentHandleService {
     public Message getPersonalTextbook(String studentId){
         Gson gson = new Gson();
         String queryResp = new Neo4jHandler("Java").readPersonalizedSubjectMatter(studentId);
+        System.out.println("--- [DEBUG][personal textbook][neo4j] queryResp: " + queryResp);
         // get textbook title from neo4j
         JsonArray queryResult = gson.fromJson(queryResp, JsonArray.class);
         // search neo4j for each slide data
         HashMap<String, String> resultMap = new HashMap<>();
         for(JsonElement chapterName: queryResult){
             String chapterData = new Neo4jHandler("Java").readSlideshow(chapterName.getAsString());
+            System.out.println("--- [DEBUG][personal textbook] chapterData: " + chapterData);
             resultMap.put(chapterName.getAsString(), chapterData);
         }
         return generatePersonalTextbookMsg(resultMap);
@@ -240,11 +261,16 @@ public class IntentHandleService {
         Gson gson = new Gson();
         // search quiz number from neo4j
         String quizResp = new Neo4jHandler("Java").readPersonalizedTest(studentId);
+        System.out.println("--- [DEBUG][personal quiz][neo4j] quizResp: " + quizResp);
         JsonArray quizNumList = gson.fromJson(quizResp, JsonArray.class);
         // random pick one of the quiz
         // todo: check personal quiz mechanism, use random one or use all
         // retrieve quiz data from Google sheet
-        return createQuizMessage(parsePersonalQuiz(new SheetsHandler("Java").readContentByKey("QuestionBank", pickRandomQuiz(quizNumList).strip())));
+        JsonObject quiz = parsePersonalQuiz(new SheetsHandler("Java").readContentByKey("QuestionBank", pickRandomQuiz(quizNumList).strip()));
+        System.out.println("--- [DEBUG][personal quiz] quiz: " + quiz);
+        // store user data and quiz in ongoing quiz map
+        ongoingQuizMap.put(studentId, quiz);
+        return createQuizMessage(quiz);
     }
 
     private String pickRandomQuiz(JsonArray quizList){
@@ -308,6 +334,7 @@ public class IntentHandleService {
     private String checkPersonalScore(String studentId, String target){
         HashMap<String, String> personalScoreMap = new HashMap<>();
         JSONObject scoreMap = new SheetsHandler("Java").readContentByKey("Grades", studentId);
+        System.out.println("--- [DEBUG][personal score] scoreMap: " + scoreMap);
         Iterator<String> jsonKey = scoreMap.keys();
         while(jsonKey.hasNext()){
             String key = jsonKey.next();

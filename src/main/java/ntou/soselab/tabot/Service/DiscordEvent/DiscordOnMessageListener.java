@@ -61,6 +61,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         if(event.getAuthor().isBot()) return; // ignore all message from bot
 
         // print received message
+        System.out.println(" ----- ");
         System.out.println("[onMessage]: try to print received message.");
         System.out.println("> [content raw] " + event.getMessage().getContentRaw());
         System.out.println("> [content display] " + event.getMessage().getContentDisplay());
@@ -126,13 +127,14 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                     System.out.println(">>> trigger normal handle (public)");
                     handleNormalMessage(event);
                 }
-                // direct message to TA
+                // direct message to TA, example: '@TA bla bla bla'
                 if(event.getMessage().isMentioned(DiscordGeneralEventListener.guild.getRoleById(adminRoleId))){
                     // send same message to admin channel
                     jdaMsgHandleService.addAdminMentionedMessageList(event.getMessage(), event.getAuthor());
 //                    jdaMsgHandleService.sendPublicMessageWithReference();
                 }
             }
+            System.out.println("<< [DEBUG][onMessage] end of current onMessage event.");
         }
 
     }
@@ -151,6 +153,11 @@ public class DiscordOnMessageListener extends ListenerAdapter {
             rawMsg = received.getContentDisplay().strip().replace("@TABot", "").strip();
             senderId = received.getAuthor().getId();
         }
+        /* ----- testing block: change id into testing id ----- */
+        String testDiscordId = "286145047169335298";
+        String testStudentId = "0076D053";
+        senderId = testStudentId;
+        /* ----- end of testing block ----- */
         System.out.println("[DEBUG][normal handle] " + rawMsg);
         // send message to rasa
         Intent intent = rasa.analyze(event.getMember().getId(), rawMsg);
@@ -164,10 +171,12 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         // get intent response message
         Message result = intentHandleService.checkIntent(senderId, intent);
         // reply message
-        if(received.isFromGuild())
+        if(received.isFromGuild()) {
             jdaMsgHandleService.replyPublicMessage(result, received.getId(), received.getTextChannel().getName());
-        else
-            jdaMsgHandleService.replyPrivateMessage(result, received.getAuthor().getId(), received.getId());
+        } else {
+//            jdaMsgHandleService.replyPrivateMessage(result, received.getAuthor().getId(), received.getId());
+            jdaMsgHandleService.replyPrivateMessage(result, testDiscordId, received.getId()); /* test */
+        }
     }
 
     /**

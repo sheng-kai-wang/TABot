@@ -42,11 +42,13 @@ public class RasaService {
      * @return user intent
      */
     public Intent analyze(String author, String msg){
+        System.out.println("[DEBUG][RasaService] trigger rasa analyze.");
         Gson gson = new Gson();
         RestTemplate template = new RestTemplate();
         String path;
         // detect language type
         String language = checkLanguage(msg);
+        System.out.println("[DEBUG][RasaService] trigger pipeline '" + language + "'");
         // switch pipeline with different language
         if(language.equals("zh"))
             path = rasaChinese + "/webhooks/rest/webhook";
