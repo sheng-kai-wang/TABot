@@ -2,19 +2,19 @@
 
 #查課程地圖
 read-curriculum-map: |
-  MATCH ({name: "<<queryName>>"})-[:Item]-(n)
+  MATCH ({name:"<<queryName>>"})-[:Item]-(n)
   RETURN n
 
 #查投影片
 read-slideshow: |
-  MATCH (s:Section {name: "<<sectionName>>"})
+  MATCH (s:Section {name:"<<sectionName>>"})
   RETURN s.URL
 
 #擴增課程地圖 maybe variable-length arguments
 add-reference: |
-  MERGE (ref:Reference {name: "<<referenceName>>", URL:"<<referenceURL>>"})
+  MERGE (ref:Reference {name:"<<referenceName>>", URL:"<<referenceURL>>", remark:"<<referenceRemark>>"})
   WITH ref
-  MATCH (s:Section {name: "<<sectionName>>"})-[:Item]-(c:Chapter)
+  MATCH (s:Section {name:"<<sectionName>>"})-[:Item]-(c:Chapter)
   MERGE (ref)<-[:Reference]-(s)
   MERGE (ref)<-[:Reference]-(c)
 

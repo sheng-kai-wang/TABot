@@ -15,7 +15,7 @@ public class Neo4jTest {
     }
 
     /**
-     * 查課程地圖 by Chapter
+     * 查課程地圖 by Section
      */
     @Test
     public void readCurriculumMapBySectionTest() {
@@ -37,7 +37,11 @@ public class Neo4jTest {
      */
     @Test
     public void addReferenceTest() {
-        new Neo4jHandler("Java").addReference("Control Statements", "test", "testURL");
+        new Neo4jHandler("Java").addReference(
+                "Control Statements",
+                "test",
+                "testURL",
+                "testRemark");
     }
 
     /**

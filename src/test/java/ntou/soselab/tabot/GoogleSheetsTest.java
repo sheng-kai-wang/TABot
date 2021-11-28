@@ -21,15 +21,14 @@ public class GoogleSheetsTest {
 
     @Test
     public void readTestAllWorksheet() {
-        String response2 = new SheetsHandler("Java").readContent("Grades", "");
+        String response2 = new SheetsHandler("Java").readContent("FAQ", "");
         System.out.println(response2);
     }
 
     @Test
     public void readByValueTest() {
-//        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "常見問題_Java亂碼");
-        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "java_garbled_code");
-        System.out.println(value.getJSONArray("answer").get(0).toString());
+        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "garbage_collection");
+        System.out.println(value);
     }
 
     @Test

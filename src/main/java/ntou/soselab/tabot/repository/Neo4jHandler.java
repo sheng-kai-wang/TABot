@@ -82,7 +82,6 @@ public class Neo4jHandler implements AutoCloseable {
                 }
                 return dataList;
             });
-            System.out.println("response: " + response);
             return response;
         }
     }
@@ -90,7 +89,7 @@ public class Neo4jHandler implements AutoCloseable {
     /**
      * read curriculum map content.
      *
-     * @param queryName the Chapter name of curriculum map you want to read.
+     * @param queryName the Chapter or Section name of curriculum map you want to read.
      * @return Use JSON string to describe the Section list in the Chapter.
      */
     public String readCurriculumMap(String queryName) {
@@ -122,11 +121,12 @@ public class Neo4jHandler implements AutoCloseable {
      * @param referenceName the reference's name you want to add.
      * @param referenceURL the reference's URL you want to add.
      */
-    public void addReference(String sectionName, String referenceName, String referenceURL) {
+    public void addReference(String sectionName, String referenceName, String referenceURL, String referenceRemark) {
         String cypherString = cypherData.get("add-reference")
                 .replace("<<sectionName>>", sectionName)
                 .replace("<<referenceName>>", referenceName)
-                .replace("<<referenceURL>>", referenceURL);
+                .replace("<<referenceURL>>", referenceURL)
+                .replace("<<referenceRemark>>", referenceRemark);
         doCypher(cypherString);
     }
 
