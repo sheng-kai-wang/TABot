@@ -24,12 +24,32 @@ public class Neo4jTest {
     }
 
     /**
-     * 查投影片
+     * 查投影片 by Chapter name
      */
     @Test
-    public void readSlideshowTest() {
-        String result2 = new Neo4jHandler("Java").readSlideshow("Introducing enum Types");
-        System.out.println("result: " + result2);
+    public void readSlideshowByChapterNameTest() {
+//        String result = new Neo4jHandler("Java").readSlideshowByName("Control Statements");
+        String result = new Neo4jHandler("Java").readSlideshowByName("Arrays and ArrayLists");
+        System.out.println("result: " + result);
+    }
+
+    /**
+     * 查投影片 by Section name
+     */
+    @Test
+    public void readSlideshowBySectionNameTest() {
+//        String result = new Neo4jHandler("Java").readSlideshowByName("Introducing enum Types");
+        String result = new Neo4jHandler("Java").readSlideshowByName("Class Arrays");
+        System.out.println("result: " + result);
+    }
+
+    /**
+     * 查投影片 by Section name
+     */
+    @Test
+    public void readSlideshowByChapterIdTest() {
+        String result = new Neo4jHandler("Java").readSlideshowById(1);
+        System.out.println("result: " + result);
     }
 
     /**
@@ -49,8 +69,8 @@ public class Neo4jTest {
      */
     @Test
     public void readPersonalizedTestTest() {
-        String result3 = new Neo4jHandler("Java").readPersonalizedTest("0076D053");
-        System.out.println(result3);
+        String result = new Neo4jHandler("Java").readPersonalizedTest("0076D053");
+        System.out.println(result);
     }
 
     /**
@@ -58,7 +78,7 @@ public class Neo4jTest {
      */
     @Test
     public void readPersonalizedSubjectMatterTest() {
-        String result4 = new Neo4jHandler("Java").readPersonalizedSubjectMatter("0076D053");
-        System.out.println("result: " + result4);
+        String result = new Neo4jHandler("Java").readPersonalizedSubjectMatter("0076D053");
+        System.out.println("result: " + result);
     }
 }

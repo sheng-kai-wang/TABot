@@ -5,10 +5,15 @@ read-curriculum-map: |
   MATCH ({name:"<<queryName>>"})-[:Item]-(n)
   RETURN n
 
-#查投影片
-read-slideshow: |
-  MATCH (s:Section {name:"<<sectionName>>"})
-  RETURN s.URL
+#查投影片 by name
+read-slideshow-by-name: |
+  MATCH (n {name:"<<queryName>>"})
+  RETURN n.URL
+
+#查投影片 by id
+read-slideshow-by-id: |
+  MATCH (c:Chapter {id: <<id>>})
+  RETURN c.URL
 
 #擴增課程地圖 maybe variable-length arguments
 add-reference: |
