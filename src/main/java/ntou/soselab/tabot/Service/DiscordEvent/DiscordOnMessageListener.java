@@ -63,6 +63,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         // print received message
         System.out.println(" ================ ");
         System.out.println("[onMessage]: try to print received message.");
+        System.out.println("> [author] " + event.getMessage().getId());
         System.out.println("> [content raw] " + event.getMessage().getContentRaw());
         System.out.println("> [content display] " + event.getMessage().getContentDisplay());
         System.out.println("> [content strip] " + event.getMessage().getContentStripped());
@@ -172,10 +173,12 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         Message result = intentHandleService.checkIntent(senderId, intent);
         // reply message
         if(received.isFromGuild()) {
+            System.out.println("+++ [DEBUG][handle normal] id: " + received.getId());
+            System.out.println("+++ [DEBUG][handle normal] channel: " + received.getTextChannel().getName());
             jdaMsgHandleService.replyPublicMessage(result, received.getId(), received.getTextChannel().getName());
         } else {
-//            jdaMsgHandleService.replyPrivateMessage(result, received.getAuthor().getId(), received.getId());
-            jdaMsgHandleService.replyPrivateMessage(result, testDiscordId, received.getId()); /* test */
+            jdaMsgHandleService.replyPrivateMessage(result, received.getAuthor().getId(), received.getId());
+//            jdaMsgHandleService.replyPrivateMessage(result, testDiscordId, received.getId()); /* test */
         }
     }
 

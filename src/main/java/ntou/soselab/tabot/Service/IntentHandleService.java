@@ -111,13 +111,30 @@ public class IntentHandleService {
     }
 
     private Message searchSlide(Intent intent){
-        // todo: search class slide
         String targetChapter = intent.getCustom().getEntity();
+        System.out.println("--- [DEBUG][search slide] raw chapter name: " + targetChapter);
         // check if entity extraction successfully captured values
         if(targetChapter == null || targetChapter.equals("None") || targetChapter.isEmpty())
             return sendErrorMessage(intent);
-        // todo: search neo4j with chapter number
-        return new MessageBuilder().append("Working, need query slide data with number api").build();
+        int chapterNum = extractChapterNumber(targetChapter);
+        System.out.println("--- [DEBUG][search slide] raw chapter name: " + targetChapter);
+        // search neo4j for chapter slide info
+        String queryResp = new Neo4jHandler("Java").readSlideshowById(chapterNum);
+        MessageBuilder builder = new MessageBuilder();
+        builder.append("Here you are ! :grinning:");
+        builder.setEmbeds(new EmbedBuilder().addField("Chapter " + chapterNum, "[link](" + queryResp + ")", false).build());
+        return builder.build();
+    }
+
+    /**
+     * get chapter number from raw chapter name<br>
+     * example: get chapter number 'n' from 'chapter_n'
+     * @param rawChapterName
+     * @return
+     */
+    private int extractChapterNumber(String rawChapterName){
+        String raw =  rawChapterName.strip().replace("chapter_", "");
+        return Integer.parseInt(raw);
     }
 
     /**
