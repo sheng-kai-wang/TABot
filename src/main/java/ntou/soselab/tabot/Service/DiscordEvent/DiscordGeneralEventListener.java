@@ -1,6 +1,7 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -12,11 +13,14 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -97,7 +101,10 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         event.getJDA().getGuildById(serverId).retrieveCommands().queue(commands -> {
             System.out.println(commands);
         });
-
+        // testing: send hyperlink in message
+//        channelMap.get("test").sendMessage(new MessageBuilder().setEmbeds(new EmbedBuilder().addField("link", "[test](https://google.com)", false).build()).build()).queue();
+        // testing: send message with action row
+//        channelMap.get("test").sendMessage(new MessageBuilder().append("testing content").setActionRows(ActionRow.of(Button.primary("optB", "b"), Button.success("optA", "a"))).build()).queue();
     }
 
     @Override

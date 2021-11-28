@@ -88,13 +88,21 @@ public class DiscordOnMessageListener extends ListenerAdapter {
             /* handle message from private channel: student personal message */
             // do nothing if no message content found (include slash command)
             if(event.getMessage().getContentRaw().length() > 0){
-                if(event.getMessage().isMentioned(DiscordGeneralEventListener.guild.getMemberById(botId))){
-                    // direct message to TA
+                // check if TA got mentioned
+                // if true, send direct message to TA
+                // if false, treat as normal message (rasa analyze)
+                if(isPrivateMessageMentionedAdmin(event.getMessage().getContentDisplay())) {
                     jdaMsgHandleService.addAdminMentionedMessageList(event.getMessage(), event.getAuthor());
+                }else {
+//                if(event.getMessage().isMentioned(DiscordGeneralEventListener.guild.getMemberById(botId))){
+//                    // direct message to TA
+//                    jdaMsgHandleService.addAdminMentionedMessageList(event.getMessage(), event.getAuthor());
+//                }
+
+                    // todo: normal message handle (rasa), from private channel
+                    System.out.println(">>> trigger normal handle (private)");
+                    handleNormalMessage(event);
                 }
-                // todo: normal message handle (rasa), from private channel
-                System.out.println(">>> trigger normal handle (private)");
-                handleNormalMessage(event);
             }
         }else{
             System.out.println("[DEBUG] public message received.");
@@ -138,8 +146,11 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     private void handleNormalMessage(MessageReceivedEvent event){
         Message received = event.getMessage();
         String rawMsg = received.getContentRaw();
-        if(received.isFromGuild())
+        String senderId = received.getId();
+        if(received.isFromGuild()) {
             rawMsg = received.getContentDisplay().strip().replace("@TABot", "").strip();
+            senderId = received.getAuthor().getId();
+        }
         System.out.println("[DEBUG][normal handle] " + rawMsg);
         // send message to rasa
         Intent intent = rasa.analyze(event.getMember().getId(), rawMsg);
@@ -148,7 +159,11 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         // todo: save/remove chat status
         // check what to do next
         // todo: complete intentHandle implement
-        Message result = intentHandleService.checkIntent(intent);
+        // check sender id
+        // todo: add function to get student id by discord id
+        // get intent response message
+        Message result = intentHandleService.checkIntent(senderId, intent);
+        // reply message
         if(received.isFromGuild())
             jdaMsgHandleService.replyPublicMessage(result, received.getId(), received.getTextChannel().getName());
         else
@@ -209,6 +224,15 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 }
             }
         }
+    }
+
+    /**
+     * check if private message mentioned TA by adding prefix '@TA'
+     * @param message
+     * @return
+     */
+    private boolean isPrivateMessageMentionedAdmin(String message){
+        return message.strip().startsWith("@TA");
     }
 
     /**
