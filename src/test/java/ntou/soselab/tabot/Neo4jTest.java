@@ -10,7 +10,6 @@ public class Neo4jTest {
     @Test
     public void readCurriculumMapByChapterTest() {
         String result = new Neo4jHandler("Java").readCurriculumMap("Methods");
-//        String result = new Neo4jHandler("SE").readCurriculumMap("需求工程");
         System.out.println("result: " + result);
     }
 
@@ -28,8 +27,7 @@ public class Neo4jTest {
      */
     @Test
     public void readSlideshowByChapterNameTest() {
-//        String result = new Neo4jHandler("Java").readSlideshowByName("Control Statements");
-        String result = new Neo4jHandler("Java").readSlideshowByName("Arrays and ArrayLists");
+        String result = new Neo4jHandler("Java").readSlideshowByName("Control Statements");
         System.out.println("result: " + result);
     }
 
@@ -38,13 +36,12 @@ public class Neo4jTest {
      */
     @Test
     public void readSlideshowBySectionNameTest() {
-//        String result = new Neo4jHandler("Java").readSlideshowByName("Introducing enum Types");
-        String result = new Neo4jHandler("Java").readSlideshowByName("Class Arrays");
+        String result = new Neo4jHandler("Java").readSlideshowByName("Introducing enum Types");
         System.out.println("result: " + result);
     }
 
     /**
-     * 查投影片 by Section name
+     * 查投影片 by Chapter id
      */
     @Test
     public void readSlideshowByChapterIdTest() {
