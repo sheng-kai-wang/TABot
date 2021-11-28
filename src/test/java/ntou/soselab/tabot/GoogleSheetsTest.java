@@ -15,20 +15,20 @@ public class GoogleSheetsTest {
 
     @Test
     public void readTestWithRange() {
-        String response1 = new SheetsHandler("Java").readContent("FAQ", "A1:C3");
-        System.out.println(response1);
+        String result = new SheetsHandler("Java").readContent("FAQ", "A1:C3");
+        System.out.println(result);
     }
 
     @Test
     public void readTestAllWorksheet() {
-        String response2 = new SheetsHandler("Java").readContent("FAQ", "");
-        System.out.println(response2);
+        String result = new SheetsHandler("Java").readContent("FAQ", "");
+        System.out.println(result);
     }
 
     @Test
     public void readByValueTest() {
-        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "garbage_collection");
-        System.out.println(value);
+        JSONObject result = new SheetsHandler("Java").readContentByKey("FAQ", "garbage_collection");
+        System.out.println(result);
     }
 
     @Test

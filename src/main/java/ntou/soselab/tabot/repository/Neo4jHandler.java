@@ -90,7 +90,7 @@ public class Neo4jHandler implements AutoCloseable {
      * read curriculum map content.
      *
      * @param queryName the Chapter or Section name of curriculum map you want to read.
-     * @return Use JSON string to describe the Section list in the Chapter.
+     * @return Use JSON string to describe the list of Chapter or Section.
      */
     public String readCurriculumMap(String queryName) {
         String cypherString = cypherData.get("read-curriculum-map").replace("<<queryName>>", queryName);
@@ -105,11 +105,23 @@ public class Neo4jHandler implements AutoCloseable {
     /**
      * read the slideshow of curriculum map.
      *
-     * @param sectionName the Section name of curriculum map you want to read.
-     * @return the URL of the Section's slideshow.
+     * @param queryName the Chapter or Section name of curriculum map you want to read.
+     * @return the URL of the slideshow.
      */
-    public String readSlideshow(String sectionName) {
-        String cypherString = cypherData.get("read-slideshow").replace("<<sectionName>>", sectionName);
+    public String readSlideshowByName(String queryName) {
+        String cypherString = cypherData.get("read-slideshow-by-name").replace("<<queryName>>", queryName);
+        List<String> cypherResponses = doCypher(cypherString);
+        return JsonPath.read(cypherResponses.get(0), "$.values[0].val");
+    }
+
+    /**
+     * read the slideshow of curriculum map.
+     *
+     * @param chapterId the Chapter id of curriculum map you want to read.
+     * @return the URL of the slideshow.
+     */
+    public String readSlideshowById(int chapterId) {
+        String cypherString = cypherData.get("read-slideshow-by-id").replace("<<id>>", String.valueOf(chapterId));
         List<String> cypherResponses = doCypher(cypherString);
         return JsonPath.read(cypherResponses.get(0), "$.values[0].val");
     }
