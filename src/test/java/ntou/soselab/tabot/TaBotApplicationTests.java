@@ -3,16 +3,26 @@ package ntou.soselab.tabot;
 import com.github.pemistahl.lingua.api.Language;
 import com.github.pemistahl.lingua.api.LanguageDetector;
 import com.github.pemistahl.lingua.api.LanguageDetectorBuilder;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.CollectionReference;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.Firestore;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseException;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.cloud.FirestoreClient;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import ntou.soselab.tabot.Entity.UserProfile;
 import ntou.soselab.tabot.repository.Neo4jHandler;
 import ntou.soselab.tabot.repository.SheetsHandler;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -178,6 +188,33 @@ class TaBotApplicationTests {
             System.out.println("value: " + value.getJSONArray(key).getString(0));
         }
 //        System.out.println(value.getJSONArray("answer").get(0).toString());
+    }
+
+    @Test
+    public void testFirestore() throws Exception{
+        /* init phase */
+        FileInputStream serviceAccount = new FileInputStream("src/main/resources/static/firebaseKey.json");
+        FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
+        FirebaseApp.initializeApp(options);
+        System.out.println(">> Firebase init complete.");
+        Firestore db = FirestoreClient.getFirestore();
+        System.out.println(">> Firestore init complete.");
+
+        /* try to read data from firestore */
+//        System.out.println(db.collection("tabotUser").get().get().getDocuments().get(0).getData());
+        CollectionReference collection = db.collection("tabotUser");
+//        System.out.println(">>>>> userList: " + collection.document("userData").get().get().getData());
+//        HashMap<String, User> userMap = (HashMap)collection.document("userData").get().get().getData();
+//        System.out.println(">>> UserMap: " + userMap);
+//        System.out.println(userMap.size());
+        System.out.println(">>>>> " + collection.document("userData").get().get().get("userList"));
+        ArrayList userList = (ArrayList)collection.document("userData").get().get().get("userList");
+        System.out.println(">>>>> class type: " + userList.get(0).getClass());
+        System.out.println(">>>>> userList: " + userList);
+        System.out.println(">>>>> first obj: " + userList.get(0));
+        System.out.println(">>>>> cast to entity: " + new UserProfile((HashMap)userList.get(0)));
+
+        /* try to write data from firestore */
     }
 
 }

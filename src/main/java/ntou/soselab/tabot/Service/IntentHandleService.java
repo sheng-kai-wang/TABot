@@ -106,7 +106,7 @@ public class IntentHandleService {
         // todo: add Google form link for suggestion
         MessageBuilder builder = new MessageBuilder();
         builder.append("That's sound good, check out link below to contribute material, thanks.");
-        builder.setEmbeds(new EmbedBuilder().addField("Suggest form", "", false).build());
+        builder.setEmbeds(new EmbedBuilder().addField("Submit   your suggestion here !", ":scroll: click me to submit stuff", false).build());
         return builder.build();
     }
 
@@ -213,7 +213,7 @@ public class IntentHandleService {
 
     /**
      * handle personal-related function, include score query, textbook query and quiz query<br>
-     * Note: expect student id as parameter, NOT discord id
+     * Note: expect STUDENT id as parameter, NOT discord id
      * @param studentId student id
      * @param personalIntent detected intent
      * @return result Message

@@ -1,7 +1,5 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -13,17 +11,12 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -124,7 +117,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         System.out.println("[GuildMemberUpdateNicknameEvent][newName]: " + event.getNewNickname());
 
         // check new nickname, if nickname fits specific format, assign role to user and store their id and name in database
-        if(checkNickname(event.getNewNickname())) {
+        if(verifyNickNameFormat(event.getNewNickname())) {
             System.out.println("[GuildMemberUpdateNicknameEvent]: try to assign role.");
             event.getGuild().addRoleToMember(event.getMember(), event.getGuild().getRoleById(studentRoleId)).queue();
             System.out.println("[GuildMemberUpdateNicknameEvent]: role assigned, try to store user info in database.");
@@ -139,7 +132,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
      * @param name nickname
      * @return True if matches, False if not
      */
-    private boolean checkNickname(String name){
+    private boolean verifyNickNameFormat(String name){
         String format = "[0-9]{8}-.*";
         return Pattern.matches(format, name);
     }
