@@ -2,10 +2,7 @@ package ntou.soselab.tabot.Service;
 
 import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.*;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.ActionCodeSettings;
@@ -13,12 +10,17 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
+import ntou.soselab.tabot.Entity.UserProfile;
+import ntou.soselab.tabot.Exception.NoAccountFoundError;
+import org.apache.catalina.User;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +31,9 @@ public class UserService {
     private final String FIREBASE_TOKEN;
     private final String COLLECTION_NAME;
     private final String DOCUMENT_NAME;
+    private final String FIELD_NAME;
     private Firestore db;
+    public static ArrayList<UserProfile> currentUserList;
 
     private ActionCodeSettings actionCodeSettings;
 
@@ -37,7 +41,9 @@ public class UserService {
         this.FIREBASE_TOKEN = env.getProperty("firebase.token.path");
         this.COLLECTION_NAME = env.getProperty("firebase.firestore.collection");
         this.DOCUMENT_NAME = env.getProperty("firebase.firestore.document");
+        this.FIELD_NAME = env.getProperty("firebase.firestore.field");
         init(FIREBASE_TOKEN);
+        initUserProfileList();
         // todo: complete firebase mail function and register function
 
         /* test block */
@@ -47,8 +53,9 @@ public class UserService {
 
     /**
      * initialize firebase, try to connect to firebase
+     * @param tokenPath firebase auth token file path
      */
-    public void init(String tokenPath){
+    private void init(String tokenPath){
         try{
             FileInputStream serviceAccount = new FileInputStream(tokenPath);
 
@@ -66,24 +73,64 @@ public class UserService {
         }
     }
 
-    public void createNewUser(String id, String nickName){
-        String studentId = getStudentIdByNickName(nickName);
-        String studentName = getNameByNickName(nickName);
-        UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-                .setUid(id)
-                .setEmail(getNTOUEmail(studentId))
-//                .setEmail("david02653@gmail.com")
-                .setEmailVerified(false)
-                .setDisplayName(studentName);
-
+    /**
+     * initialize user list from firestore
+     */
+    private void initUserProfileList(){
         try {
-            UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
-            System.out.println("Successfully create new user " + userRecord.getDisplayName());
-        } catch (FirebaseAuthException e) {
+            /* create instance for static user list */
+            currentUserList = new ArrayList<>();
+            /* retrieve previous registered user from firestore */
+            ArrayList userList = (ArrayList) db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).get().get().get(FIELD_NAME);
+            if(userList == null)
+                throw new NullPointerException("[DEBUG][UserService] no previous registered user found on firestore.");
+            /* create current user list */
+            for(Object obj: userList){
+                UserProfile user = new UserProfile((HashMap) obj);
+                currentUserList.add(user);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e){
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
 
+    /* SUSPEND, switch to firestore api */
+//    public void createNewUser(String id, String nickName){
+//        String studentId = getStudentIdByNickName(nickName);
+//        String studentName = getNameByNickName(nickName);
+//        UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+//                .setUid(id)
+//                .setEmail(getNTOUEmail(studentId))
+////                .setEmail("david02653@gmail.com")
+//                .setEmailVerified(false)
+//                .setDisplayName(studentName);
+//
+//        try {
+//            UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+//            System.out.println("Successfully create new user " + userRecord.getDisplayName());
+//        } catch (FirebaseAuthException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+    /**
+     * check if nickname matches specific pattern
+     * @param nickname nickname
+     * @return True if matches, False if not
+     */
+    public static boolean verifyNickNameFormat(String nickname){
+        String format = "[0-9]{8}-.*";
+        return Pattern.matches(format, nickname);
+    }
+
+    /**
+     * get student's name from nickname
+     * @param nickName
+     * @return
+     */
     private String getNameByNickName(String nickName){
         Pattern pattern = Pattern.compile("^[0-9A-Z]{8}-(.*)$");
         Matcher matcher = pattern.matcher(nickName);
@@ -102,36 +149,102 @@ public class UserService {
         return studentId + "@mail.ntou.edu.tw";
     }
 
-    public void getStudentIdFromDiscordId(String discordId){
-        // todo: use discord id to retrieve student id
+    /**
+     * use discord id to retrieve student id
+     * @param discordId target discord id
+     * @return correspond student id if received discord id did exist in current user list
+     */
+    public String getStudentIdFromDiscordId(String discordId) throws NoAccountFoundError{
+        if(!registeredBefore(discordId))
+            throw new NoAccountFoundError("no user matched in current user list.");
+        return currentUserList.stream().filter(user -> user.getDiscordId().equals(discordId)).findFirst().get().getStudentId();
     }
 
-    public void getDiscordIdFromStudentId(String studentId){
-        // todo: use student id to retrieve discord id
+    /**
+     * use student id to retrieve discord id
+     * @param studentId target student id
+     * @return correspond discord id if received student id did exist in current user list
+     */
+    public String getDiscordIdFromStudentId(String studentId) throws NoAccountFoundError {
+        if(currentUserList.stream().noneMatch(user -> user.getStudentId().equals(studentId)))
+            throw new NoAccountFoundError("no user matched in current user list.");
+        return currentUserList.stream().filter(user -> user.getStudentId().equals(studentId)).findFirst().get().getDiscordId();
     }
 
     public void sendVerificationMail(String studentId){
         // todo: send verification mail to target student
+        String receiverMailAddress = getNTOUEmail(studentId);
+        // sender setup
+//        String senderMailAddress = "tabot@"
     }
 
-    public void getUserList() throws ExecutionException, InterruptedException {
-        // todo: retrieve user list from firestore
-//        CollectionReference userData = db.collection("tabotUser");
-//        userData.get().get().getDocuments().get(0).getData();
-        DocumentReference userData = db.collection(COLLECTION_NAME).document(DOCUMENT_NAME);
-        // asynchronously retrieve document from firestore
-
+    /**
+     * register new student profile, remove existed profile with same discord id contained
+     * @param nickName student's nickname
+     * @param discordId student's discord id
+     */
+    public void registerStudent(String nickName, String discordId){
+        String name = getNameByNickName(nickName);
+        String studentId = getStudentIdByNickName(nickName);
+        /* create new user profile */
+        UserProfile registrant = new UserProfile(name, studentId, discordId);
+        // local change
+        currentUserList.removeIf(userProfile -> userProfile.getDiscordId().equals(discordId));
+        currentUserList.add(registrant);
+        // remote change
+        removeFirestoreUserList();
+        updateFirestoreUserList();
     }
 
-    public void registerStudent(String nickName){
-        // todo: register new student
+    /**
+     * check if received user discord id already existed in current user list
+     * @param discordId user's discord id
+     * @return true if same discord id already exist in current user list
+     */
+    public boolean registeredBefore(String discordId){
+        return currentUserList.stream().anyMatch(user -> user.getDiscordId().equals(discordId));
     }
 
-    public void writeUserListFile(){
-        // todo: write user data in local file
+    /**
+     * remove all user list from firestore
+     */
+    private void removeFirestoreUserList(){
+        HashMap<String, Object> empty = new HashMap<>();
+        empty.put("userList", FieldValue.delete());
+        DocumentReference docRef = db.collection(COLLECTION_NAME).document(DOCUMENT_NAME);
+        ApiFuture<WriteResult> future = docRef.update(empty);
+        try {
+            System.out.println("[DEBUG][UserService] remove all user from userList. " + future.get().toString());
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("[DEBUG][UserService] error occurs when trying to empty user list on firestore.");
+            e.printStackTrace();
+        }
     }
 
-    public void updateUserListFile(){
-        // todo: update user data file
+    /**
+     * update firestore userList with current user list
+     */
+    public void updateFirestoreUserList(){
+        ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).update(FIELD_NAME, FieldValue.arrayUnion(currentUserList.toArray()));
+        try {
+            System.out.println("[DEBUG][UserService] Complete update userList at " + future.get().getUpdateTime());
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            System.out.println("[DEBUG][UserService] error occurs when trying to update user list to firestore.");
+        }
+    }
+
+    /**
+     * update new user's profile to firestore userList
+     * @param user new user's UserProfile
+     */
+    public void updateFirestoreUserList(UserProfile user){
+        ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).update(FIELD_NAME, FieldValue.arrayUnion(user.getProfileMap()));
+        try {
+            System.out.println("[DEBUG][UserService] Complete update userList at " + future.get().getUpdateTime());
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            System.out.println("[DEBUG][UserService] error occurs when trying to update user list to firestore.");
+        }
     }
 }

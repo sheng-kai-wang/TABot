@@ -3,10 +3,9 @@ package ntou.soselab.tabot;
 import com.github.pemistahl.lingua.api.Language;
 import com.github.pemistahl.lingua.api.LanguageDetector;
 import com.github.pemistahl.lingua.api.LanguageDetectorBuilder;
+import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.*;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.FirebaseOptions;
@@ -18,11 +17,18 @@ import com.google.gson.JsonObject;
 import ntou.soselab.tabot.Entity.UserProfile;
 import ntou.soselab.tabot.repository.Neo4jHandler;
 import ntou.soselab.tabot.repository.SheetsHandler;
+import org.apache.catalina.User;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.io.FileInputStream;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -190,8 +196,7 @@ class TaBotApplicationTests {
 //        System.out.println(value.getJSONArray("answer").get(0).toString());
     }
 
-    @Test
-    public void testFirestore() throws Exception{
+    private Firestore initFirestore() throws Exception{
         /* init phase */
         FileInputStream serviceAccount = new FileInputStream("src/main/resources/static/firebaseKey.json");
         FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
@@ -199,6 +204,19 @@ class TaBotApplicationTests {
         System.out.println(">> Firebase init complete.");
         Firestore db = FirestoreClient.getFirestore();
         System.out.println(">> Firestore init complete.");
+        return db;
+    }
+
+    @Test
+    public void testFirestore() throws Exception{
+//        /* init phase */
+//        FileInputStream serviceAccount = new FileInputStream("src/main/resources/static/firebaseKey.json");
+//        FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
+//        FirebaseApp.initializeApp(options);
+//        System.out.println(">> Firebase init complete.");
+//        Firestore db = FirestoreClient.getFirestore();
+//        System.out.println(">> Firestore init complete.");
+        Firestore db = initFirestore();
 
         /* try to read data from firestore */
 //        System.out.println(db.collection("tabotUser").get().get().getDocuments().get(0).getData());
@@ -215,6 +233,80 @@ class TaBotApplicationTests {
         System.out.println(">>>>> cast to entity: " + new UserProfile((HashMap)userList.get(0)));
 
         /* try to write data from firestore */
+    }
+
+    @Test
+    void TestFirestoreArray() throws Exception{
+        Firestore db = initFirestore();
+        HashMap<String, Object> test = new HashMap<>();
+        test.put("name", "test");
+        test.put("studentId", "0000");
+        test.put("discordId", "fakeId");
+        HashMap<String, Object> tester = new HashMap<>();
+        tester.put("name", "tester");
+        tester.put("studentId", "00000000");
+        tester.put("discordId", "fakeDcId");
+        UserProfile testProfile = new UserProfile(test);
+        UserProfile testerProfile = new UserProfile(tester);
+        /* try to add stuff in firestore database */
+//        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").set(new UserProfile("tester", "00000000", "fakeDdId").getProfileMap(), SetOptions.merge());
+//        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(new UserProfile("tester", "00000000", "anotherFakeId").getProfileMap()));
+//        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(testProfile.getProfileMap(), testerProfile.getProfileMap()));
+        ArrayList<HashMap> testList = new ArrayList<>();
+        testList.add(testProfile.getProfileMap());
+        testList.add(testerProfile.getProfileMap());
+        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(testList.toArray()));
+        System.out.println("Update time: " + future.get().getUpdateTime());
+    }
+
+    @Test
+    void TestFirestoreRemove() throws Exception{
+        Firestore db = initFirestore();
+        HashMap<String, Object> test = new HashMap<>();
+        test.put("name", "test");
+        test.put("studentId", "0000");
+        test.put("discordId", "fakeId");
+        /* try to remove stuff from firestore */
+        // create delete map
+        Map<String, Object> deleteUpdate = new HashMap<>();
+        deleteUpdate.put("userList", FieldValue.delete());
+        DocumentReference docRef = db.collection("tabotUser").document("userData");
+        ApiFuture<WriteResult> future = docRef.update(deleteUpdate);
+        System.out.println(">>> " + future.get().toString());
+    }
+
+    @Test
+    void sendMailTest(){
+        String to = "dskyshad9527@gmail.com";
+        String from = to;
+        String username = to;
+        String pwd = "";
+        String host = "smtp.gmail.com";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", host);
+        props.put("mail.smtp.port", 587);
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, pwd);
+            }
+        });
+
+        try{
+            Message msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress(from));
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+            msg.setSubject("testing subject");
+            msg.setText("hello from java mail");
+            Transport.send(msg);
+            System.out.println("try to send mail");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }

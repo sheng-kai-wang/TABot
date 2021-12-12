@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import ntou.soselab.tabot.Service.UserService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -117,7 +118,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         System.out.println("[GuildMemberUpdateNicknameEvent][newName]: " + event.getNewNickname());
 
         // check new nickname, if nickname fits specific format, assign role to user and store their id and name in database
-        if(verifyNickNameFormat(event.getNewNickname())) {
+        if(UserService.verifyNickNameFormat(event.getNewNickname())) {
             System.out.println("[GuildMemberUpdateNicknameEvent]: try to assign role.");
             event.getGuild().addRoleToMember(event.getMember(), event.getGuild().getRoleById(studentRoleId)).queue();
             System.out.println("[GuildMemberUpdateNicknameEvent]: role assigned, try to store user info in database.");
@@ -125,16 +126,6 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         }else{
             System.out.println("[GuildMemberUpdateNicknameEvent] Nickname update detected with wrong format, do nothing.");
         }
-    }
-
-    /**
-     * check if nickname matches specific pattern
-     * @param name nickname
-     * @return True if matches, False if not
-     */
-    private boolean verifyNickNameFormat(String name){
-        String format = "[0-9]{8}-.*";
-        return Pattern.matches(format, name);
     }
 
     /**

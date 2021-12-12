@@ -20,6 +20,14 @@ public class UserProfile {
         this.discordId = (String)map.get("discordId");
     }
 
+    public HashMap<String, String> getProfileMap(){
+        HashMap<String, String> profileMap = new HashMap<>();
+        profileMap.put("name", this.name);
+        profileMap.put("studentId", this.studentId);
+        profileMap.put("discordId", this.discordId);
+        return profileMap;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -46,7 +54,7 @@ public class UserProfile {
 
     @Override
     public String toString() {
-        return "User{" +
+        return "UserProfile{" +
                 "name='" + name + '\'' +
                 ", studentId='" + studentId + '\'' +
                 ", discordId='" + discordId + '\'' +
