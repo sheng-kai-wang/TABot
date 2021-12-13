@@ -13,7 +13,10 @@ import com.google.firebase.cloud.FirestoreClient;
 import ntou.soselab.tabot.Entity.UserProfile;
 import ntou.soselab.tabot.Exception.NoAccountFoundError;
 import org.apache.catalina.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
@@ -21,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,9 +40,10 @@ public class UserService {
     public static ArrayList<UserProfile> currentUserList;
     public static HashMap<String, UserProfile> verifyList;
 
-    private ActionCodeSettings actionCodeSettings;
+    private final JavaMailSender mailSender;
 
-    public UserService(Environment env){
+    public UserService(Environment env, JavaMailSender mailSender){
+        /* firebase and firestore properties */
         this.FIREBASE_TOKEN = env.getProperty("firebase.token.path");
         this.COLLECTION_NAME = env.getProperty("firebase.firestore.collection");
         this.DOCUMENT_NAME = env.getProperty("firebase.firestore.document");
@@ -46,6 +51,8 @@ public class UserService {
         init(FIREBASE_TOKEN);
         initUserProfileList();
         // todo: complete firebase mail function and register function
+        /* mail properties */
+        this.mailSender = mailSender;
 
         /* test block */
         // try to create user
@@ -173,11 +180,41 @@ public class UserService {
         return currentUserList.stream().filter(user -> user.getStudentId().equals(studentId)).findFirst().get().getDiscordId();
     }
 
-    public void sendVerificationMail(String studentId){
-        // todo: send verification mail to target student
+    /**
+     * send verify mail to user, create and return uuid for this application
+     * @param studentId registrant's student id
+     * @return uuid of this verify application
+     */
+    public String sendVerificationMail(String studentId){
         String receiverMailAddress = getNTOUEmail(studentId);
         // sender setup
-//        String senderMailAddress = "tabot@"
+        String senderMailAddress = "noreply@tabot.com";
+        // generate uuid for current user
+        UUID uuid = UUID.randomUUID();
+        // generate verify link
+        String verifyLink = generateVerifyLink(uuid.toString());
+
+        /* --- test block: insert testing data --- */
+        receiverMailAddress = "dskyshad9527@gmail.com";
+        /* --- end of test block --- */
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(receiverMailAddress);
+        mailMessage.setFrom(senderMailAddress);
+        mailMessage.setSubject("TABot Verify Mail");
+        mailMessage.setText("click the link below to verify your email.\n" + verifyLink);
+
+        mailSender.send(mailMessage);
+        return uuid.toString();
+    }
+
+    /**
+     * create verify link with uuid
+     * @param uuid string of uuid
+     * @return verify link
+     */
+    private String generateVerifyLink(String uuid){
+        return "http://localhost:8080/verify/" + uuid;
     }
 
     /**
@@ -200,11 +237,11 @@ public class UserService {
 
     /**
      * register new student profile, remove existed profile if same discord id contained
-     * @param registrant student's profile
+     * @param registrantProfile student's profile
      */
-    public void registerStudent(UserProfile registrant){
-        currentUserList.removeIf(userProfile -> userProfile.getDiscordId().equals(registrant.getDiscordId()));
-        currentUserList.add(registrant);
+    public void registerStudent(UserProfile registrantProfile){
+        currentUserList.removeIf(userProfile -> userProfile.getDiscordId().equals(registrantProfile.getDiscordId()));
+        currentUserList.add(registrantProfile);
         removeFirestoreUserList();
         updateFirestoreUserList();
     }

@@ -1,9 +1,6 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
@@ -36,11 +33,14 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
     public static HashMap<String, MessageChannel> channelMap;
     public static HashMap<String, MessageChannel> adminChannelMap;
 
+    private final UserService userService;
+
     @Autowired
-    public DiscordGeneralEventListener(Environment env){
+    public DiscordGeneralEventListener(Environment env, UserService userService){
         this.serverId = env.getProperty("discord.server.id");
         this.studentRoleId = env.getProperty("discord.role.student");
         this.adminCategoryId = env.getProperty("discord.admin.category.id");
+        this.userService = userService;
     }
 
     @Override
@@ -121,15 +121,41 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
         // check new nickname, if nickname fits specific format, assign role to user and store their id and name in database
         if(UserService.verifyNickNameFormat(currentNickname)) {
-            UserProfile user = new UserProfile(UserService.getNameByNickName(currentNickname), UserService.getStudentIdByNickName(currentNickname), event.getUser().getId());
-            /* assign role to user */
-            System.out.println("[GuildMemberUpdateNicknameEvent]: try to assign role.");
-            event.getGuild().addRoleToMember(event.getMember(), event.getGuild().getRoleById(studentRoleId)).queue();
-            System.out.println("[GuildMemberUpdateNicknameEvent]: role assigned, try to store user info in database.");
-            storeUserIdentity(event.getUser(), event.getNewNickname());
+            String userName = UserService.getNameByNickName(currentNickname);
+            String userStudentId = UserService.getStudentIdByNickName(currentNickname);
+            // create profile for current user
+            UserProfile userProfile = new UserProfile(userName, userStudentId, event.getUser().getId());
+            /* send verify mail, store correspond uuid and userProfile */
+            String uuid = userService.sendVerificationMail(userStudentId);
+            UserService.verifyList.put(uuid, userProfile);
+//            /* assign role to user */
+//            System.out.println("[GuildMemberUpdateNicknameEvent]: try to assign role.");
+//            event.getGuild().addRoleToMember(event.getMember(), event.getGuild().getRoleById(studentRoleId)).queue();
+//            System.out.println("[GuildMemberUpdateNicknameEvent]: role assigned, try to store user info in database.");
+//            storeUserIdentity(event.getUser(), event.getNewNickname());
         }else{
             System.out.println("[GuildMemberUpdateNicknameEvent] Nickname update detected with wrong format, do nothing.");
         }
+    }
+
+    /**
+     * verify user and assign role to user
+     * @param uuid target user's uuid
+     */
+    public void verifyUserAndAssignRole(String uuid){
+        System.out.println("[DEBUG][UserService] try to assign role.");
+        // todo: try to assign role to user
+        /* get profile from verify list and remove it */
+        UserProfile profile = UserService.verifyList.get(uuid);
+        UserService.verifyList.remove(uuid);
+        /* get user from userProfile and try to assign role to user */
+        // retrieve user from jda
+        guild.retrieveMemberById(profile.getDiscordId()).queue(member -> {
+            // try to assign role to this member
+            guild.addRoleToMember(member, guild.getRoleById(studentRoleId)).queue();
+        });
+        /* add user into current user list */
+        userService.registerStudent(profile);
     }
 
     /**
