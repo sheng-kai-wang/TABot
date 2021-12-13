@@ -32,7 +32,13 @@ public class VerifyMailController {
     public ResponseEntity<String> verify(@PathVariable String uuid){
         System.out.println("[DEBUG][mail verify] received from " + uuid);
         /* add user in to user list and assign role to user */
-        generalEventListener.verifyUserAndAssignRole(uuid);
+        try {
+            generalEventListener.verifyUserAndAssignRole(uuid);
+        } catch (Exception e) {
+            System.out.println("[DEBUG][mail verify] error occurs while trying to assign role and update user list.");
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Something goes wrong, please report TA about this situation to manager.");
+        }
         return ResponseEntity.ok("You can close this page now, thanks.");
     }
 }

@@ -142,7 +142,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
      * verify user and assign role to user
      * @param uuid target user's uuid
      */
-    public void verifyUserAndAssignRole(String uuid){
+    public void verifyUserAndAssignRole(String uuid) throws Exception {
         System.out.println("[DEBUG][UserService] try to assign role.");
         // todo: try to assign role to user
         /* get profile from verify list and remove it */
