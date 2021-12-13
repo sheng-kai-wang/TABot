@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 //@SpringBootTest
 class TaBotApplicationTests {
@@ -307,6 +308,21 @@ class TaBotApplicationTests {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    @Test
+    void testArrayListParse(){
+        UserProfile profile1 = new UserProfile("a", "1", "11");
+        UserProfile profile2 = new UserProfile("b", "2", "22");
+        ArrayList<UserProfile> testList = new ArrayList<>();
+        testList.add(profile1);
+        testList.add(profile2);
+        System.out.println(testList);
+        ArrayList<HashMap> resultMapList = new ArrayList<>();
+        for(UserProfile profile: testList){
+            resultMapList.add(profile.getProfileMap());
+        }
+        System.out.println(resultMapList);
     }
 
 }

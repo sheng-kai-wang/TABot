@@ -275,7 +275,7 @@ public class UserService {
      * update firestore userList with current user list
      */
     public void updateFirestoreUserList(){
-        ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).update(FIELD_NAME, FieldValue.arrayUnion(currentUserList.toArray()));
+        ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).update(FIELD_NAME, FieldValue.arrayUnion(getParsedCurrentUserMapList()));
         try {
             System.out.println("[DEBUG][UserService] Complete update userList at " + future.get().getUpdateTime());
         } catch (InterruptedException | ExecutionException e) {
@@ -296,5 +296,17 @@ public class UserService {
             e.printStackTrace();
             System.out.println("[DEBUG][UserService] error occurs when trying to update user list to firestore.");
         }
+    }
+
+    /**
+     * parse current userProfile arraylist into arraylist of hashmap
+     * @return current userProfile hashmap arraylist
+     */
+    private ArrayList<HashMap> getParsedCurrentUserMapList(){
+        ArrayList<HashMap> resultList = new ArrayList<>();
+        for(UserProfile profile: currentUserList){
+            resultList.add(profile.getProfileMap());
+        }
+        return resultList;
     }
 }
