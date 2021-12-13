@@ -281,7 +281,7 @@ class TaBotApplicationTests {
         String to = "dskyshad9527@gmail.com";
         String from = "noreply@test.com";
         String username = to;
-        String pwd = "xygvtwhxgguhqcri";
+        String pwd = "";
         String host = "smtp.gmail.com";
 
         Properties props = new Properties();
