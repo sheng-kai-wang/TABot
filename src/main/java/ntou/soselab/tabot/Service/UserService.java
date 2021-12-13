@@ -34,6 +34,7 @@ public class UserService {
     private final String FIELD_NAME;
     private Firestore db;
     public static ArrayList<UserProfile> currentUserList;
+    public static HashMap<String, UserProfile> verifyList;
 
     private ActionCodeSettings actionCodeSettings;
 
@@ -80,6 +81,7 @@ public class UserService {
         try {
             /* create instance for static user list */
             currentUserList = new ArrayList<>();
+            verifyList = new HashMap<>();
             /* retrieve previous registered user from firestore */
             ArrayList userList = (ArrayList) db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).get().get().get(FIELD_NAME);
             if(userList == null)
@@ -131,14 +133,14 @@ public class UserService {
      * @param nickName
      * @return
      */
-    private String getNameByNickName(String nickName){
+    public static String getNameByNickName(String nickName){
         Pattern pattern = Pattern.compile("^[0-9A-Z]{8}-(.*)$");
         Matcher matcher = pattern.matcher(nickName);
         matcher.find();
         return matcher.group(1);
     }
 
-    private String getStudentIdByNickName(String nickName){
+    public static String getStudentIdByNickName(String nickName){
         Pattern pattern = Pattern.compile("^([0-9A-Z]{8})-.*$");
         Matcher matcher = pattern.matcher(nickName);
         matcher.find();
@@ -192,6 +194,17 @@ public class UserService {
         currentUserList.removeIf(userProfile -> userProfile.getDiscordId().equals(discordId));
         currentUserList.add(registrant);
         // remote change
+        removeFirestoreUserList();
+        updateFirestoreUserList();
+    }
+
+    /**
+     * register new student profile, remove existed profile if same discord id contained
+     * @param registrant student's profile
+     */
+    public void registerStudent(UserProfile registrant){
+        currentUserList.removeIf(userProfile -> userProfile.getDiscordId().equals(registrant.getDiscordId()));
+        currentUserList.add(registrant);
         removeFirestoreUserList();
         updateFirestoreUserList();
     }

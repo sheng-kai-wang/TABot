@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import ntou.soselab.tabot.Entity.UserProfile;
 import ntou.soselab.tabot.Service.UserService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,9 +117,12 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         System.out.println("[GuildMemberUpdateNicknameEvent][User]: " + event.getUser());
         System.out.println("[GuildMemberUpdateNicknameEvent][oldName]: " + event.getOldNickname());
         System.out.println("[GuildMemberUpdateNicknameEvent][newName]: " + event.getNewNickname());
+        String currentNickname = event.getNewNickname();
 
         // check new nickname, if nickname fits specific format, assign role to user and store their id and name in database
-        if(UserService.verifyNickNameFormat(event.getNewNickname())) {
+        if(UserService.verifyNickNameFormat(currentNickname)) {
+            UserProfile user = new UserProfile(UserService.getNameByNickName(currentNickname), UserService.getStudentIdByNickName(currentNickname), event.getUser().getId());
+            /* assign role to user */
             System.out.println("[GuildMemberUpdateNicknameEvent]: try to assign role.");
             event.getGuild().addRoleToMember(event.getMember(), event.getGuild().getRoleById(studentRoleId)).queue();
             System.out.println("[GuildMemberUpdateNicknameEvent]: role assigned, try to store user info in database.");
@@ -155,7 +159,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         User user = event.getUser();
         String username = user.getName();
         String id = user.getId();
-        // maybe to something here
+        // maybe do something here
     }
 
     @Override

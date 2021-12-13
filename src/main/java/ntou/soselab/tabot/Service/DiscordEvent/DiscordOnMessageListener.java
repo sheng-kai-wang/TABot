@@ -60,6 +60,9 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if(event.getAuthor().isBot()) return; // ignore all message from bot
 
+        /* check if user account verified */
+        // todo: check verified or not, return if not
+
         // print received message
         System.out.println(" ================ ");
         System.out.println("[onMessage]: try to print received message.");
