@@ -29,10 +29,12 @@ import java.util.regex.Pattern;
 public class IntentHandleService {
 
     public static HashMap<String, JsonObject> ongoingQuizMap;
+    private final String SUGGEST_FORM_URL;
 
     @Autowired
     public IntentHandleService(Environment env){
         ongoingQuizMap = new HashMap<>();
+        this.SUGGEST_FORM_URL = env.getProperty("env.setting.suggest");
     }
 
     /**
@@ -106,7 +108,7 @@ public class IntentHandleService {
         // todo: add Google form link for suggestion
         MessageBuilder builder = new MessageBuilder();
         builder.append("That's sound good, check out link below to contribute material, thanks.");
-        builder.setEmbeds(new EmbedBuilder().addField("Submit   your suggestion here !", ":scroll: click me to submit stuff", false).build());
+        builder.setEmbeds(new EmbedBuilder().addField("Submit   your suggestion here !", ":scroll: [click me to submit stuff](" + SUGGEST_FORM_URL + ")", false).build());
         return builder.build();
     }
 
