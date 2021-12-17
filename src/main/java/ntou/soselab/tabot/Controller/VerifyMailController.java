@@ -1,5 +1,6 @@
 package ntou.soselab.tabot.Controller;
 
+import ntou.soselab.tabot.Entity.UserProfile;
 import ntou.soselab.tabot.Service.DiscordEvent.DiscordGeneralEventListener;
 import ntou.soselab.tabot.Service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +26,8 @@ public class VerifyMailController {
 
     /**
      * verify user when user click verify link in verification mail
-     * @param uuid
-     * @return
+     * @param uuid temporary uuid of user profile
+     * @return 200 if user update complete, 500 if anything goes wrong
      */
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<String> verify(@PathVariable String uuid){

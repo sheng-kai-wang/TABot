@@ -207,7 +207,7 @@ public class UserService {
         mailMessage.setTo(receiverMailAddress);
         mailMessage.setFrom(senderMailAddress);
         mailMessage.setSubject("TABot Verify Mail");
-        mailMessage.setText("click the link below to verify your email.\n" + verifyLink);
+        mailMessage.setText("You are trying to verify yourself as " + studentId + "\nclick the link below to verify your identity.\n" + verifyLink);
 
         mailSender.send(mailMessage);
         System.out.println("[DEBUG][UserService] mail delivered, store uuid in to verify list.");
