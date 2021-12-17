@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,10 +50,6 @@ public class UserService {
         // todo: complete firebase mail function and register function
         /* mail properties */
         this.mailSender = mailSender;
-
-        /* test block */
-        // try to create user
-//        createNewUser("286145047169335298", "10957033-david");
     }
 
     /**
@@ -91,8 +84,14 @@ public class UserService {
             verifyList = new HashMap<>();
             /* retrieve previous registered user from firestore */
             ArrayList userList = (ArrayList) db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).get().get().get(FIELD_NAME);
-            if(userList == null)
-                throw new NullPointerException("[DEBUG][UserService] no previous registered user found on firestore.");
+            if(userList == null) {
+//                throw new NullPointerException("[DEBUG][init firestore] no previous registered user found on firestore.");
+                // insert fake data and try to retrieve data again
+                insertFakeUserDataToFirestore();
+                userList = (ArrayList) db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).get().get().get(FIELD_NAME);
+            }else{
+            }
+            System.out.println(">> [DEBUG][init firestore] raw list from firestore: " + userList);
             /* create current user list */
             for(Object obj: userList){
                 UserProfile user = new UserProfile((HashMap) obj);
@@ -101,29 +100,26 @@ public class UserService {
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         } catch (NullPointerException e){
-            System.out.println(e.getMessage());
+            System.out.println("[DEBUG][init firestore] " + e.getMessage());
+            System.out.println("[DEBUG][init firestore] this may be caused by empty data found on firestore, make sure firestore has at least one data.");
             e.printStackTrace();
         }
     }
 
-    /* SUSPEND, switch to firestore api */
-//    public void createNewUser(String id, String nickName){
-//        String studentId = getStudentIdByNickName(nickName);
-//        String studentName = getNameByNickName(nickName);
-//        UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-//                .setUid(id)
-//                .setEmail(getNTOUEmail(studentId))
-////                .setEmail("david02653@gmail.com")
-//                .setEmailVerified(false)
-//                .setDisplayName(studentName);
-//
-//        try {
-//            UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
-//            System.out.println("Successfully create new user " + userRecord.getDisplayName());
-//        } catch (FirebaseAuthException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    private void insertFakeUserDataToFirestore(){
+        HashMap<String, Object> fakeUser = new HashMap<>();
+        fakeUser.put("name", "fakeUser");
+        fakeUser.put("studentId", "0");
+        fakeUser.put("discordId", "0");
+        ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).update(FIELD_NAME, FieldValue.arrayUnion(new HashMap[]{fakeUser}));
+        try{
+            System.out.println("[DEBUG][UserService] insert fake user data : " + future.get().getUpdateTime());
+            System.out.println(">>> ALERT : please remove fake user data from firestore manually !");
+        }catch (InterruptedException | ExecutionException e){
+            System.out.println("[DEBUG][UserService] failed to insert fake user data.");
+            e.printStackTrace();
+        }
+    }
 
     /**
      * check if nickname matches specific pattern
@@ -170,6 +166,18 @@ public class UserService {
     }
 
     /**
+     * use discord id to retrieve student full name, including student id and name
+     * @param discordId target discord id
+     * @return correspond student full name if received discord id did exist in current user list
+     * @throws NoAccountFoundError if no correspond user found by discord id
+     */
+    public String getFullNameFromDiscordId(String discordId) throws NoAccountFoundError{
+        if(!registeredBefore(discordId))
+            throw new NoAccountFoundError("no user matched in current user list.");
+        return currentUserList.stream().filter(user -> user.getDiscordId().equals(discordId)).findFirst().get().getUserFullName();
+    }
+
+    /**
      * use student id to retrieve discord id
      * @param studentId target student id
      * @return correspond discord id if received student id did exist in current user list
@@ -186,6 +194,7 @@ public class UserService {
      * @return uuid of this verify application
      */
     public String sendVerificationMail(String studentId){
+        System.out.println("[DEBUG][UserService] try to send verification mail.");
         String receiverMailAddress = getNTOUEmail(studentId);
         // sender setup
         String senderMailAddress = "noreply@tabot.com";
@@ -194,10 +203,6 @@ public class UserService {
         // generate verify link
         String verifyLink = generateVerifyLink(uuid.toString());
 
-        /* --- test block: insert testing data --- */
-        receiverMailAddress = "dskyshad9527@gmail.com";
-        /* --- end of test block --- */
-
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(receiverMailAddress);
         mailMessage.setFrom(senderMailAddress);
@@ -205,6 +210,7 @@ public class UserService {
         mailMessage.setText("click the link below to verify your email.\n" + verifyLink);
 
         mailSender.send(mailMessage);
+        System.out.println("[DEBUG][UserService] mail delivered, store uuid in to verify list.");
         return uuid.toString();
     }
 
@@ -240,6 +246,7 @@ public class UserService {
      * @param registrantProfile student's profile
      */
     public void registerStudent(UserProfile registrantProfile){
+        System.out.println("[DEBUG][UserService] try to add " + registrantProfile.getStudentId() + " in to current user list and update firestore.");
         currentUserList.removeIf(userProfile -> userProfile.getDiscordId().equals(registrantProfile.getDiscordId()));
         currentUserList.add(registrantProfile);
         removeFirestoreUserList();
@@ -264,7 +271,7 @@ public class UserService {
         DocumentReference docRef = db.collection(COLLECTION_NAME).document(DOCUMENT_NAME);
         ApiFuture<WriteResult> future = docRef.update(empty);
         try {
-            System.out.println("[DEBUG][UserService] remove all user from userList. " + future.get().toString());
+            System.out.println("[DEBUG][UserService] remove all user from userList at " + future.get().getUpdateTime());
         } catch (InterruptedException | ExecutionException e) {
             System.out.println("[DEBUG][UserService] error occurs when trying to empty user list on firestore.");
             e.printStackTrace();
@@ -302,11 +309,11 @@ public class UserService {
      * parse current userProfile arraylist into arraylist of hashmap
      * @return current userProfile hashmap arraylist
      */
-    private ArrayList<HashMap> getParsedCurrentUserMapList(){
+    private Object[] getParsedCurrentUserMapList(){
         ArrayList<HashMap> resultList = new ArrayList<>();
         for(UserProfile profile: currentUserList){
             resultList.add(profile.getProfileMap());
         }
-        return resultList;
+        return resultList.toArray();
     }
 }

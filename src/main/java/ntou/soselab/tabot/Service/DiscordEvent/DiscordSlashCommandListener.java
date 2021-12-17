@@ -67,14 +67,6 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 event.reply("ok, got it").setEphemeral(true).queue();
                 targetChannel.sendMessage(event.getOption("message").getAsString()).queue();
 //                event.reply("ok send send").setEphemeral(true).queue();
-                // test block: selection menu
-//                SelectionMenu channelMenu = SelectionMenu.create("menu:channel")
-//                        .setPlaceholder("Choose target channel")
-//                        .setRequiredRange(1,1)
-//                        .addOption("General", "894261930431217674")
-//                        .addOption("Question", "894266930221965343")
-//                        .build();
-//                event.reply("Pick ")
             }else
                 event.reply("not enough permission to access").setEphemeral(true).queue();
         }

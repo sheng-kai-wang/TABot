@@ -1,5 +1,7 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
@@ -94,10 +96,12 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
                 .queue();
         /* print current slash command */
         event.getJDA().getGuildById(serverId).retrieveCommands().queue(commands -> {
-            System.out.println(commands);
+            System.out.println("[DEBUG][onReady] available command: " + commands);
         });
-        // testing: send hyperlink in message
-//        channelMap.get("test").sendMessage(new MessageBuilder().setEmbeds(new EmbedBuilder().addField("link", "[test](https://google.com)", false).build()).build()).queue();
+        System.out.println("<< [DEBUG] all role: " + guild.getRoles());
+        System.out.println("<< [DEBUG] bot role: " + guild.getBotRole());
+        /* testing: send hyperlink in message */
+//        channelMap.get("test").sendMessage(new MessageBuilder().setEmbeds(new EmbedBuilder().addField("link", ":smile: [test](https://google.com)", false).build()).build()).queue();
         // testing: send message with action row
 //        channelMap.get("test").sendMessage(new MessageBuilder().append("testing content").setActionRows(ActionRow.of(Button.primary("optB", "b"), Button.success("optA", "a"))).build()).queue();
     }
@@ -143,11 +147,11 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
      * @param uuid target user's uuid
      */
     public void verifyUserAndAssignRole(String uuid) throws Exception {
-        System.out.println("[DEBUG][UserService] try to assign role.");
         // todo: try to assign role to user
         /* get profile from verify list and remove it */
         UserProfile profile = UserService.verifyList.get(uuid);
         UserService.verifyList.remove(uuid);
+        System.out.println("[DEBUG][UserService] try to assign role to " + profile.getStudentId() + ".");
         /* get user from userProfile and try to assign role to user */
         // retrieve user from jda
         guild.retrieveMemberById(profile.getDiscordId()).queue(member -> {

@@ -30,7 +30,8 @@ public class VerifyMailController {
      */
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<String> verify(@PathVariable String uuid){
-        System.out.println("[DEBUG][mail verify] received from " + uuid);
+        String studentId = UserService.verifyList.get(uuid).getStudentId();
+        System.out.println("[DEBUG][mail verify] confirmed link clicked from " + studentId);
         /* add user in to user list and assign role to user */
         try {
             generalEventListener.verifyUserAndAssignRole(uuid);

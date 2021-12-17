@@ -7,9 +7,11 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ntou.soselab.tabot.Entity.ChatStatus;
 import ntou.soselab.tabot.Entity.Rasa.Intent;
+import ntou.soselab.tabot.Exception.NoAccountFoundError;
 import ntou.soselab.tabot.Service.IntentHandleService;
 import ntou.soselab.tabot.Service.JDAMessageHandleService;
 import ntou.soselab.tabot.Service.RasaService;
+import ntou.soselab.tabot.Service.UserService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -38,6 +40,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     private final String adminRoleId;
     private JDAMessageHandleService jdaMsgHandleService;
     private IntentHandleService intentHandleService;
+    private UserService userService;
     // rasa service
     private final RasaService rasa;
 
@@ -45,7 +48,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     private HashMap<String, ChatStatus> chatStatusMap;
 
     @Autowired
-    public DiscordOnMessageListener(RasaService rasa, IntentHandleService intentHandle, JDAMessageHandleService jdaMsgHandle, Environment env){
+    public DiscordOnMessageListener(RasaService rasa, IntentHandleService intentHandle, JDAMessageHandleService jdaMsgHandle, UserService userService, Environment env){
         this.adminChannelId = env.getProperty("discord.admin.channel.id");
         this.adminSuggestChannelId = env.getProperty("discord.admin.channel.suggest");
         this.botId = env.getProperty("discord.application.id");
@@ -53,6 +56,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         this.jdaMsgHandleService = jdaMsgHandle;
         this.intentHandleService = intentHandle;
         this.rasa = rasa;
+        this.userService = userService;
         this.chatStatusMap = new HashMap<>();
     }
 
@@ -60,13 +64,12 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if(event.getAuthor().isBot()) return; // ignore all message from bot
 
-        /* check if user account verified */
-        // todo: check verified or not, return if not
-
         // print received message
         System.out.println(" ================ ");
         System.out.println("[onMessage]: try to print received message.");
         System.out.println("> [author] " + event.getMessage().getId());
+        if(event.isFromGuild()) System.out.println("> [role] " + event.getMember().getRoles());
+        else System.out.println("> [role] from private channel, no role found");
         System.out.println("> [content raw] " + event.getMessage().getContentRaw());
         System.out.println("> [content display] " + event.getMessage().getContentDisplay());
         System.out.println("> [content strip] " + event.getMessage().getContentStripped());
@@ -80,13 +83,20 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 System.out.println("  > [attach proxy url] " + attachment.getProxyUrl());
             }
         }
-//        System.out.println("---");
-//        System.out.println("[TEST] try to send received message out.");
-//        MessageBuilder builder = new MessageBuilder();
-//        builder.append(event.getMessage().getContentRaw());
-//        builder.append(event.getMessage().getAttachments().get(0).getUrl());
-//        jdaMsgHandleService.sendPublicMessageWithReference(builder.build(), event.getMessageId(), "test-channel", event);
-        // check if admin role got mentioned, in this case, admin role is 'TA'
+        /* check if user account has assigned role */
+        if(event.isFromGuild()){
+            if(!hasRole(event.getMember())){
+                // send register notification and return
+                jdaMsgHandleService.sendPrivateMessage(event.getAuthor(), generateRegisterNotifyMsg());
+                return;
+            }
+        }else{
+            if(!hasRole(event.getAuthor().getId())){
+                // send register notification and return
+                jdaMsgHandleService.sendPrivateMessage(event.getAuthor(), generateRegisterNotifyMsg());
+                return;
+            }
+        }
 
         if(event.isFromType(ChannelType.PRIVATE)){
             System.out.println("[DEBUG] private message received.");
@@ -127,7 +137,6 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 // only react to incoming message if bot got mentioned in general channels (student user available channel, to be specific)
                 if(isBotMentioned(event)) {
                     // normal function
-                    // todo: normal message handle (rasa), from public channel
                     System.out.println(">>> trigger normal handle (public)");
                     handleNormalMessage(event);
                 }
@@ -150,38 +159,46 @@ public class DiscordOnMessageListener extends ListenerAdapter {
      * @param event message received event
      */
     private void handleNormalMessage(MessageReceivedEvent event){
-        Message received = event.getMessage();
-        String rawMsg = received.getContentRaw();
-        String senderId = received.getId();
-        if(received.isFromGuild()) {
-            rawMsg = received.getContentDisplay().strip().replace("@TABot", "").strip();
-            senderId = received.getAuthor().getId();
-        }
-        /* ----- testing block: change id into testing id ----- */
-        String testDiscordId = "286145047169335298";
-        String testStudentId = "0076D053";
-        senderId = testStudentId;
-        /* ----- end of testing block ----- */
-        System.out.println("[DEBUG][normal handle] " + rawMsg);
-        // send message to rasa
-        Intent intent = rasa.analyze(senderId, rawMsg);
-        System.out.println(intent);
-        // store current chatting status
-        // todo: save/remove chat status
-        // check what to do next
-        // todo: complete intentHandle implement
-        // check sender id
-        // todo: add function to get student id by discord id
-        // get intent response message
-        Message result = intentHandleService.checkIntent(senderId, intent);
-        // reply message
-        if(received.isFromGuild()) {
-            System.out.println("+++ [DEBUG][handle normal] id: " + received.getId());
-            System.out.println("+++ [DEBUG][handle normal] channel: " + received.getTextChannel().getName());
-            jdaMsgHandleService.replyPublicMessage(result, received.getId(), received.getTextChannel().getName());
-        } else {
-            jdaMsgHandleService.replyPrivateMessage(result, received.getAuthor().getId(), received.getId());
+        System.out.println("[DEBUG][onMsg][handle normal] triggered.");
+        try{
+            Message received = event.getMessage();
+            String rawMsg = received.getContentRaw();
+            /* set received msg id as author's discord id in case message came from private channel */
+            String receivedMsgId = received.getId();
+            String senderDiscordId = event.getAuthor().getId();
+            String senderStudentId = userService.getStudentIdFromDiscordId(senderDiscordId);
+            if(received.isFromGuild()) {
+                rawMsg = received.getContentDisplay().strip().replace("@TABot", "").strip();
+//                receivedMsgId = received.getId();
+            }
+            /* ----- testing block: change id into testing id ----- */
+            String testDiscordId = "286145047169335298";
+            String testStudentId = "0076D053";
+            senderStudentId = testStudentId;
+            /* ----- end of testing block ----- */
+            System.out.println("[DEBUG][normal handle] " + rawMsg);
+            // send message to rasa
+            Intent intent = rasa.analyze(senderDiscordId, rawMsg);
+            System.out.println(intent);
+            // store current chatting status
+            // todo: save/remove chat status
+            // check sender id
+            // todo: add function to get student id by discord id
+            // get intent response message
+            Message result = intentHandleService.checkIntent(senderStudentId, intent);
+            // reply message
+            if(received.isFromGuild()) {
+                System.out.println("+++ [DEBUG][handle normal] sender : " + userService.getFullNameFromDiscordId(senderDiscordId));
+                System.out.println("+++ [DEBUG][handle normal] dc id : " + senderDiscordId);
+                System.out.println("+++ [DEBUG][handle normal] channel: " + received.getTextChannel().getName());
+                jdaMsgHandleService.replyPublicMessage(result, receivedMsgId, received.getTextChannel().getName());
+            } else {
+                jdaMsgHandleService.replyPrivateMessage(result, senderDiscordId, receivedMsgId);
 //            jdaMsgHandleService.replyPrivateMessage(result, testDiscordId, received.getId()); /* test */
+            }
+        }catch (NoAccountFoundError e){
+            System.out.println("[DEBUG][handleNormalMsg] " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -190,13 +207,14 @@ public class DiscordOnMessageListener extends ListenerAdapter {
      * @param event message received event
      */
     private void handleAdminMessage(MessageReceivedEvent event){
+        System.out.println("[DEBUG][onMsg][handle admin] triggered.");
         Message received = event.getMessage();
         if(fromSuggestList(event)){
             // only do stuff on reply (check suggestion)
             if(received.getReferencedMessage() != null){
                 Message ref = received.getReferencedMessage();
                 Intent intent = rasa.analyze(event.getMember().getId(), received.getContentRaw());
-                System.out.println(intent);
+                System.out.println("[DEBUG][handle Admin][detected intent] " + intent);
                 String intentName = intent.getCustom().getIntent();
                 if(intentName.equals("suggest_review_pass")){
                     // suggest passed, add suggestion in pending add list
@@ -212,8 +230,6 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 }
                 if(intentName.equals("suggest_review_failed")){
                     // todo: handle suggest failed
-                    // delete suggestion
-//                    event.getGuild().getTextChannelById(adminSuggestChannelId).deleteMessageById(ref.getId()).queue();
                 }
             }
         }
@@ -239,6 +255,41 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 }
             }
         }
+    }
+
+    /**
+     * check if message sender has assigned role, assume message is send from public channel
+     * @param sender message sender
+     * @return true if sender has valid role, otherwise false
+     */
+    private boolean hasRole(Member sender){
+        List<Role> availableRoles = sender.getRoles();
+        return availableRoles.size() >= 1;
+    }
+
+    /**
+     * check if message sender has assigned role, assume message is send from private channel
+     * @param discordId sender's discord id
+     * @return true if sender has valid role, otherwise false
+     */
+    private boolean hasRole(String discordId){
+        // check current user list
+        return UserService.currentUserList.stream().anyMatch(profile -> profile.getDiscordId().equals(discordId));
+    }
+
+    /**
+     * generate a register notification message
+     * @return register notification message
+     */
+    private Message generateRegisterNotifyMsg(){
+        MessageBuilder builder = new MessageBuilder();
+        builder.append("You need to verify your identity first.\n");
+        builder.append("Change your nickname to `<your student id>-<your name>` to get a student role.");
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.addField("Example", "00000000-Bat Man", false);
+        embedBuilder.setColor(Color.orange);
+        builder.setEmbeds(embedBuilder.build());
+        return builder.build();
     }
 
     /**

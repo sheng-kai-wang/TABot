@@ -28,6 +28,10 @@ public class UserProfile {
         return profileMap;
     }
 
+    public String getUserFullName(){
+        return studentId + " - " + name;
+    }
+
     public void setName(String name) {
         this.name = name;
     }

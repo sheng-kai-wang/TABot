@@ -40,10 +40,10 @@ public class IntentHandleService {
     /**
      * declare what bot should do with each intent
      * <br>Note: expect STUDENT id passed as parameter
-     * @param userId student id
+     * @param userStudentId student id
      * @param intent incoming intent
      */
-    public Message checkIntent(String userId, Intent intent){
+    public Message checkIntent(String userStudentId, Intent intent){
         String intentName = intent.getCustom().getIntent();
         switch (intentName){
             case "greet":
@@ -61,7 +61,7 @@ public class IntentHandleService {
                 else if(intentName.startsWith("faq"))
                     return faqHandle(intent);
                 else if(intentName.startsWith("personal"))
-                    return personalFuncHandler(userId, intent);
+                    return personalFuncHandler(userStudentId, intent);
                 else
                     System.out.printf("[DEBUG][intent analyze]: '%s' detected, no correspond result found.", intentName);
                 break;
@@ -85,6 +85,7 @@ public class IntentHandleService {
      * @return
      */
     public Message faqHandle(Intent faqIntent){
+        System.out.println("[DEBUG][intentHandle] faq handle triggered.");
         String faqName = faqIntent.getCustom().getIntent().replace("faq/", "");
         // call google sheet api to query correspond result of faq
         JSONObject searchResult = new SheetsHandler("Java").readContentByKey("FAQ", faqName);
@@ -105,7 +106,7 @@ public class IntentHandleService {
      * @return
      */
     private Message sendSuggestFormMsg(){
-        // todo: add Google form link for suggestion
+        System.out.println("--- [DEBUG][intentHandle] try to send suggest form.");
         MessageBuilder builder = new MessageBuilder();
         builder.append("That's sound good, check out link below to contribute material, thanks.");
         builder.setEmbeds(new EmbedBuilder().addField("Submit   your suggestion here !", ":scroll: [click me to submit stuff](" + SUGGEST_FORM_URL + ")", false).build());
@@ -113,6 +114,7 @@ public class IntentHandleService {
     }
 
     private Message searchSlide(Intent intent){
+        System.out.println("[DEBUG][intentHandle] slide search triggered.");
         String targetChapter = intent.getCustom().getEntity();
         System.out.println("--- [DEBUG][search slide] raw chapter name: " + targetChapter);
         // check if entity extraction successfully captured values
@@ -145,6 +147,7 @@ public class IntentHandleService {
      * @return
      */
     private Message searchClassMap(Intent intent){
+        System.out.println("[DEBUG][intentHandle] class map search triggered.");
         String queryTarget = intent.getCustom().getEntity();
         System.out.println("--- [DEBUG][search class map] try to query '" + queryTarget + "'.");
         // check if entity extraction successfully captured values
@@ -244,6 +247,8 @@ public class IntentHandleService {
      * @return
      */
     public Message getPersonalTextbook(String studentId){
+        System.out.println("[DEBUG][intentHandle] personal textbook triggered.");
+        System.out.println("[DEBUG] try to search personal textbook for " + studentId);
         Gson gson = new Gson();
         String queryResp = new Neo4jHandler("Java").readPersonalizedSubjectMatter(studentId);
         System.out.println("--- [DEBUG][personal textbook][neo4j] queryResp: " + queryResp);
@@ -287,14 +292,13 @@ public class IntentHandleService {
     }
 
     public Message getPersonalQuiz(String studentId){
+        System.out.println("[DEBUG][intentHandle] personal quiz triggered.");
         Gson gson = new Gson();
         // search quiz number from neo4j
         String quizResp = new Neo4jHandler("Java").readPersonalizedTest(studentId);
         System.out.println("--- [DEBUG][personal quiz][neo4j] quizResp: " + quizResp);
         JsonArray quizNumList = gson.fromJson(quizResp, JsonArray.class);
-        // random pick one of the quiz
-        // todo: check personal quiz mechanism, use random one or use all
-        // retrieve quiz data from Google sheet
+        // random pick one of the quiz, retrieve quiz data from Google sheet
         JsonObject quiz = parsePersonalQuiz(new SheetsHandler("Java").readContentByKey("QuestionBank", pickRandomQuiz(quizNumList).strip()));
         System.out.println("--- [DEBUG][personal quiz] quiz: " + quiz);
         // store user data and quiz in ongoing quiz map
@@ -326,7 +330,7 @@ public class IntentHandleService {
     }
 
     /**
-     * create message for one personal quiz
+     * create quiz message for one personal quiz
      * @param quiz
      * @return
      */
@@ -346,8 +350,11 @@ public class IntentHandleService {
     private List<Button> getQuizComponents(JsonObject quiz){
         ArrayList<Button> result = new ArrayList<>();
         for(Map.Entry<String, JsonElement> entry: quiz.entrySet()){
-            if(entry.getKey().strip().startsWith("opt"))
-                result.add(Button.primary(entry.getKey().strip().replace("opt", ""), entry.getValue().getAsString()));
+            String optionName = entry.getKey().strip();
+            String optionValue = optionName.replace("opt", "");
+            if(optionName.startsWith("opt"))
+//                result.add(Button.primary(optionName.replace("opt", ""), entry.getValue().getAsString()));
+                result.add(Button.primary(optionValue, optionValue));
         }
         Collections.shuffle(result); // shuffle button list
         return result;
@@ -361,6 +368,7 @@ public class IntentHandleService {
      * @return target score
      */
     private String checkPersonalScore(String studentId, String target){
+        System.out.println("[DEBUG][intentHandle] personal score triggered.");
         HashMap<String, String> personalScoreMap = new HashMap<>();
         JSONObject scoreMap = new SheetsHandler("Java").readContentByKey("Grades", studentId);
         System.out.println("--- [DEBUG][personal score] scoreMap: " + scoreMap);
