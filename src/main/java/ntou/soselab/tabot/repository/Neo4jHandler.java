@@ -1,6 +1,7 @@
 package ntou.soselab.tabot.repository;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.jayway.jsonpath.JsonPath;
 import org.neo4j.driver.*;
 import org.yaml.snakeyaml.Yaml;
@@ -54,7 +55,7 @@ public class Neo4jHandler implements AutoCloseable {
             e.printStackTrace();
         }
 
-        this.gson = new Gson();
+        this.gson = new GsonBuilder().disableHtmlEscaping().create();
     }
 
     /**
@@ -170,7 +171,8 @@ public class Neo4jHandler implements AutoCloseable {
         List<String> cypherResponses = doCypher(cypherString);
         Set<String> results = new HashSet<>();
         for (String cypherResponse : cypherResponses) {
-            results.add(JsonPath.read(cypherResponse, "$.values[0].adapted.properties.name.val"));
+            results.add(JsonPath.read(cypherResponse, "$.values[0].val"));
+            results.add(JsonPath.read(cypherResponse, "$.values[1].val"));
         }
         return gson.toJson(results);
     }
