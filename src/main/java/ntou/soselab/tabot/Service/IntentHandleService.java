@@ -251,9 +251,13 @@ public class IntentHandleService {
         System.out.println("[DEBUG] try to search personal textbook for " + studentId);
         Gson gson = new Gson();
         String queryResp = new Neo4jHandler("Java").readPersonalizedSubjectMatter(studentId);
-        System.out.println("--- [DEBUG][personal textbook][neo4j] queryResp: " + queryResp);
+        System.out.println("--- [DEBUG][personal textbook][neo4j] raw queryResp: " + queryResp);
         // get textbook title from neo4j
         JsonArray queryResult = gson.fromJson(queryResp, JsonArray.class);
+//        System.out.println("--- [DEBUG][personal textbook] query result: " + queryResult);
+        System.out.println("--- [DEBUG][personal textbook] query result size " + queryResult.size());
+        if(queryResult.size() < 1)
+            return getNullTextbookMessage();
         // search neo4j for each slide data
         HashMap<String, String> resultMap = new HashMap<>();
         for(JsonElement chapterName: queryResult){
@@ -262,6 +266,16 @@ public class IntentHandleService {
             resultMap.put(chapterName.getAsString(), chapterData);
         }
         return generatePersonalTextbookMsg(resultMap, queryResp);
+    }
+
+    /**
+     * generate response message if no personal textbook found
+     * @return response message
+     */
+    private Message getNullTextbookMessage(){
+        MessageBuilder builder = new MessageBuilder();
+        builder.append("> Seems like you have no personal textbook for now. :neutral_face:");
+        return builder.build();
     }
 
     /**
