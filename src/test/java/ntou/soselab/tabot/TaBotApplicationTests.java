@@ -121,21 +121,21 @@ class TaBotApplicationTests {
         System.out.println(personalScoreMap.get("midterm_exam"));
     }
 
-    @Test
-    void testParseKeywordSheet(){
-        String keywordSheet = new SheetsHandler("Java").readContent("Keyword", "");
-        Gson gson = new Gson();
-        JsonArray keyword = gson.fromJson(keywordSheet, JsonArray.class);
-//        System.out.println(keyword);
-//        System.out.println(keyword.size());
-        for(JsonElement element: keyword){
-            JsonArray ele = element.getAsJsonArray();
-//            System.out.println(ele);
-//            System.out.println(ele.get(1).getAsString());
-            if(Arrays.stream(ele.get(1).getAsString().split(",")).anyMatch(word -> word.strip().equals("Introduction")))
-                System.out.println(ele.get(0).getAsString().strip());
-        }
-    }
+//    @Test
+//    void testParseKeywordSheet(){
+//        String keywordSheet = new SheetsHandler("Java").readContent("Keyword", "");
+//        Gson gson = new Gson();
+//        JsonArray keyword = gson.fromJson(keywordSheet, JsonArray.class);
+////        System.out.println(keyword);
+////        System.out.println(keyword.size());
+//        for(JsonElement element: keyword){
+//            JsonArray ele = element.getAsJsonArray();
+////            System.out.println(ele);
+////            System.out.println(ele.get(1).getAsString());
+//            if(Arrays.stream(ele.get(1).getAsString().split(",")).anyMatch(word -> word.strip().equals("Introduction")))
+//                System.out.println(ele.get(0).getAsString().strip());
+//        }
+//    }
 
     @Test
     void personalTextTest(){
