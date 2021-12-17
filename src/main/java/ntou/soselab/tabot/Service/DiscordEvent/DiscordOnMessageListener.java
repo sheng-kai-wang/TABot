@@ -127,11 +127,6 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 handleAdminMessage(event);
                 /* reply private message to private channel from manager channel */
 //            jdaMsgHandleService.sendPrivateMessageOnReply(extractStudentIdFromMessageLog(event.getMessage()), event);
-                /* button testing block */
-//            MessageBuilder msgBuilder = new MessageBuilder();
-//            msgBuilder.append("special test message");
-//            msgBuilder.setActionRows(ActionRow.of(Button.primary("yes", "Yes"), Button.danger("no", "No")));
-//            event.getTextChannel().sendMessage(msgBuilder.build()).queue();
             }else{
                 /* general channel (public) */
                 // only react to incoming message if bot got mentioned in general channels (student user available channel, to be specific)
@@ -171,11 +166,11 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 rawMsg = received.getContentDisplay().strip().replace("@TABot", "").strip();
 //                receivedMsgId = received.getId();
             }
-            /* ----- testing block: change id into testing id ----- */
-            String testDiscordId = "286145047169335298";
-            String testStudentId = "0076D053";
-            senderStudentId = testStudentId;
-            /* ----- end of testing block ----- */
+//            /* ----- testing block: change id into testing id ----- */
+//            String testDiscordId = "286145047169335298";
+//            String testStudentId = "0076D053";
+//            senderStudentId = testStudentId;
+//            /* ----- end of testing block ----- */
             System.out.println("[DEBUG][normal handle] " + rawMsg);
             // send message to rasa
             Intent intent = rasa.analyze(senderDiscordId, rawMsg);
@@ -318,7 +313,6 @@ public class DiscordOnMessageListener extends ListenerAdapter {
      */
     private boolean isMessageLogFromGuild(String rawMessage){
         String channel = Arrays.stream(rawMessage.split("\n")).filter(line -> line.strip().startsWith("[Channel] ")).findFirst().get().replace("[Channel] ", "").strip();
-//        String messageId = Arrays.stream(rawMessage.split("\n")).filter(line -> line.strip().startsWith("[Message ID] ")).findFirst().get().replace("[Message ID] ", "").strip();
         return !channel.equals("private");
     }
 

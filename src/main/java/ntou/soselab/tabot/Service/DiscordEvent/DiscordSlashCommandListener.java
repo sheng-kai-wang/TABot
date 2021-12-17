@@ -20,7 +20,6 @@ import java.util.List;
 
 @Service
 public class DiscordSlashCommandListener extends ListenerAdapter {
-    // todo: slash command listener
 
     private final String adminChannelId;
     private final String adminRoleId;

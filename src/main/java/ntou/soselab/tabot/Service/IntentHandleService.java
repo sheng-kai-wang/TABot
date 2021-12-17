@@ -224,6 +224,10 @@ public class IntentHandleService {
      * @return result Message
      */
     public Message personalFuncHandler(String studentId, Intent personalIntent){
+        /* --- test block: change all personal function access from testing id --- */
+        // remember to change all testId back to studentId
+        String testId = "0076D053";
+        /* --- end of test block --- */
         String intentName = personalIntent.getCustom().getIntent();
         String scoreQueryTarget = personalIntent.getCustom().getEntity();
         // check if entity extraction successfully captured values
@@ -231,11 +235,14 @@ public class IntentHandleService {
             return sendErrorMessage(personalIntent);
         switch(intentName){
             case "personal_score_query":
-                return generatePersonalScoreQueryResponse(checkPersonalScore(studentId, scoreQueryTarget));
+//                return generatePersonalScoreQueryResponse(checkPersonalScore(studentId, scoreQueryTarget));
+                return generatePersonalScoreQueryResponse(checkPersonalScore(testId, scoreQueryTarget));
             case "personal_textbook_query":
-                return getPersonalTextbook(studentId);
+//                return getPersonalTextbook(studentId);
+                return getPersonalTextbook(testId);
             case "personal_quiz_query":
-                return getPersonalQuiz(studentId);
+//                return getPersonalQuiz(studentId);
+                return getPersonalQuiz(testId);
         }
         return sendErrorMessage(personalIntent);
     }

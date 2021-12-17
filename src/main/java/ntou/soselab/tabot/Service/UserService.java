@@ -33,6 +33,7 @@ public class UserService {
     private final String COLLECTION_NAME;
     private final String DOCUMENT_NAME;
     private final String FIELD_NAME;
+    private final String IP;
     private Firestore db;
     public static ArrayList<UserProfile> currentUserList;
     public static HashMap<String, UserProfile> verifyList;
@@ -45,9 +46,9 @@ public class UserService {
         this.COLLECTION_NAME = env.getProperty("firebase.firestore.collection");
         this.DOCUMENT_NAME = env.getProperty("firebase.firestore.document");
         this.FIELD_NAME = env.getProperty("firebase.firestore.field");
+        this.IP = env.getProperty("discord.server.ip");
         init(FIREBASE_TOKEN);
         initUserProfileList();
-        // todo: complete firebase mail function and register function
         /* mail properties */
         this.mailSender = mailSender;
     }
@@ -106,6 +107,9 @@ public class UserService {
         }
     }
 
+    /**
+     * insert fake user data in firestore
+     */
     private void insertFakeUserDataToFirestore(){
         HashMap<String, Object> fakeUser = new HashMap<>();
         fakeUser.put("name", "fakeUser");
@@ -220,7 +224,8 @@ public class UserService {
      * @return verify link
      */
     private String generateVerifyLink(String uuid){
-        return "http://localhost:8080/verify/" + uuid;
+        return IP + "/verify/" + uuid;
+//        return "http://localhost:8080/verify/" + uuid;
     }
 
     /**
