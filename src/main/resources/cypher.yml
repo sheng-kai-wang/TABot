@@ -32,5 +32,5 @@ read-personalized-test: |
 read-personalized-subject-matter: |
   MATCH (:Student {name:"<<studentID>>"})-[:Weakness]-(t:Test)
   MATCH (t)-[:Test]-(s:Section)
-  MATCH (s)-[]-(n)
+  MATCH (s)<-[]-(n)
   RETURN s.URL, n.URL

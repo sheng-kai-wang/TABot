@@ -9,7 +9,7 @@ public class Neo4jTest {
      */
     @Test
     public void readCurriculumMapByChapterTest() {
-        String result = new Neo4jHandler("Java").readCurriculumMap("Methods");
+        String result = new Neo4jHandler("SE").readCurriculumMap("[1]軟體工程導論");
         System.out.println("result: " + result);
     }
 
