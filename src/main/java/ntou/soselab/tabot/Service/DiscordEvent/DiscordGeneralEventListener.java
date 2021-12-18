@@ -123,12 +123,25 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         System.out.println("[GuildMemberUpdateNicknameEvent][newName]: " + event.getNewNickname());
         String currentNickname = event.getNewNickname();
 
+        // check user's current role, return if already registered
+        if(event.getMember().getRoles().size() > 0){
+            System.out.println("[DEBUG][nickname update] already has role.");
+            return;
+        }
+
         // check new nickname, if nickname fits specific format, assign role to user and store their id and name in database
         if(UserService.verifyNickNameFormat(currentNickname)) {
             String userName = UserService.getNameByNickName(currentNickname);
             String userStudentId = UserService.getStudentIdByNickName(currentNickname);
             // create profile for current user
             UserProfile userProfile = new UserProfile(userName, userStudentId, event.getUser().getId());
+
+            // check if user is trying to change application content
+            if(UserService.verifyList.entrySet().stream().anyMatch(user -> user.getValue().getDiscordId().equals(event.getUser().getId()))){
+                System.out.println("[DEBUG][nickname update] remove previous application for " + event.getNewNickname());
+                UserService.verifyList.values().removeIf(profile -> profile.getDiscordId().equals(event.getUser().getId()));
+            }
+
             /* send verify mail, store correspond uuid and userProfile */
             String uuid = userService.sendVerificationMail(userStudentId);
             UserService.verifyList.put(uuid, userProfile);

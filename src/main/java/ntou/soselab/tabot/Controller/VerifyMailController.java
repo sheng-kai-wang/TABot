@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/verify")
 public class VerifyMailController {
@@ -31,6 +33,15 @@ public class VerifyMailController {
      */
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<String> verify(@PathVariable String uuid){
+
+        // check if received string is correct uuid
+        try{
+            UUID testUUID = UUID.fromString(uuid);
+        }catch (IllegalArgumentException e){
+            System.out.println("[DEBUG][mail verify] illegal uuid format detected.");
+            return ResponseEntity.status(203).body("Wrong id.");
+        }
+
         String studentId = UserService.verifyList.get(uuid).getStudentId();
         System.out.println("[DEBUG][mail verify] confirmed link clicked from " + studentId);
         /* add user in to user list and assign role to user */

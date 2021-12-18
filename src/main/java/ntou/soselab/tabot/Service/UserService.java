@@ -224,7 +224,7 @@ public class UserService {
      * @return verify link
      */
     private String generateVerifyLink(String uuid){
-        return IP + "/verify/" + uuid;
+        return IP + "/?uuid=" + uuid;
 //        return "http://localhost:8080/verify/" + uuid;
     }
 

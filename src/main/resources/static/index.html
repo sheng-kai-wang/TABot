@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Verify</title>
+    </head>
+    <body>
+        <div id="mainField">
+            <button id="fireVerify" onclick="verify()" type="button">Click me to verify your data</button>
+        </div>
+    </body>
+    <script>
+        function verify(){
+            let verifyApi = "http://140.121.197.130:10050/verify/"
+            // let verifyApi = "http://localhost:8080/verify/"
+            let param = window.location.search
+            let urlParam = new URLSearchParams(param)
+            let uuid = urlParam.get('uuid')
+            let field = document.getElementById("mainField")
+            console.log("uuid: " + uuid)
+            if(uuid === "" || uuid == null) {
+                field.innerText = "Verify process failed."
+                console.log("failed.")
+            }else{
+                let url = verifyApi + uuid
+                fetch(url).then(function (response){
+                    return response.status
+                }).then(function(status){
+                    if(status === 200)
+                        field.innerText = "verify complete, you can close this page now."
+                    if(status === 203)
+                        field.innerText = "illegal id detected, please try again."
+                    if(status === 500)
+                        field.innerText = "verify failed with unexpected error, please report this situation to your class manager."
+                }).catch(function (error){
+                    console.log("unexpected error occurred.")
+                    console.log(error)
+                })
+            }
+        }
+    </script>
+</html>
