@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 public class DiscordOnMessageListener extends ListenerAdapter {
 
     private final String adminChannelId;
+    private final String adminCategoryId;
     private final String adminSuggestChannelId;
     private final String botId;
     private final String adminRoleId;
@@ -49,6 +50,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
 
     @Autowired
     public DiscordOnMessageListener(RasaService rasa, IntentHandleService intentHandle, JDAMessageHandleService jdaMsgHandle, UserService userService, Environment env){
+        this.adminCategoryId = env.getProperty("discord.admin.category.id");
         this.adminChannelId = env.getProperty("discord.admin.channel.id");
         this.adminSuggestChannelId = env.getProperty("discord.admin.channel.suggest");
         this.botId = env.getProperty("discord.application.id");
@@ -70,6 +72,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         System.out.println("> [author] " + event.getMessage().getId());
         if(event.isFromGuild()) System.out.println("> [role] " + event.getMember().getRoles());
         else System.out.println("> [role] from private channel, no role found");
+        System.out.println("> [message id] " + event.getMessage().getId());
         System.out.println("> [content raw] " + event.getMessage().getContentRaw());
         System.out.println("> [content display] " + event.getMessage().getContentDisplay());
         System.out.println("> [content strip] " + event.getMessage().getContentStripped());
@@ -204,6 +207,8 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     private void handleAdminMessage(MessageReceivedEvent event){
         System.out.println("[DEBUG][onMsg][handle admin] triggered.");
         Message received = event.getMessage();
+
+        /* handle suggest */
         if(fromSuggestList(event)){
             // only do stuff on reply (check suggestion)
             if(received.getReferencedMessage() != null){
@@ -228,28 +233,94 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 }
             }
         }
-        if(fromAdminMainChannel(event)){
-            if(received.getReferencedMessage() != null && isLegalMessageLog(received.getReferencedMessage().getContentRaw())){
-                MessageBuilder reply = new MessageBuilder();
-                reply.append(received.getContentRaw());
-                if(received.getAttachments().size() > 0)
-                    reply.append(received.getAttachments().get(0).getUrl());
-                // reply message, check message channel type from message content
-                if(isMessageLogFromGuild(received.getReferencedMessage().getContentRaw())){
-                    // from guild channel
-                    jdaMsgHandleService.replyPublicMessage(reply.build(), getMessageIdFromMessageLog(received.getReferencedMessage().getContentRaw()), getChannelNameFromMessageLog(received.getReferencedMessage().getContentRaw()));
-                }else{
-                    // from private channel
-//                    event.getJDA().retrieveUserById(getUserIdFromMessageLog(event.getMessage().getReferencedMessage().getContentRaw())).queue(user -> {});
-                    jdaMsgHandleService.replyPrivateMessage(reply.build(), getUserIdFromMessageLog(received.getReferencedMessage().getContentRaw()), getMessageIdFromMessageLog(received.getReferencedMessage().getContentRaw()));
-                }
+
+        /* replying to message log */
+        if(received.getReferencedMessage() != null && isLegalMessageLog(received.getReferencedMessage().getContentRaw())){
+            MessageBuilder reply = new MessageBuilder();
+            reply.append(received.getContentRaw());
+            if(received.getAttachments().size() > 0)
+                reply.append(received.getAttachments().get(0).getUrl());
+            // reply message, check message channel type from message content
+            if(isMessageLogFromGuild(received.getReferencedMessage().getContentRaw())){
+                // from guild channel
+                jdaMsgHandleService.replyPublicMessage(reply.build(), getMessageIdFromMessageLog(received.getReferencedMessage().getContentRaw()), getChannelNameFromMessageLog(received.getReferencedMessage().getContentRaw()));
             }else{
-                if(isBotMentioned(event)){
-                    // todo: send message as bot by chatting, problem: send to where
-                    // use slash command for now
+                // from private channel
+//                    event.getJDA().retrieveUserById(getUserIdFromMessageLog(event.getMessage().getReferencedMessage().getContentRaw())).queue(user -> {});
+                jdaMsgHandleService.replyPrivateMessage(reply.build(), getUserIdFromMessageLog(received.getReferencedMessage().getContentRaw()), getMessageIdFromMessageLog(received.getReferencedMessage().getContentRaw()));
+            }
+        }else{
+//            if(isBotMentioned(event)){
+//                // send message as bot by chatting, problem: send to where
+//                // use slash command for now
+//            }
+            /* [send message as bot] check if channel or user mentioned */
+            if(received.getContentRaw().strip().startsWith("<#")) {
+                System.out.println("[DEBUG][admin] try to send public message.");
+                // try to send direct message
+                MessageBuilder builder = new MessageBuilder();
+                String content = received.getContentRaw().replaceAll("<#[0-9]{18}>", "").strip();
+                String originalMessageId = extractMentionedMessageId(content);
+                System.out.println("[DEBUG][admin] msg id: " + originalMessageId);
+                if(originalMessageId.isEmpty()) {
+                    builder.append(content);
+                    if(received.getAttachments().size() > 0) {
+                        for(Message.Attachment attachment: received.getAttachments())
+                            builder.append("\n").append(attachment.getUrl());
+                    }
+                    jdaMsgHandleService.sendMessage(received.getMentionedChannels(), builder.build());
+                }else{
+                    builder.append(content.replaceAll("~[0-9]{18} ", "").strip());
+                    if(received.getAttachments().size() > 0) {
+                        for(Message.Attachment attachment: received.getAttachments())
+                            builder.append("\n").append(attachment.getUrl());
+                    }
+                    jdaMsgHandleService.replyPublicMessage(builder.build(), originalMessageId, received.getMentionedChannels());
+                }
+            }
+            if(received.getContentRaw().strip().startsWith("@")){
+                System.out.println("[DEBUG][admin] try to send private message.");
+                String id = extractMentionedStudentId(received.getContentRaw().strip());
+                System.out.println("[DEBUG][admin] catch id: " + id);
+                if(!id.isEmpty()){
+                    MessageBuilder builder = new MessageBuilder();
+                    builder.append(received.getContentRaw().replaceAll("@[0-9a-zA-Z]{8}", "").strip());
+                    if(received.getAttachments().size() > 0) {
+                        for(Message.Attachment attachment: received.getAttachments())
+                            builder.append("\n").append(attachment.getUrl());
+                    }
+                    jdaMsgHandleService.sendPrivateMessage(id, builder.build());
                 }
             }
         }
+//        if(fromAdminMainChannel(event)){
+//        }
+    }
+
+    /**
+     * extract discord message id from start of message, expect snowflake format id
+     * @param message raw message
+     * @return discord message id, empty string if nothing found
+     */
+    private String extractMentionedMessageId(String message){
+        Pattern idPattern = Pattern.compile("^~([0-9]{18}) .*$");
+        Matcher matcher = idPattern.matcher(message);
+        if(matcher.find())
+            return matcher.group(1);
+        return "";
+    }
+
+    /**
+     * extract student id from message header
+     * @param message raw message
+     * @return student id, empty string if nothing found
+     */
+    private String extractMentionedStudentId(String message){
+        Pattern idPattern = Pattern.compile("^@([0-9a-zA-Z]{8}) .*$");
+        Matcher matcher = idPattern.matcher(message);
+        if(matcher.find())
+            return matcher.group(1);
+        return "";
     }
 
     /**
@@ -355,8 +426,10 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         return false;
     }
 
-    private boolean fromAdminMainChannel(MessageReceivedEvent evt){
-        return evt.getTextChannel().getId().equals(adminChannelId);
+    private boolean fromAdminMainChannel(MessageReceivedEvent event){
+//        System.out.println("[DEBUG] parent id: " + event.getTextChannel().getParent().getId());
+        return event.getTextChannel().getParent().getId().equals(adminCategoryId);
+//        return event.getTextChannel().getId().equals(adminChannelId);
     }
 
     /**
@@ -381,7 +454,6 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         if(DiscordGeneralEventListener.adminChannelMap.containsKey(channel.getName()))
             return true;
         return false;
-//        return channel instanceof TextChannel && channel.getId().equals(adminChannelId);
     }
 
     /**

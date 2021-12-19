@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.NoSuchElementException;
+
 @Service
 public class JDAMessageHandleService {
 
@@ -47,10 +50,30 @@ public class JDAMessageHandleService {
         channel.sendMessage(embedMsg).queue();
     }
 
+    public void sendMessage(List<TextChannel> channelList, Message message){
+        for(TextChannel channel: channelList){
+            channel.sendMessage(message).queue();
+        }
+    }
+
     public void sendPrivateMessage(User receiver, Message msg){
         receiver.openPrivateChannel().queue(channel -> {
             channel.sendMessage(msg).queue();
         });
+    }
+
+    public void sendPrivateMessage(String studentId, Message msg){
+        try {
+            System.out.println("[DEBUG][send private] triggered.");
+            String studentDiscordId = UserService.currentUserList.stream().filter(profile -> profile.getStudentId().equals(studentId)).findFirst().get().getDiscordId();
+            DiscordGeneralEventListener.guild.retrieveMemberById(studentDiscordId).queue(member -> {
+                member.getUser().openPrivateChannel().queue(privateChannel -> {
+                    privateChannel.sendMessage(msg).queue();
+                });
+            });
+        }catch (NoSuchElementException e){
+            System.out.println("[DEBUG][send private by student id] no such user.");
+        }
     }
 
     /**
@@ -82,6 +105,14 @@ public class JDAMessageHandleService {
             DiscordGeneralEventListener.channelMap.get(channelName).sendMessage(replyContent).referenceById(referenceId).queue();
         }else{
             System.out.println("[sendPublicMessageWithReference] assigned channel not found.");
+        }
+    }
+
+    public void replyPublicMessage(Message replyContent, String originalMessageId, List<TextChannel> channelList){
+        for(TextChannel channel: channelList){
+            channel.retrieveMessageById(originalMessageId).queue(message -> {
+                message.reply(replyContent).queue();
+            });
         }
     }
 
