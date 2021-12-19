@@ -47,8 +47,11 @@ public class IntentHandleService {
         String intentName = intent.getCustom().getIntent();
         switch (intentName){
             case "greet":
-                System.out.println("[DEBUG]");
+                System.out.println("[DEBUG][checkIntent] greet");
                 return generateGreetingsMessage();
+            case "help":
+                System.out.println("[DEBUG][checkIntent] help");
+                return generateHelpMessage();
             case "classmap_search":
                 return searchClassMap(intent);
             case "classmap_ppt":
@@ -70,13 +73,23 @@ public class IntentHandleService {
     }
 
     /**
-     * greetings from bot
-     * @return
+     * generate simple greeting message
+     * @return greeting message
      */
     private Message generateGreetingsMessage(){
         MessageBuilder builder = new MessageBuilder();
         builder.append("Hi, how do you do. :sunglasses:");
         return builder.build();
+    }
+
+    /**
+     * generate simple help message
+     * @return help message
+     */
+    private Message generateHelpMessage(){
+        MessageBuilder builder = new MessageBuilder();
+        builder.append("Hi, how can i help you ?");
+        return  builder.build();
     }
 
     /**
