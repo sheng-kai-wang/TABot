@@ -61,7 +61,7 @@ public class RasaService {
         content.addProperty("message", msg);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
+        headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
         HttpEntity<String> entity = new HttpEntity<>(content.toString(), headers);
         ResponseEntity<String> response = template.exchange(path, HttpMethod.POST, entity, String.class);
 //        System.out.println(response);
