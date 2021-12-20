@@ -432,7 +432,10 @@ public class IntentHandleService {
      */
     private Message generatePersonalScoreQueryResponse(String score){
         MessageBuilder builder = new MessageBuilder();
-        builder.append("Your score is **" + score + "**");
+        if(score != null)
+            builder.append("Your score is **" + score + "**");
+        else
+            builder.append("This score is not exist yet. :neutral_face:");
         return builder.build();
     }
 
