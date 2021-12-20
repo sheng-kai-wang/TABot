@@ -194,7 +194,8 @@ public class IntentHandleService {
         MessageBuilder builder = new MessageBuilder();
         builder.append("Looks like you are searching about `" + sectionName + "` .\n");
         builder.append("Maybe you can checkout more from link below. :sunglasses:");
-        builder.setEmbeds(new EmbedBuilder().addField("Section '" + sectionName + "' from Chapter '" + chapterTitle + "'", "[" + sectionName + "](" + slideLink + ")", false).build());
+//        builder.setEmbeds(new EmbedBuilder().addField("Section '" + sectionName + "' from Chapter '" + chapterTitle + "'", "[" + sectionName + "](" + slideLink + ")", false).build());
+        builder.setEmbeds(new EmbedBuilder().addField(chapterTitle, "[" + sectionName + "](" + slideLink + ")", false).build());
         return builder.build();
     }
 
