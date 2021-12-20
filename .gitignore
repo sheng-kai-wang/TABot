@@ -37,5 +37,5 @@ build/
 application.properties
 
 ## configuration file
-/application.yml
 *.json
+/src/main/resources/application.yml
