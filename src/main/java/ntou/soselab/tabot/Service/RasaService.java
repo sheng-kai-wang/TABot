@@ -4,6 +4,7 @@ import com.github.pemistahl.lingua.api.Language;
 import com.github.pemistahl.lingua.api.LanguageDetector;
 import com.github.pemistahl.lingua.api.LanguageDetectorBuilder;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import ntou.soselab.tabot.Entity.Rasa.Intent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,15 +65,21 @@ public class RasaService {
         headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
         HttpEntity<String> entity = new HttpEntity<>(content.toString(), headers);
         ResponseEntity<String> response = template.exchange(path, HttpMethod.POST, entity, String.class);
-//        System.out.println(response);
+        System.out.println(response.getBody());
 
-        String raw = removeBackSlash(response.getBody());
-        System.out.println("[Rasa analyze][raw]: " + raw);
+//        String raw = removeBackSlash(response.getBody());
+        String raw = normalizeJsonString(gson.fromJson(response.getBody(), JsonArray.class).get(0).getAsJsonObject().toString());
+//        System.out.println("[Rasa analyze][raw]: " + raw);
 
         // parse response by gson
+//        Intent result = gson.fromJson(gson.fromJson(response.getBody(), JsonArray.class).get(0).getAsJsonObject().toString(), Intent.class);
         Intent result = gson.fromJson(raw, Intent.class);
         System.out.println(result);
         return result;
+    }
+
+    private String normalizeJsonString(String rawJsonString){
+        return rawJsonString.replace("\"{", "{").replace("}\"", "}");
     }
 
     /**
@@ -80,7 +87,7 @@ public class RasaService {
      * @param raw raw message
      * @return processed message
      */
-    private String removeBackSlash(String raw){
+    private static String removeBackSlash(String raw){
         String[] token = raw.split("");
         StringBuilder result = new StringBuilder();
         for(String t: token){

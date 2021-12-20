@@ -100,6 +100,7 @@ public class IntentHandleService {
     public Message faqHandle(Intent faqIntent){
         System.out.println("[DEBUG][intentHandle] faq handle triggered.");
         String faqName = faqIntent.getCustom().getIntent().replace("faq/", "");
+        System.out.println(" --- [DEBUG][faq] " + faqName + " detected.");
         // call google sheet api to query correspond result of faq
         JSONObject searchResult = new SheetsHandler("SE").readContentByKey("FAQ", faqName);
         System.out.println("--- [DEBUG][faq] searchResult: " + searchResult);
@@ -331,6 +332,7 @@ public class IntentHandleService {
         Gson gson = new Gson();
         // search quiz number from neo4j
         String quizResp = new Neo4jHandler("SE").readPersonalizedTest(studentId);
+        System.out.println("--- [DEBUG][personal quiz] id: "+ studentId);
         System.out.println("--- [DEBUG][personal quiz][neo4j] quizResp: " + quizResp);
         JsonArray quizNumList = gson.fromJson(quizResp, JsonArray.class);
         // random pick one of the quiz, retrieve quiz data from Google sheet

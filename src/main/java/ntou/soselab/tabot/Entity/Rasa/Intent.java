@@ -1,6 +1,9 @@
 package ntou.soselab.tabot.Entity.Rasa;
 
+import com.google.gson.Gson;
+
 public class Intent {
+//    private static final Gson gson = new Gson();
     /* chat user id, assume this is 'discord user' id */
     public String recipient_id;
     /* response object from rasa */
