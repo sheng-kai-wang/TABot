@@ -37,6 +37,5 @@ build/
 application.properties
 
 ## configuration file
-application.yml
-credentials.json
-oauth2.0.json
+../application.yml
+*.json
