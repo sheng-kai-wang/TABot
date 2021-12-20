@@ -241,7 +241,7 @@ public class IntentHandleService {
     public Message personalFuncHandler(String studentId, Intent personalIntent){
         /* --- test block: change all personal function access from testing id --- */
         // remember to change all testId back to studentId
-        String testId = "0076D053";
+        String testId = "00000000";
         /* --- end of test block --- */
         String intentName = personalIntent.getCustom().getIntent();
         String scoreQueryTarget = personalIntent.getCustom().getEntity();
