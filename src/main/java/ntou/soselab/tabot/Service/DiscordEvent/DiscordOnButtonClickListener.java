@@ -48,7 +48,7 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
         /* --- test block: change id --- */
         System.out.println("##### change detected user id for testing purpose #####");
 //        if(studentId.equals("286145047169335298"))
-        studentId = "0076D053";
+        studentId = "00000000";
         /* --- end of test block --- */
         JsonObject quiz = IntentHandleService.ongoingQuizMap.get(studentId);
         System.out.println("--- [DEBUG][onButton] retrieve quiz: " + quiz);
