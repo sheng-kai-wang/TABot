@@ -14,21 +14,29 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import ntou.soselab.tabot.Entity.Rasa.Intent;
+import ntou.soselab.tabot.Entity.Rasa.IntentSet;
 import ntou.soselab.tabot.Entity.UserProfile;
+import ntou.soselab.tabot.Service.RasaService;
 import ntou.soselab.tabot.repository.Neo4jHandler;
 import ntou.soselab.tabot.repository.SheetsHandler;
+import okhttp3.internal.connection.Exchange;
 import org.apache.catalina.User;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.*;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -120,22 +128,6 @@ class TaBotApplicationTests {
         System.out.println(personalScoreMap);
         System.out.println(personalScoreMap.get("midterm_exam"));
     }
-
-//    @Test
-//    void testParseKeywordSheet(){
-//        String keywordSheet = new SheetsHandler("Java").readContent("Keyword", "");
-//        Gson gson = new Gson();
-//        JsonArray keyword = gson.fromJson(keywordSheet, JsonArray.class);
-////        System.out.println(keyword);
-////        System.out.println(keyword.size());
-//        for(JsonElement element: keyword){
-//            JsonArray ele = element.getAsJsonArray();
-////            System.out.println(ele);
-////            System.out.println(ele.get(1).getAsString());
-//            if(Arrays.stream(ele.get(1).getAsString().split(",")).anyMatch(word -> word.strip().equals("Introduction")))
-//                System.out.println(ele.get(0).getAsString().strip());
-//        }
-//    }
 
     @Test
     void personalTextTest(){
@@ -323,6 +315,89 @@ class TaBotApplicationTests {
             resultMapList.add(profile.getProfileMap());
         }
         System.out.println(resultMapList);
+    }
+
+//    @Test
+//    void testRasaService(){
+//        String testMsg = "什麼是介面設計";
+//        String testMsg0 = "garbage collection";
+//        String testMsgU = "\u529F\u80FD\u9700\u6C42\u7684\u5B9A\u7FA9";
+//        String path = "http://localhost:5005/webhooks/rest/webhook";
+//        JsonObject content = new JsonObject();
+//        content.addProperty("sender", "test0");
+//        content.addProperty("message", testMsg);
+//        Gson gson = new Gson();
+//        System.out.println(content.toString());
+//
+//        RestTemplate template = new RestTemplate();
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+//        HttpEntity<String> entity = new HttpEntity<>(content.toString(), headers);
+//        ResponseEntity<String> resp = template.exchange(path, HttpMethod.POST, entity, String.class);
+////        System.out.println("[raw] " + resp);
+//        System.out.println("[raw body] " + resp.getBody());
+//        JsonArray temp = gson.fromJson(resp.getBody(), JsonArray.class);
+//        System.out.println(temp);
+//        JsonObject intentJson = temp.get(0).getAsJsonObject();
+//        System.out.println("intentJson: " + intentJson);
+//        System.out.println(gson.fromJson(intentJson, Intent.class));
+////        System.out.println(gson.fromJson(checkString(intentJson.toString()), Intent.class).getCustom().getEntity());
+////        System.out.println(gson.fromJson(intentJson, Intent.class));
+//
+//        System.out.println("---");
+////        String testJson = "{\"recipient_id\":\"test0\",\"custom\":{'intent': 'classmap_search', 'entity': '介面設計', 'endOfChat': True}}";
+////        System.out.println(gson.fromJson(testJson, Intent.class));
+////        String testJson2 = "{\\"recipient_id\\":\\"test0\\",\\"custom\\":\\"{'intent': 'classmap_search', 'entity': '介面設計', 'endOfChat': True}\\"}";
+////        System.out.println(gson.fromJson(testJson2, Intent.class));
+//
+////        System.out.println(gson.fromJson(intentJson, Intent.class));
+////        Intent intent = gson.fromJson(intentJson, Intent.class);
+////        System.out.println(intent);
+////        Intent intent = gson.fromJson(temp.get(0).toString(), Intent.class);
+////        System.out.println(intent);
+//    }
+
+    private String checkString(String raw){
+        return raw.replace("\"{", "{").replace("}\"", "}");
+    }
+
+    private String removeBackSlash(String raw){
+        String[] token = raw.split("");
+        StringBuilder result = new StringBuilder();
+        for(String t: token){
+            if(t.equals("\\")) continue;
+            if(t.equals("'")){
+                result.append("\"");
+                continue;
+            }
+            result.append(t);
+        }
+        result.deleteCharAt(result.length()-1);
+        result.deleteCharAt(0);
+
+        String temp = result.toString();
+        StringBuilder output = new StringBuilder("{");
+        String[] second = temp.split("");
+        for(int i=1; i<second.length; i++){
+            int open = StringUtils.countOccurrencesOf(temp.substring(0, i), "{");
+            int close = StringUtils.countOccurrencesOf(temp.substring(0, i), "}");
+            if(second[i].equals("\"")){
+                if(open - close == 1){
+                    if(second[i+1].equals("{") || second[i-1].equals("}")) {
+                        continue;
+                    }
+                }
+            }
+            output.append(second[i]);
+        }
+        return output.toString();
+    }
+
+    @Test
+    void testPath(){
+        String fileName = "static/firebaseKey.json";
+        URL url = getClass().getClassLoader().getResource(fileName);
+        System.out.println(url.getPath());
     }
 
 }
