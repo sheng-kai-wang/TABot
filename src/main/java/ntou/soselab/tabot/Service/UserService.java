@@ -59,7 +59,7 @@ public class UserService {
      */
     private void init(String tokenPath){
         try{
-            String path = getClass().getClassLoader().getResource(tokenPath).getPath();
+//            String path = getClass().getClassLoader().getResource(tokenPath).getPath();
 
             FileInputStream serviceAccount = new FileInputStream(tokenPath);
 
