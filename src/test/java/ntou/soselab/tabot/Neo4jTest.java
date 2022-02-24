@@ -28,7 +28,8 @@ public class Neo4jTest {
      */
     @Test
     public void readSlideshowByChapterNameTest() {
-        String result = new Neo4jHandler("Java").readSlideshowByName("Control Statements");
+//        String result = new Neo4jHandler("Java").readSlideshowByName("Control Statements");
+        String result = new Neo4jHandler("SE").readSlideshowByName("軟體開發主要活動");
         System.out.println("result: " + result);
     }
 
