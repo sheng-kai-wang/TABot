@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jayway.jsonpath.JsonPath;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
