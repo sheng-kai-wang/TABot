@@ -12,7 +12,7 @@ read-slideshow-by-name: |
 
 #查投影片 by id
 read-slideshow-by-id: |
-  MATCH (c:Chapter {id: <<id>>})
+  MATCH (c:Chapter {id: "<<id>>"})
   RETURN c.URL
 
 #擴增課程地圖 maybe variable-length arguments
