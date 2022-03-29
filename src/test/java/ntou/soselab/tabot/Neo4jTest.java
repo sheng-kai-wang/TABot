@@ -9,7 +9,8 @@ public class Neo4jTest {
      */
     @Test
     public void readCurriculumMapByChapterTest() {
-        String result = new Neo4jHandler("SE").readCurriculumMap("[1]軟體工程導論");
+        String result = new Neo4jHandler("Java").readCurriculumMap("[07]Inheritance");
+//        String result = new Neo4jHandler("SE").readCurriculumMap("[1]軟體工程導論");
         System.out.println("result: " + result);
     }
 
@@ -18,8 +19,8 @@ public class Neo4jTest {
      */
     @Test
     public void readCurriculumMapBySectionTest() {
-//        String result = new Neo4jHandler("Java").readCurriculumMap("Argument Promotion and Casting");
-        String result = new Neo4jHandler("SE").readCurriculumMap("軟體開發主要活動");
+        String result = new Neo4jHandler("Java").readCurriculumMap("Displaying Text with printf");
+//        String result = new Neo4jHandler("SE").readCurriculumMap("軟體開發主要活動");
         System.out.println("result: " + result);
     }
 
@@ -28,8 +29,8 @@ public class Neo4jTest {
      */
     @Test
     public void readSlideshowByChapterNameTest() {
-//        String result = new Neo4jHandler("Java").readSlideshowByName("Control Statements");
-        String result = new Neo4jHandler("SE").readSlideshowByName("軟體開發主要活動");
+        String result = new Neo4jHandler("Java").readSlideshowByName("Displaying Text with printf");
+//        String result = new Neo4jHandler("SE").readSlideshowByName("軟體開發主要活動");
         System.out.println("result: " + result);
     }
 
@@ -38,7 +39,7 @@ public class Neo4jTest {
      */
     @Test
     public void readSlideshowBySectionNameTest() {
-        String result = new Neo4jHandler("Java").readSlideshowByName("Introducing enum Types");
+        String result = new Neo4jHandler("Java").readSlideshowByName("Displaying Text with printf");
         System.out.println("result: " + result);
     }
 
@@ -68,7 +69,7 @@ public class Neo4jTest {
      */
     @Test
     public void readPersonalizedTestTest() {
-        String result = new Neo4jHandler("Java").readPersonalizedTest("0076D053");
+        String result = new Neo4jHandler("Java").readPersonalizedTest("00957034");
         System.out.println(result);
     }
 
@@ -77,7 +78,7 @@ public class Neo4jTest {
      */
     @Test
     public void readPersonalizedSubjectMatterTest() {
-        String result = new Neo4jHandler("Java").readPersonalizedSubjectMatter("0076D053");
+        String result = new Neo4jHandler("Java").readPersonalizedSubjectMatter("00957034");
         System.out.println("result: " + result);
     }
 }
