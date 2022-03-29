@@ -69,7 +69,8 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         // print received message
         System.out.println(" ================ ");
         System.out.println("[onMessage]: try to print received message.");
-        System.out.println("> [author] " + event.getMessage().getId());
+        System.out.println("> [author] " + event.getAuthor().getId());
+//        System.out.println("> [author] " + event.getMessage().getId());
         if(event.isFromGuild()) System.out.println("> [role] " + event.getMember().getRoles());
         else System.out.println("> [role] from private channel, no role found");
         System.out.println("> [message id] " + event.getMessage().getId());
@@ -132,6 +133,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
 //            jdaMsgHandleService.sendPrivateMessageOnReply(extractStudentIdFromMessageLog(event.getMessage()), event);
             }else{
                 /* general channel (public) */
+                System.out.println("[DEBUG] received from general channel.");
                 // only react to incoming message if bot got mentioned in general channels (student user available channel, to be specific)
                 if(isBotMentioned(event)) {
                     // normal function
@@ -278,13 +280,13 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                     jdaMsgHandleService.replyPublicMessage(builder.build(), originalMessageId, received.getMentionedChannels());
                 }
             }
-            if(received.getContentRaw().strip().startsWith("@")){
+            if(received.getContentDisplay().strip().startsWith("@")){
                 System.out.println("[DEBUG][admin] try to send private message.");
                 String id = extractMentionedStudentId(received.getContentRaw().strip());
                 System.out.println("[DEBUG][admin] catch id: " + id);
                 if(!id.isEmpty()){
                     MessageBuilder builder = new MessageBuilder();
-                    builder.append(received.getContentRaw().replaceAll("@[0-9a-zA-Z]{8}", "").strip());
+                    builder.append(received.getContentRaw().replaceAll("<[@#&]{0,2}[0-9a-zA-Z]{8}>", "").strip());
                     if(received.getAttachments().size() > 0) {
                         for(Message.Attachment attachment: received.getAttachments())
                             builder.append("\n").append(attachment.getUrl());
@@ -316,7 +318,8 @@ public class DiscordOnMessageListener extends ListenerAdapter {
      * @return student id, empty string if nothing found
      */
     private String extractMentionedStudentId(String message){
-        Pattern idPattern = Pattern.compile("^@([0-9a-zA-Z]{8}) .*$");
+        System.out.println("[DEBUG][id extract] raw: " + message);
+        Pattern idPattern = Pattern.compile("^<[@#&!]{0,3}([0-9a-zA-Z]{8})> .*$");
         Matcher matcher = idPattern.matcher(message);
         if(matcher.find())
             return matcher.group(1);

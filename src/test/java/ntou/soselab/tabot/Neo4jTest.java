@@ -47,7 +47,7 @@ public class Neo4jTest {
      */
     @Test
     public void readSlideshowByChapterIdTest() {
-        String result = new Neo4jHandler("Java").readSlideshowById(7);
+        String result = new Neo4jHandler("Java").readSlideshowById(1);
         System.out.println("result: " + result);
     }
 
