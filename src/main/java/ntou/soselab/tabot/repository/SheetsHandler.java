@@ -215,7 +215,7 @@ public class SheetsHandler {
         for (int i = 1; i < sheetsContent.length(); i++) {
             JSONArray rows = new JSONArray(sheetsContent.get(i).toString());
             if (rows.get(0).equals(key)) {
-                for (int j = 0; j < headers.length(); j++) {
+                for (int j = 0; j < rows.length(); j++) {
                     result.append(headers.get(j).toString(), rows.get(j));
                 }
             }
