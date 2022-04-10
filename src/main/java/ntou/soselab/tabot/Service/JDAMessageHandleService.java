@@ -17,7 +17,7 @@ public class JDAMessageHandleService {
 
     private final String botId;
     private final String adminChannel;
-    private final String miscLog;
+    private final String miscLogChannel;
     private final String suggestAdminChannel;
     private final String suggestPassedChannel;
 
@@ -29,7 +29,7 @@ public class JDAMessageHandleService {
         this.adminChannel = env.getProperty("discord.admin.channel.name");
         this.suggestAdminChannel = env.getProperty("discord.admin.channel.suggest.name");
         this.suggestPassedChannel = env.getProperty("discord.admin.channel.suggest.pass");
-        this.miscLog = env.getProperty("discord.admin.channel.log");
+        this.miscLogChannel = env.getProperty("discord.admin.channel.log");
 
         this.userService = userService;
     }
@@ -218,7 +218,7 @@ public class JDAMessageHandleService {
         else
             builder.append("[Attachment] ");
         /* send log message */
-        DiscordGeneralEventListener.adminChannelMap.get(miscLog).sendMessage(builder.build()).queue();
-        DiscordGeneralEventListener.adminChannelMap.get(miscLog).sendMessage("-----").queue();
+        DiscordGeneralEventListener.adminChannelMap.get(miscLogChannel).sendMessage(builder.build()).queue();
+        DiscordGeneralEventListener.adminChannelMap.get(miscLogChannel).sendMessage("-----").queue();
     }
 }
