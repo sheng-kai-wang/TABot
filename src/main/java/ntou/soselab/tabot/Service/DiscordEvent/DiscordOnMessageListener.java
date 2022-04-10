@@ -438,7 +438,8 @@ public class DiscordOnMessageListener extends ListenerAdapter {
      */
     private boolean isLegalMessageLog(String rawMessage){
         List<String> components = Arrays.asList("[Sender ID]", "[Ref]", "[Channel]", "[Message ID]", "[RawContent]", "[Attachment]");
-        return components.stream().allMatch(rawMessage::contains);
+        List<String> miscLogComponents = Arrays.asList("[Sender ID]", "[Ref]", "[Channel]", "[Message ID]", "[RawContent Display]", "[Attachment]");
+        return components.stream().allMatch(rawMessage::contains) || miscLogComponents.stream().allMatch(rawMessage::contains);
     }
 
     /**

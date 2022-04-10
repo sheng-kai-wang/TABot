@@ -203,7 +203,7 @@ public class JDAMessageHandleService {
         try {
             builder.append("[Sender Identity] " + userService.getFullNameFromDiscordId(author.getId()) + "\n");
         } catch (NoAccountFoundError e) {
-            System.out.println("[DEBUG][add admin msg list] " + e.getMessage());
+            System.out.println("[DEBUG][add misc log list] " + e.getMessage());
             e.printStackTrace();
         }
         builder.append("[Ref] " + originalMsg.getJumpUrl() + "\n");
