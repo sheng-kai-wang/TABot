@@ -19,11 +19,18 @@ import org.springframework.stereotype.Service;
 
 
 import java.awt.*;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +46,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     private final String adminSuggestChannelId;
     private final String botId;
     private final String adminRoleId;
+    private final String miscLogPath;
     private JDAMessageHandleService jdaMsgHandleService;
     private IntentHandleService intentHandleService;
     private UserService userService;
@@ -55,6 +63,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         this.adminSuggestChannelId = env.getProperty("discord.admin.channel.suggest");
         this.botId = env.getProperty("discord.application.id");
         this.adminRoleId = env.getProperty("discord.admin.role.id");
+        this.miscLogPath = env.getProperty("discord.log.path");
         this.jdaMsgHandleService = jdaMsgHandle;
         this.intentHandleService = intentHandle;
         this.rasa = rasa;
@@ -70,7 +79,6 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         System.out.println(" ================ ");
         System.out.println("[onMessage]: try to print received message.");
         System.out.println("> [author] " + event.getAuthor().getId());
-//        System.out.println("> [author] " + event.getMessage().getId());
         if(event.isFromGuild()) System.out.println("> [role] " + event.getMember().getRoles());
         else System.out.println("> [role] from private channel, no role found");
         System.out.println("> [message id] " + event.getMessage().getId());
@@ -105,6 +113,9 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         if(event.isFromType(ChannelType.PRIVATE)){
             System.out.println("[DEBUG] private message received.");
             /* handle message from private channel: student personal message */
+            // todo: log this message anyway
+            jdaMsgHandleService.addMessageLog(event.getMessage(), event.getAuthor());
+            recordBotLog(miscLogPath, event);
             // do nothing if no message content found (include slash command)
             if(event.getMessage().getContentRaw().length() > 0){
                 // check if TA got mentioned
@@ -138,11 +149,17 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 if(isBotMentioned(event)) {
                     // normal function
                     System.out.println(">>> trigger normal handle (public)");
+                    // todo: log message
+                    jdaMsgHandleService.addMessageLog(event.getMessage(), event.getAuthor());
+                    recordBotLog(miscLogPath, event);
                     handleNormalMessage(event);
                 }
                 // direct message to TA, example: '@TA bla bla bla'
                 if(event.getMessage().isMentioned(DiscordGeneralEventListener.guild.getRoleById(adminRoleId))){
                     // send same message to admin channel
+                    // todo: log message
+                    jdaMsgHandleService.addMessageLog(event.getMessage(), event.getAuthor());
+                    recordBotLog(miscLogPath, event);
                     jdaMsgHandleService.addAdminMentionedMessageList(event.getMessage(), event.getAuthor());
 //                    jdaMsgHandleService.sendPublicMessageWithReference();
                 }
@@ -150,6 +167,50 @@ public class DiscordOnMessageListener extends ListenerAdapter {
             System.out.println("<< [DEBUG][onMessage] end of current onMessage event.");
         }
 
+    }
+
+    /**
+     * export log
+     * @param logPath output log file path
+     * @param event message received event
+     */
+    public void recordBotLog(String logPath, MessageReceivedEvent event){
+        Logger logger = Logger.getLogger("botLogger");
+        FileHandler fileHandler;
+        try{
+            Date date = new Date();
+            SimpleFormatter simpleFormatter = new SimpleFormatter();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            String filePath = logPath + dateFormat.format(date);
+            fileHandler = new FileHandler(filePath, true);
+            logger.addHandler(fileHandler);
+            fileHandler.setFormatter(simpleFormatter);
+
+            // log received message
+            Message originalMsg = event.getMessage();
+            String rawMsg = originalMsg.getContentDisplay().replace("@TA", "").replace("```", "").strip();
+            if(!originalMsg.isFromGuild() && rawMsg.strip().startsWith("Bot"))
+                rawMsg = rawMsg.replaceFirst("Bot", "").strip();
+            logger.info("[Sender discord ID] " + event.getAuthor().getId());
+            logger.info("[Sender Identity] " + userService.getFullNameFromDiscordId(event.getAuthor().getId()));
+            logger.info("[Message Reference] " + originalMsg.getJumpUrl());
+            if(originalMsg.isFromType(ChannelType.PRIVATE))
+                logger.info("[Channel] private");
+            else
+                logger.info("[Channel] " + originalMsg.getTextChannel().getName());
+            logger.info("[Message Id] " + originalMsg.getId());
+            logger.info("[RawContent] " + rawMsg);
+            if(originalMsg.getAttachments().size() > 0)
+                logger.info("[Attachment] " + originalMsg.getAttachments().get(0).getUrl());
+            else
+                logger.info("[Attachment] none");
+        }catch (SecurityException | IOException se){
+            se.printStackTrace();
+        }catch (NoAccountFoundError ae){
+            System.out.println("[WARNING] error retrieving user id when logging message.");
+            logger.log(Level.WARNING, "failed to retrieve user name by discord id");
+            ae.printStackTrace();
+        }
     }
 
     /**

@@ -17,6 +17,7 @@ public class JDAMessageHandleService {
 
     private final String botId;
     private final String adminChannel;
+    private final String miscLog;
     private final String suggestAdminChannel;
     private final String suggestPassedChannel;
 
@@ -28,6 +29,7 @@ public class JDAMessageHandleService {
         this.adminChannel = env.getProperty("discord.admin.channel.name");
         this.suggestAdminChannel = env.getProperty("discord.admin.channel.suggest.name");
         this.suggestPassedChannel = env.getProperty("discord.admin.channel.suggest.pass");
+        this.miscLog = env.getProperty("discord.admin.channel.log");
 
         this.userService = userService;
     }
@@ -186,5 +188,37 @@ public class JDAMessageHandleService {
         /* send log message */
         DiscordGeneralEventListener.adminChannelMap.get(adminChannel).sendMessage(builder.build()).queue();
         DiscordGeneralEventListener.adminChannelMap.get(adminChannel).sendMessage("-----").queue();
+    }
+
+    /**
+     * add message log when @TABot or @TA triggered
+     * @param originalMsg
+     * @param author
+     */
+    public void addMessageLog(Message originalMsg, User author){
+        System.out.println("[DEBUG][jdaMsgHandle] raw message: " + originalMsg.getContentDisplay());
+        /* create log message */
+        MessageBuilder builder = new MessageBuilder();
+        builder.append("[Sender ID] " + author.getId() + "\n");
+        try {
+            builder.append("[Sender Identity] " + userService.getFullNameFromDiscordId(author.getId()) + "\n");
+        } catch (NoAccountFoundError e) {
+            System.out.println("[DEBUG][add admin msg list] " + e.getMessage());
+            e.printStackTrace();
+        }
+        builder.append("[Ref] " + originalMsg.getJumpUrl() + "\n");
+        if(originalMsg.isFromType(ChannelType.PRIVATE))
+            builder.append("[Channel] private\n");
+        else
+            builder.append("[Channel] " + originalMsg.getTextChannel().getName() + "\n");
+        builder.append("[Message ID] " + originalMsg.getId() + "\n");
+        builder.append("[RawContent Display] " + originalMsg.getContentDisplay() + "\n");
+        if(originalMsg.getAttachments().size() > 0)
+            builder.append("[Attachment] " + originalMsg.getAttachments().get(0).getUrl());
+        else
+            builder.append("[Attachment] ");
+        /* send log message */
+        DiscordGeneralEventListener.adminChannelMap.get(miscLog).sendMessage(builder.build()).queue();
+        DiscordGeneralEventListener.adminChannelMap.get(miscLog).sendMessage("-----").queue();
     }
 }

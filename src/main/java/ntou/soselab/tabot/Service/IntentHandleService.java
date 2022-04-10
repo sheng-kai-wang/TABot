@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import ntou.soselab.tabot.Entity.Rasa.Intent;
 import ntou.soselab.tabot.repository.Neo4jHandler;
 import ntou.soselab.tabot.repository.SheetsHandler;
@@ -405,6 +406,24 @@ public class IntentHandleService {
         }
         Collections.shuffle(result); // shuffle button list
         return result;
+    }
+
+    /**
+     * testing method to add selection menu in message, this function is incomplete for now
+     * @param quiz
+     * @return
+     */
+    private Message createQuizOptionMenu(JsonObject quiz){
+        MessageBuilder builder = new MessageBuilder();
+        builder.append(quiz.get("question").getAsString());
+        // try to create option menu
+        SelectionMenu.Builder menu = SelectionMenu.create("quizId")
+                .setPlaceholder("choose your answer")
+                .setRequiredRange(1, 5);
+        menu.addOption("1", "1");
+        menu.addOption("2", "2");
+        builder.setActionRows(ActionRow.of(menu.build()));
+        return builder.build();
     }
 
     /**
