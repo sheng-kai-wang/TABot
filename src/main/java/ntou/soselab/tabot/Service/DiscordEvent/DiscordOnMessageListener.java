@@ -181,7 +181,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
             Date date = new Date();
             SimpleFormatter simpleFormatter = new SimpleFormatter();
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-            String filePath = logPath + dateFormat.format(date);
+            String filePath = logPath + "/" + dateFormat.format(date) + ".log";
             fileHandler = new FileHandler(filePath, true);
             logger.addHandler(fileHandler);
             fileHandler.setFormatter(simpleFormatter);
