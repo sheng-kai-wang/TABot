@@ -186,24 +186,41 @@ public class DiscordOnMessageListener extends ListenerAdapter {
             logger.addHandler(fileHandler);
             fileHandler.setFormatter(simpleFormatter);
 
-            // log received message
+            // generate log message
             Message originalMsg = event.getMessage();
             String rawMsg = originalMsg.getContentDisplay().replace("@TA", "").replace("```", "").strip();
             if(!originalMsg.isFromGuild() && rawMsg.strip().startsWith("Bot"))
                 rawMsg = rawMsg.replaceFirst("Bot", "").strip();
-            logger.info("[Sender discord ID] " + event.getAuthor().getId());
-            logger.info("[Sender Identity] " + userService.getFullNameFromDiscordId(event.getAuthor().getId()));
-            logger.info("[Message Reference] " + originalMsg.getJumpUrl());
+            StringBuilder logMsgBuilder = new StringBuilder();
+            logMsgBuilder.append("[Sender discord ID] ").append(event.getAuthor().getId()).append("\n");
+            logMsgBuilder.append("[Sender Identity] " + userService.getFullNameFromDiscordId(event.getAuthor().getId()) + "\n");
+            logMsgBuilder.append("[Message Reference] " + originalMsg.getJumpUrl() + "\n");
             if(originalMsg.isFromType(ChannelType.PRIVATE))
-                logger.info("[Channel] private");
+                logMsgBuilder.append("[Channel] private\n");
             else
-                logger.info("[Channel] " + originalMsg.getTextChannel().getName());
-            logger.info("[Message Id] " + originalMsg.getId());
-            logger.info("[RawContent] " + rawMsg);
+                logMsgBuilder.append("[Channel] " + originalMsg.getTextChannel().getName() + "\n");
+            logMsgBuilder.append("[Message Id] " + originalMsg.getId() + "\n");
+            logMsgBuilder.append("[RawContent] " + rawMsg + "\n");
             if(originalMsg.getAttachments().size() > 0)
-                logger.info("[Attachment] " + originalMsg.getAttachments().get(0).getUrl());
+                logMsgBuilder.append("[Attachment] " + originalMsg.getAttachments().get(0).getUrl() + "\n");
             else
-                logger.info("[Attachment] none");
+                logMsgBuilder.append("[Attachment] none\n");
+            logger.info(logMsgBuilder.toString());
+
+            // log received message
+//            logger.info("[Sender discord ID] " + event.getAuthor().getId());
+//            logger.info("[Sender Identity] " + userService.getFullNameFromDiscordId(event.getAuthor().getId()));
+//            logger.info("[Message Reference] " + originalMsg.getJumpUrl());
+//            if(originalMsg.isFromType(ChannelType.PRIVATE))
+//                logger.info("[Channel] private");
+//            else
+//                logger.info("[Channel] " + originalMsg.getTextChannel().getName());
+//            logger.info("[Message Id] " + originalMsg.getId());
+//            logger.info("[RawContent] " + rawMsg);
+//            if(originalMsg.getAttachments().size() > 0)
+//                logger.info("[Attachment] " + originalMsg.getAttachments().get(0).getUrl());
+//            else
+//                logger.info("[Attachment] none");
         }catch (SecurityException | IOException se){
             se.printStackTrace();
         }catch (NoAccountFoundError ae){
