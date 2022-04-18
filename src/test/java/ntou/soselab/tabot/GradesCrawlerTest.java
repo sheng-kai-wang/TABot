@@ -15,8 +15,12 @@ public class GradesCrawlerTest {
     @Autowired
     Environment env;
 
+    /**
+     * you can update google sheets manually.
+     */
     @Test
     public void getGradesTest() {
-        new GradesCrawler(env).updateSheet();
+//        new GradesCrawler(env).updateSheet();
+        new GradesCrawler(env);
     }
 }

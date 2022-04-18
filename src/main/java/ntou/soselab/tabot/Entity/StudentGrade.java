@@ -1,7 +1,6 @@
 package ntou.soselab.tabot.Entity;
 
 import java.util.List;
-import java.util.Map;
 
 public class StudentGrade {
 
