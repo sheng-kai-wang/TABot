@@ -61,7 +61,7 @@ public class GoogleSheetsTest {
         List<List<Object>> lists2 = new ArrayList<>(List.of(
                 new ArrayList<>(List.of("00111", "00222", "00333")),
                 new ArrayList<>(List.of("00444", "00555", "00666"))));
-        new SheetsHandler("Java").updateContent("FAQ", "A17:C18", lists2);
+        new SheetsHandler("Java").updateContent("Grades Test", "A17:C18", lists2);
     }
 
     /**

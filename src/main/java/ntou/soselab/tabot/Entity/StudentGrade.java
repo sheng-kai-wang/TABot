@@ -1,15 +1,16 @@
 package ntou.soselab.tabot.Entity;
 
+import java.util.List;
 import java.util.Map;
 
 public class StudentGrade {
 
-    public String name;
-    public String studentId;
-    public Map<String, String> grades;
+    private String name;
+    private String studentId;
+    private List<String> grades;
 
 
-    public StudentGrade(String name, String studentId, Map<String, String> grades) {
+    public StudentGrade(String name, String studentId, List<String> grades) {
         this.name = name;
         this.studentId = studentId;
         this.grades = grades;
@@ -31,11 +32,11 @@ public class StudentGrade {
         this.studentId = studentId;
     }
 
-    public Map<String, String> getGrades() {
+    public List<String> getGrades() {
         return grades;
     }
 
-    public void setGrades(Map<String, String> grades) {
+    public void setGrades(List<String> grades) {
         this.grades = grades;
     }
 
