@@ -7,41 +7,27 @@ import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.*;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseException;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import ntou.soselab.tabot.Entity.Rasa.Intent;
-import ntou.soselab.tabot.Entity.Rasa.IntentSet;
-import ntou.soselab.tabot.Entity.UserProfile;
-import ntou.soselab.tabot.Service.RasaService;
+import ntou.soselab.tabot.Entity.Student.StudentDiscordProfile;
 import ntou.soselab.tabot.repository.Neo4jHandler;
 import ntou.soselab.tabot.repository.SheetsHandler;
-import okhttp3.internal.connection.Exchange;
-import org.apache.catalina.User;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.*;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.FileInputStream;
-import java.lang.reflect.Field;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 //@SpringBootTest
 class TaBotApplicationTests {
@@ -223,7 +209,7 @@ class TaBotApplicationTests {
         System.out.println(">>>>> class type: " + userList.get(0).getClass());
         System.out.println(">>>>> userList: " + userList);
         System.out.println(">>>>> first obj: " + userList.get(0));
-        System.out.println(">>>>> cast to entity: " + new UserProfile((HashMap)userList.get(0)));
+        System.out.println(">>>>> cast to entity: " + new StudentDiscordProfile((HashMap)userList.get(0)));
 
         /* try to write data from firestore */
     }
@@ -239,8 +225,8 @@ class TaBotApplicationTests {
         tester.put("name", "tester");
         tester.put("studentId", "00000000");
         tester.put("discordId", "fakeDcId");
-        UserProfile testProfile = new UserProfile(test);
-        UserProfile testerProfile = new UserProfile(tester);
+        StudentDiscordProfile testProfile = new StudentDiscordProfile(test);
+        StudentDiscordProfile testerProfile = new StudentDiscordProfile(tester);
         /* try to add stuff in firestore database */
 //        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").set(new UserProfile("tester", "00000000", "fakeDdId").getProfileMap(), SetOptions.merge());
 //        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(new UserProfile("tester", "00000000", "anotherFakeId").getProfileMap()));
@@ -304,14 +290,14 @@ class TaBotApplicationTests {
 
     @Test
     void testArrayListParse(){
-        UserProfile profile1 = new UserProfile("a", "1", "11");
-        UserProfile profile2 = new UserProfile("b", "2", "22");
-        ArrayList<UserProfile> testList = new ArrayList<>();
+        StudentDiscordProfile profile1 = new StudentDiscordProfile("a", "1", "11");
+        StudentDiscordProfile profile2 = new StudentDiscordProfile("b", "2", "22");
+        ArrayList<StudentDiscordProfile> testList = new ArrayList<>();
         testList.add(profile1);
         testList.add(profile2);
         System.out.println(testList);
         ArrayList<HashMap> resultMapList = new ArrayList<>();
-        for(UserProfile profile: testList){
+        for(StudentDiscordProfile profile: testList){
             resultMapList.add(profile.getProfileMap());
         }
         System.out.println(resultMapList);

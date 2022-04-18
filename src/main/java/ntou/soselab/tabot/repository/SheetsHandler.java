@@ -10,7 +10,6 @@ import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.*;
 
 import com.google.gson.Gson;
-import com.jayway.jsonpath.JsonPath;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.yaml.snakeyaml.Yaml;
@@ -142,19 +141,7 @@ public class SheetsHandler {
      * Clear the unwanted content in the worksheet like "(blank)", "..."
      */
     public void trimWorksheet() {
-        List<Sheet> worksheetList = null;
-        try {
-            worksheetList = sheetsService.spreadsheets()
-                    .get(spreadsheetId)
-                    .setIncludeGridData(false)
-                    .execute()
-                    .getSheets();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        assert worksheetList != null;
-        for (Sheet sheet : worksheetList) {
+        for (Sheet sheet : getSheetsList()) {
             String titleString = sheet.getProperties().getTitle();
             String sheetsContentString = readContent(sheet.getProperties().getTitle(), "");
             if (sheetsContentString.equals("null")) continue;
@@ -170,6 +157,38 @@ public class SheetsHandler {
                     (char) (65 + columnNum) + "1" + ":" + (char) (65 + columnNum + 2) + rowNum,
                     updateContents);
         }
+    }
+
+    /**
+     * Get the list of sheets.
+     *
+     * @return list of sheets.
+     */
+    private List<Sheet> getSheetsList() {
+        List<Sheet> sheetsList = null;
+        try {
+            sheetsList = sheetsService.spreadsheets()
+                    .get(spreadsheetId)
+                    .setIncludeGridData(false)
+                    .execute()
+                    .getSheets();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return sheetsList;
+    }
+
+    /**
+     * Read the list of sheets title.
+     *
+     * @return the list of sheets title.
+     */
+    public List<String> readSheetsTitles() {
+        ArrayList<String> sheetsTitles = new ArrayList<>();
+        for (Sheet sheet : getSheetsList()) {
+            sheetsTitles.add(sheet.getProperties().getTitle());
+        }
+        return sheetsTitles;
     }
 
     /**

@@ -5,15 +5,9 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.*;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.auth.ActionCodeSettings;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
-import ntou.soselab.tabot.Entity.UserProfile;
+import ntou.soselab.tabot.Entity.Student.StudentDiscordProfile;
 import ntou.soselab.tabot.Exception.NoAccountFoundError;
-import org.apache.catalina.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -35,8 +29,8 @@ public class UserService {
     private final String FIELD_NAME;
     private final String IP;
     private Firestore db;
-    public static ArrayList<UserProfile> currentUserList;
-    public static HashMap<String, UserProfile> verifyList;
+    public static ArrayList<StudentDiscordProfile> currentUserList;
+    public static HashMap<String, StudentDiscordProfile> verifyList;
 
     private final JavaMailSender mailSender;
 
@@ -97,7 +91,7 @@ public class UserService {
             System.out.println(">> [DEBUG][init firestore] raw list from firestore: " + userList);
             /* create current user list */
             for(Object obj: userList){
-                UserProfile user = new UserProfile((HashMap) obj);
+                StudentDiscordProfile user = new StudentDiscordProfile((HashMap) obj);
                 currentUserList.add(user);
             }
         } catch (InterruptedException | ExecutionException e) {
@@ -239,9 +233,9 @@ public class UserService {
         String name = getNameByNickName(nickName);
         String studentId = getStudentIdByNickName(nickName);
         /* create new user profile */
-        UserProfile registrant = new UserProfile(name, studentId, discordId);
+        StudentDiscordProfile registrant = new StudentDiscordProfile(name, studentId, discordId);
         // local change
-        currentUserList.removeIf(userProfile -> userProfile.getDiscordId().equals(discordId));
+        currentUserList.removeIf(studentDiscordProfile -> studentDiscordProfile.getDiscordId().equals(discordId));
         currentUserList.add(registrant);
         // remote change
         removeFirestoreUserList();
@@ -252,9 +246,9 @@ public class UserService {
      * register new student profile, remove existed profile if same discord id contained
      * @param registrantProfile student's profile
      */
-    public void registerStudent(UserProfile registrantProfile){
+    public void registerStudent(StudentDiscordProfile registrantProfile){
         System.out.println("[DEBUG][UserService] try to add " + registrantProfile.getStudentId() + " in to current user list and update firestore.");
-        currentUserList.removeIf(userProfile -> userProfile.getDiscordId().equals(registrantProfile.getDiscordId()));
+        currentUserList.removeIf(studentDiscordProfile -> studentDiscordProfile.getDiscordId().equals(registrantProfile.getDiscordId()));
         currentUserList.add(registrantProfile);
         removeFirestoreUserList();
         updateFirestoreUserList();
@@ -302,7 +296,7 @@ public class UserService {
      * update new user's profile to firestore userList
      * @param user new user's UserProfile
      */
-    public void updateFirestoreUserList(UserProfile user){
+    public void updateFirestoreUserList(StudentDiscordProfile user){
         ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).update(FIELD_NAME, FieldValue.arrayUnion(user.getProfileMap()));
         try {
             System.out.println("[DEBUG][UserService] Complete update userList at " + future.get().getUpdateTime());
@@ -318,7 +312,7 @@ public class UserService {
      */
     private Object[] getParsedCurrentUserMapList(){
         ArrayList<HashMap> resultList = new ArrayList<>();
-        for(UserProfile profile: currentUserList){
+        for(StudentDiscordProfile profile: currentUserList){
             resultList.add(profile.getProfileMap());
         }
         return resultList.toArray();

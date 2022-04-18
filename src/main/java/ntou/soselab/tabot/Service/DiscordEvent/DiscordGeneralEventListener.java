@@ -1,7 +1,5 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
@@ -10,7 +8,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import ntou.soselab.tabot.Entity.UserProfile;
+import ntou.soselab.tabot.Entity.Student.StudentDiscordProfile;
 import ntou.soselab.tabot.Service.UserService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,7 +132,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
             String userName = UserService.getNameByNickName(currentNickname);
             String userStudentId = UserService.getStudentIdByNickName(currentNickname);
             // create profile for current user
-            UserProfile userProfile = new UserProfile(userName, userStudentId, event.getUser().getId());
+            StudentDiscordProfile studentDiscordProfile = new StudentDiscordProfile(userName, userStudentId, event.getUser().getId());
 
             // check if user is trying to change application content
             if(UserService.verifyList.entrySet().stream().anyMatch(user -> user.getValue().getDiscordId().equals(event.getUser().getId()))){
@@ -144,7 +142,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
             /* send verify mail, store correspond uuid and userProfile */
             String uuid = userService.sendVerificationMail(userStudentId);
-            UserService.verifyList.put(uuid, userProfile);
+            UserService.verifyList.put(uuid, studentDiscordProfile);
 //            /* assign role to user */
 //            System.out.println("[GuildMemberUpdateNicknameEvent]: try to assign role.");
 //            event.getGuild().addRoleToMember(event.getMember(), event.getGuild().getRoleById(studentRoleId)).queue();
@@ -162,7 +160,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
     public void verifyUserAndAssignRole(String uuid) throws Exception {
         // todo: try to assign role to user
         /* get profile from verify list and remove it */
-        UserProfile profile = UserService.verifyList.get(uuid);
+        StudentDiscordProfile profile = UserService.verifyList.get(uuid);
         UserService.verifyList.remove(uuid);
         System.out.println("[DEBUG][UserService] try to assign role to " + profile.getStudentId() + ".");
         /* get user from userProfile and try to assign role to user */

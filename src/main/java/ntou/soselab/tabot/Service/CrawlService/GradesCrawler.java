@@ -1,6 +1,6 @@
 package ntou.soselab.tabot.Service.CrawlService;
 
-import ntou.soselab.tabot.Entity.StudentGrade;
+import ntou.soselab.tabot.Entity.Student.StudentGrade;
 import ntou.soselab.tabot.repository.SheetsHandler;
 
 import org.openqa.selenium.*;
@@ -61,6 +61,7 @@ public class GradesCrawler {
             gradeList.add(tableRow);
         }
         new SheetsHandler("Java").updateContent("Grades Test", "A1", gradeList);
+        System.out.println("[DEBUG][GradesCrawler] update student's course grades on Google sheets");
     }
 
     /**

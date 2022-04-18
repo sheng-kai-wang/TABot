@@ -1,6 +1,5 @@
 package ntou.soselab.tabot.Controller;
 
-import ntou.soselab.tabot.Entity.UserProfile;
 import ntou.soselab.tabot.Service.DiscordEvent.DiscordGeneralEventListener;
 import ntou.soselab.tabot.Service.UserService;
 import org.springframework.http.ResponseEntity;
