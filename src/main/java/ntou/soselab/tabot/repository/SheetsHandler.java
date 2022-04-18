@@ -156,17 +156,19 @@ public class SheetsHandler {
         assert worksheetList != null;
         for (Sheet sheet : worksheetList) {
             String titleString = sheet.getProperties().getTitle();
-//            System.out.println("readContent(titleString, ''): " + readContent(titleString, ""));
-            JSONArray sheetsContent = new JSONArray(readContent(titleString, ""));
+            String sheetsContentString = readContent(sheet.getProperties().getTitle(), "");
+            if (sheetsContentString.equals("null")) continue;
+            JSONArray sheetsContent = new JSONArray(sheetsContentString);
             int columnNum = new JSONArray(new JSONArray(sheetsContent).get(0).toString()).length();
             int rowNum = new JSONArray(sheetsContent).length();
-            List<List<Object>> contents = new ArrayList<>();
+            List<List<Object>> updateContents = new ArrayList<>();
             for (int i = 0; i < rowNum; i++) {
-                contents.add(new ArrayList<>(List.of("", "", "")));
+                updateContents.add(new ArrayList<>(List.of("", "", "")));
             }
+//          "65" is for convert int to char
             updateContent(titleString,
                     (char) (65 + columnNum) + "1" + ":" + (char) (65 + columnNum + 2) + rowNum,
-                    contents);
+                    updateContents);
         }
     }
 

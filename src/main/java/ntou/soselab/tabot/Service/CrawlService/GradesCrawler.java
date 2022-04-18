@@ -41,12 +41,6 @@ public class GradesCrawler {
             tableRow.addAll(student.getGrades());
             gradeList.add(tableRow);
         }
-//        List<List<Object>> lists2 = new ArrayList<>(List.of(
-//                new ArrayList<>(List.of("00111", "00222", "00333")),
-//                new ArrayList<>(List.of("00444", "00555", "00666"))));
-        System.out.println("gradeList: " + gradeList);
-//        System.out.println("lists2: " + lists2);
-//        new SheetsHandler("Java").updateContent("Grades Test", "A1", lists2);
         new SheetsHandler("Java").updateContent("Grades Test", "A1", gradeList);
     }
 
