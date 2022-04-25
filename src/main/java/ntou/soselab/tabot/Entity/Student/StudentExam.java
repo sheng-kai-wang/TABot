@@ -7,14 +7,12 @@ public class StudentExam extends Student {
     private Map<String, Boolean> examRecord;
 
     public StudentExam(String studentId) {
-        super.setName("");
-        super.setStudentId(studentId);
+        super(studentId);
         this.examRecord = null;
     }
 
     public StudentExam(String name, String studentId, Map<String, Boolean> examRecord) {
-        super.setName(name);
-        super.setStudentId(studentId);
+        super(name, studentId);
         this.examRecord = examRecord;
     }
 

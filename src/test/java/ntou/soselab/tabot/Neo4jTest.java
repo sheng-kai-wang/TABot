@@ -68,8 +68,8 @@ public class Neo4jTest {
      * 查個人化考題
      */
     @Test
-    public void readPersonalizedTestTest() {
-        String result = new Neo4jHandler("Java").readPersonalizedTest("00957034");
+    public void readPersonalizedExamTest() {
+        String result = new Neo4jHandler("Java").readPersonalizedExam("00957034");
         System.out.println(result);
     }
 
@@ -80,5 +80,13 @@ public class Neo4jTest {
     public void readPersonalizedSubjectMatterTest() {
         String result = new Neo4jHandler("Java").readPersonalizedSubjectMatter("00957034");
         System.out.println("result: " + result);
+    }
+
+    /**
+     * test for whether it can update personalized exam
+     */
+    @Test
+    public void updatePersonalizedExamTest() {
+        new Neo4jHandler("Java").updatePersonalizedExam("000", "aaa", "1");
     }
 }

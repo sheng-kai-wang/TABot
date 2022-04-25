@@ -1,4 +1,4 @@
-package ntou.soselab.tabot.Service.CrawlService;
+package ntou.soselab.tabot.Service;
 
 import ntou.soselab.tabot.Entity.Student.StudentGrade;
 import ntou.soselab.tabot.repository.SheetsHandler;

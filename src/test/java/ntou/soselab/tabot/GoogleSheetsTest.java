@@ -1,6 +1,7 @@
 package ntou.soselab.tabot;
 
 import ntou.soselab.tabot.repository.SheetsHandler;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -38,10 +39,20 @@ public class GoogleSheetsTest {
      * Use the first column on the left as the key to package the result into a key-value pair
      */
     @Test
-    public void readByValueTest() {
+    public void readByKeyTest() {
 //        JSONObject result = new SheetsHandler("Java").readContentByKey("FAQ", "garbage_collection");
         JSONObject result = new SheetsHandler("Java").readContentByKey("Grades", "00457122");
         System.out.println(result);
+    }
+
+    /**
+     * Use the first row on the top as the header,
+     * and use the first column on the left as the key to package the result into a key-value pair.
+     */
+    @Test
+    public void readByHeaderTest() {
+        JSONObject result = new SheetsHandler("Java").readContentByHeader("QuestionBank", "corresponding exam / exam");
+        System.out.println("result: " + result);
     }
 
     /**

@@ -7,8 +7,7 @@ public class StudentGrade extends Student {
     private List<String> grades;
 
     public StudentGrade(String name, String studentId, List<String> grades) {
-        super.setName(name);
-        super.setStudentId(studentId);
+        super(name, studentId);
         this.grades = grades;
     }
 

@@ -24,13 +24,27 @@ add-reference: |
   MERGE (ref)<-[:Reference]-(c)
 
 #查個人化考題
-read-personalized-test: |
-  MATCH (:Student {name:"<<studentID>>"})-[:Weakness]-(t:Test)
+read-personalized-exam: |
+  MATCH (:Student {name:"<<studentId>>"})-[:Weakness]-(t:Test)
   RETURN t
 
 #查個人化教材 目前neo4j缺範例程式、練習題 所以暫時無法實作
 read-personalized-subject-matter: |
-  MATCH (:Student {name:"<<studentID>>"})-[:Weakness]-(t:Test)
+  MATCH (:Student {name:"<<studentId>>"})-[:Weakness]-(t:Test)
   MATCH (t)-[:Test]-(s:Section)
   MATCH (s)<-[]-(n)
   RETURN s.name, n.name
+
+#更新個人化考題
+update-personalized-exam: |
+  MERGE (s:Student {id: "<<studentId>>"})
+  SET s.name = "<<studentName>>"
+  MERGE (e:Exam {id: "<<examId>>"})
+  MERGE (s)-[:Weakness]->(e)
+
+#更新個人化考題(overload)
+#因為缺考所以沒有姓名以及答題狀況資料，但還是要給他共同考題
+update-personalized-exam-common: |
+  MERGE (s:Student {id: "<<studentId>>"})
+  MERGE (e:Exam {id: "<<examId>>"})
+  MERGE (s)-[:Weakness]->(e)

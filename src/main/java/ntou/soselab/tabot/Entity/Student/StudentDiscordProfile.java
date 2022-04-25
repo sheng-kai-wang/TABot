@@ -7,14 +7,14 @@ public class StudentDiscordProfile extends Student {
     private String discordId;
 
     public StudentDiscordProfile(String name, String studentId, String discordId){
-        super.setName(name);
-        super.setStudentId(studentId);
+        super(name, studentId);
+//        super.setName(name);
+//        super.setStudentId(studentId);
         this.discordId = discordId;
     }
 
     public StudentDiscordProfile(HashMap map){
-        super.setName((String)map.get("name"));
-        super.setStudentId((String)map.get("studentId"));
+        super((String) map.get("name"), (String) map.get("studentId"));
         this.discordId = (String)map.get("discordId");
     }
 

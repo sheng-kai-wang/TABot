@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -342,7 +341,7 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] personal quiz triggered.");
         Gson gson = new Gson();
         // search quiz number from neo4j
-        String quizResp = new Neo4jHandler("Java").readPersonalizedTest(studentId);
+        String quizResp = new Neo4jHandler("Java").readPersonalizedExam(studentId);
         System.out.println("--- [DEBUG][personal quiz] id: "+ studentId);
         System.out.println("--- [DEBUG][personal quiz][neo4j] quizResp: " + quizResp);
         JsonArray quizNumList = gson.fromJson(quizResp, JsonArray.class);

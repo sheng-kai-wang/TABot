@@ -1,6 +1,6 @@
 package ntou.soselab.tabot;
 
-import ntou.soselab.tabot.Service.CrawlService.GradesCrawler;
+import ntou.soselab.tabot.Service.GradesCrawler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

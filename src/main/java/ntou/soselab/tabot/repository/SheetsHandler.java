@@ -31,6 +31,7 @@ public class SheetsHandler {
     private final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
 
     private Gson gson;
+    private static final int INDEX_TO_CHAR = 65;
 
     /**
      * It's the constructor,
@@ -204,11 +205,8 @@ public class SheetsHandler {
 //        System.setProperty("webdriver.chrome.driver", "/opt/google/chrome/chromedriver");
 
         String requestRange = null;
-        if ("".equals(range)) {
-            requestRange = worksheet;
-        } else {
-            requestRange = worksheet + "!" + range;
-        }
+        if ("".equals(range)) requestRange = worksheet;
+        else requestRange = worksheet + "!" + range;
 
         ValueRange response = null;
         try {
@@ -242,6 +240,40 @@ public class SheetsHandler {
                     result.append(headers.get(j).toString(), rows.get(j));
                 }
             }
+        }
+        return result;
+    }
+
+    /**
+     * Read the contents of the sheets by "header", it's the first row in worksheet.
+     *
+     * @param worksheet is the name of the worksheet like "QuestionBank".
+     * @param header    is the top row in worksheet like "corresponding exam / exam".
+     * @return It will return a JSONObject containing the leftmost field name (key) of the worksheet and the value to be queried,
+     * just like "{'1':['...'],'2':['...'],'3':['...']}".
+     */
+    public JSONObject readContentByHeader(String worksheet, String header) {
+        JSONObject result = new JSONObject();
+
+        // get the leftmost column as the "key"
+        JSONArray keys = new JSONArray(readContent(worksheet, "A:A"));
+
+        // find the coordinates corresponding to the header
+        JSONArray headers = new JSONArray(readContent(worksheet, "1:1")).getJSONArray(0);
+        int columnIndex = 0;
+        for (int i=0; i<headers.length(); i++) {
+            if (headers.get(i).equals(header)) columnIndex = i;
+        }
+        char coordinateChar = (char) (columnIndex + INDEX_TO_CHAR);
+
+        // get the values in the column
+        JSONArray values = new JSONArray(readContent(worksheet, coordinateChar + ":" + coordinateChar));
+
+        // package the result into the key-value pairs
+        for (int i=0; i<keys.length(); i++) {
+            String key = keys.get(i).toString().split("\"")[1];
+            String value = values.get(i).toString().split("\"")[1];
+            result.append(key, value);
         }
         return result;
     }

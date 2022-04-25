@@ -1,4 +1,4 @@
-package ntou.soselab.tabot.Service;
+package ntou.soselab.tabot.Service.ExamService;
 
 import ntou.soselab.tabot.Entity.Student.StudentExam;
 import ntou.soselab.tabot.repository.SheetsHandler;
@@ -20,7 +20,7 @@ import java.util.Map;
 @Service
 @SpringBootApplication
 @EnableScheduling
-public class ExamService {
+public class ExamCrawler {
 
     private SheetsHandler examSheetsHandler;
     private SheetsHandler courseSheetsHandler;
@@ -29,21 +29,28 @@ public class ExamService {
     /**
      * construct "SheetsHandler" for course data and exam data.
      */
-    public ExamService() {
+    public ExamCrawler() {
         this.courseSheetsHandler = new SheetsHandler("Java");
         this.examSheetsHandler = new SheetsHandler("Java-exam");
-        this.allExamRecords = getExamRecords();
+        readExamRecords();
+    }
+
+    /**
+     * get all exam records for external class.
+     *
+     * @return all exam records
+     */
+    public List<StudentExam> getAllExamRecords() {
+        return this.allExamRecords;
     }
 
     /**
      * get every student's exam record
      *
      * execute every day
-     *
-     * @return all the exam records
      */
     @Scheduled(cron = "0 0 0 * * *")
-    public List<StudentExam> getExamRecords() {
+    private void readExamRecords() {
         JSONArray studentIds = new JSONArray(courseSheetsHandler.readContent("Grades", "A:A"));
 
         // "i=1" is for skip header
@@ -57,11 +64,9 @@ public class ExamService {
                 studentExam = putOneSheetsRecord(examIndex, sheetTitle, studentExam);
                 examIndex++;
             }
+//            System.out.println(studentExam);
             allExamRecords.add(studentExam);
         }
-
-        System.out.println("[DEBUG][ExamService] update student's exam data to neo4j: " + allExamRecords);
-        return allExamRecords;
     }
 
     /**

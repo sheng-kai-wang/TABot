@@ -137,9 +137,9 @@ public class Neo4jHandler implements AutoCloseable {
     /**
      * add reference of Section in curriculum map.
      *
-     * @param sectionName the Section name of curriculum map you want to add data.
+     * @param sectionName   the Section name of curriculum map you want to add data.
      * @param referenceName the reference's name you want to add.
-     * @param referenceURL the reference's URL you want to add.
+     * @param referenceURL  the reference's URL you want to add.
      */
     public void addReference(String sectionName, String referenceName, String referenceURL, String referenceRemark) {
         String cypherString = cypherData.get("add-reference")
@@ -153,11 +153,11 @@ public class Neo4jHandler implements AutoCloseable {
     /**
      * read personalized test of the curriculum map.
      *
-     * @param studentID is in the Google sheets and Firebase.
+     * @param studentId is in the Google sheets and Firebase.
      * @return the test belonging to weakness.
      */
-    public String readPersonalizedTest(String studentID) {
-        String cypherString = cypherData.get("read-personalized-test").replace("<<studentID>>", studentID);
+    public String readPersonalizedExam(String studentId) {
+        String cypherString = cypherData.get("read-personalized-exam").replace("<<studentId>>", studentId);
         List<String> cypherResponses = doCypher(cypherString);
         List<String> results = new ArrayList<>();
         for (String cypherResponse : cypherResponses) {
@@ -169,11 +169,11 @@ public class Neo4jHandler implements AutoCloseable {
     /**
      * read personalized subject matter of the curriculum map.
      *
-     * @param studentID is in the Google sheets and Firebase.
+     * @param studentId is in the Google sheets and Firebase.
      * @return the Section belonging to weakness.
      */
-    public String readPersonalizedSubjectMatter(String studentID) {
-        String cypherString = cypherData.get("read-personalized-subject-matter").replace("<<studentID>>", studentID);
+    public String readPersonalizedSubjectMatter(String studentId) {
+        String cypherString = cypherData.get("read-personalized-subject-matter").replace("<<studentId>>", studentId);
         List<String> cypherResponses = doCypher(cypherString);
         Set<String> results = new HashSet<>();
         for (String cypherResponse : cypherResponses) {
@@ -181,5 +181,34 @@ public class Neo4jHandler implements AutoCloseable {
             results.add(JsonPath.read(cypherResponse, "$.values[1].val"));
         }
         return gson.toJson(results);
+    }
+
+    /**
+     * update student, exam node, and their relationship
+     *
+     * @param studentId   like "00457122"
+     * @param studentName like "劉士辰"
+     * @param examId      like "12", it's the exam number on Google sheets.
+     */
+    public void updatePersonalizedExam(String studentId, String studentName, String examId) {
+        String cypherString = cypherData.get("update-personalized-exam")
+                .replace("<<studentId>>", studentId)
+                .replace("<<studentName>>", studentName)
+                .replace("<<examId>>", examId);
+        doCypher(cypherString);
+    }
+
+    /**
+     * (overload) update student, exam node, and their relationship
+     * student who absented all exam.
+     *
+     * @param studentId like "00457122"
+     * @param examId    like "12", it's the exam number common to all student on Google sheets.
+     */
+    public void updatePersonalizedExam(String studentId, String examId) {
+        String cypherString = cypherData.get("update-personalized-exam-common")
+                .replace("<<studentId>>", studentId)
+                .replace("<<examId>>", examId);
+        doCypher(cypherString);
     }
 }
