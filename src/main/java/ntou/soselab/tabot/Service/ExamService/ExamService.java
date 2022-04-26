@@ -3,10 +3,17 @@ package ntou.soselab.tabot.Service.ExamService;
 import ntou.soselab.tabot.Entity.Student.StudentExam;
 import ntou.soselab.tabot.repository.SheetsHandler;
 import org.json.JSONObject;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@SpringBootApplication
+@EnableScheduling
 public class ExamService {
 
     // exam correspondence table, like "24" to "1-1".
@@ -23,7 +30,10 @@ public class ExamService {
 
     /**
      * neo4j exam data update method for external class.
+     *
+     * execute every day.
      */
+    @Scheduled(cron = "0 0 0 * * *")
     public void updateNeo4jExam() {
         List<String> commonExam = getCommonExam();
         this.allExamRecords = new ExamCrawler().getAllExamRecords();

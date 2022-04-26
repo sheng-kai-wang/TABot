@@ -4,9 +4,6 @@ import ntou.soselab.tabot.Entity.Student.StudentExam;
 import ntou.soselab.tabot.repository.SheetsHandler;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,8 +15,6 @@ import java.util.Map;
  * get the student's answer status on Google sheets, and update it to neo4j.
  */
 @Service
-@SpringBootApplication
-@EnableScheduling
 public class ExamCrawler {
 
     private SheetsHandler examSheetsHandler;
@@ -46,10 +41,7 @@ public class ExamCrawler {
 
     /**
      * get every student's exam record
-     *
-     * execute every day
      */
-    @Scheduled(cron = "0 0 0 * * *")
     private void readExamRecords() {
         JSONArray studentIds = new JSONArray(courseSheetsHandler.readContent("Grades", "A:A"));
 
