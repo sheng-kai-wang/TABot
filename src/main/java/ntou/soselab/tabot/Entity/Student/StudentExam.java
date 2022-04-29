@@ -2,18 +2,35 @@ package ntou.soselab.tabot.Entity.Student;
 
 import java.util.Map;
 
-public class StudentExam extends Student {
+public class StudentExam {
 
+    private Student student = new Student();
     private Map<String, Boolean> examRecord;
 
     public StudentExam(String studentId) {
-        super(studentId);
-        this.examRecord = null;
+        this.student.setStudentId(studentId);
     }
 
     public StudentExam(String name, String studentId, Map<String, Boolean> examRecord) {
-        super(name, studentId);
+        this.student.setName(name);
+        this.student.setStudentId(studentId);
         this.examRecord = examRecord;
+    }
+
+    public void setName(String name) {
+        this.student.setName(name);
+    }
+
+    public String getName() {
+        return this.student.getName();
+    }
+
+    public void setStudentId(String studentId) {
+        this.student.setStudentId(studentId);
+    }
+
+    public String getStudentId() {
+        return this.student.getStudentId();
     }
 
     public Map<String, Boolean> getExamRecord() {
@@ -27,8 +44,8 @@ public class StudentExam extends Student {
     @Override
     public String toString() {
         return "StudentGrade{" +
-                "name='" + super.getName() + '\'' +
-                ", studentId='" + super.getStudentId() + '\'' +
+                "name='" + this.student.getName() + '\'' +
+                ", studentId='" + this.student.getStudentId() + '\'' +
                 ", examRecord=" + examRecord +
                 '}';
     }
