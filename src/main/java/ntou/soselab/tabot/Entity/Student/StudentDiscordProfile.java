@@ -2,32 +2,51 @@ package ntou.soselab.tabot.Entity.Student;
 
 import java.util.HashMap;
 
-public class StudentDiscordProfile extends Student {
+public class StudentDiscordProfile {
 
+    private Student student = new Student();
     private String discordId;
 
     public StudentDiscordProfile(String name, String studentId, String discordId){
-        super(name, studentId);
-//        super.setName(name);
-//        super.setStudentId(studentId);
+//        this.student = new Student(name, studentId);
+//        this.student.name = name;
+        this.student.setName(name);
+        this.student.setStudentId(studentId);
         this.discordId = discordId;
     }
 
     public StudentDiscordProfile(HashMap map){
-        super((String) map.get("name"), (String) map.get("studentId"));
+        this.student.setName((String) map.get("name"));
+        this.student.setName((String) map.get("studentId"));
         this.discordId = (String)map.get("discordId");
     }
 
-    public HashMap<String, String> getProfileMap(){
+    public HashMap<String, String> getProfileMap() {
         HashMap<String, String> profileMap = new HashMap<>();
-        profileMap.put("name", super.getName());
-        profileMap.put("studentId", super.getStudentId());
+        profileMap.put("name", this.student.getName());
+        profileMap.put("studentId", this.student.getStudentId());
         profileMap.put("discordId", this.discordId);
         return profileMap;
     }
 
-    public String getUserFullName(){
-        return super.getStudentId() + " - " + super.getName();
+    public String getUserFullName() {
+        return this.student.getStudentId() + " - " + this.student.getName();
+    }
+
+    public void setName(String name) {
+        this.student.setName(name);
+    }
+
+    public String getName() {
+        return this.student.getName();
+    }
+
+    public void setStudentId(String studentId) {
+        this.student.setStudentId(studentId);
+    }
+
+    public String getStudentId() {
+        return this.student.getStudentId();
     }
 
     public void setDiscordId(String discordId) {
@@ -41,8 +60,8 @@ public class StudentDiscordProfile extends Student {
     @Override
     public String toString() {
         return "UserProfile{" +
-                "name='" + super.getName() + '\'' +
-                ", studentId='" + super.getStudentId() + '\'' +
+                "name='" + this.student.getName() + '\'' +
+                ", studentId='" + this.student.getStudentId() + '\'' +
                 ", discordId='" + discordId + '\'' +
                 '}';
     }
