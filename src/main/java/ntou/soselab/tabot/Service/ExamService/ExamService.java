@@ -18,14 +18,16 @@ public class ExamService {
 
     // exam correspondence table, like "24" to "1-1".
     private JSONObject examCorresponding;
+    private JSONObject examPublishable;
     private List<StudentExam> allExamRecords = new ArrayList<>();
 
     /**
      * get exam correspondence table
      */
     public ExamService() {
-        this.examCorresponding = new SheetsHandler("Java")
-                .readContentByHeader("QuestionBank", "corresponding exam / exam");
+        SheetsHandler sheetsHandler = new SheetsHandler("Java");
+        this.examCorresponding = sheetsHandler.readContentByHeader("QuestionBank", "corresponding exam / exam");
+        this.examPublishable = sheetsHandler.readContentByHeader("QuestionBank", "publishable");
     }
 
     /**
@@ -48,13 +50,15 @@ public class ExamService {
      */
     private List<String> getCommonExam() {
         List<String> result = new ArrayList<String>();
-        for (Object o : examCorresponding.keySet()) {
-            // remove header
-            if (o.equals("題號 / num")) continue;
+        // index to exam number
+        for (int i=1; i<examCorresponding.length(); i++) {
+            String examNumber = String.valueOf(i);
             // ["*"] to *
-            String value = examCorresponding.get(o.toString()).toString().split("\"")[1];
-            // common exam
-            if (value.equals("*")) result.add(o.toString());
+            String correspondingValue = examCorresponding.get(examNumber).toString().split("\"")[1];
+            // ["v"] to v
+            String publishableValue = examPublishable.get(examNumber).toString().split("\"")[1];
+            // add common and publishable exam
+            if (correspondingValue.equals("*") && publishableValue.equals("v")) result.add(examNumber);
         }
         return result;
     }

@@ -11,6 +11,7 @@ import com.google.api.services.sheets.v4.model.*;
 
 import com.google.gson.Gson;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.yaml.snakeyaml.Yaml;
 
@@ -272,7 +273,15 @@ public class SheetsHandler {
         // package the result into the key-value pairs
         for (int i=0; i<keys.length(); i++) {
             String key = keys.get(i).toString().split("\"")[1];
-            String value = values.get(i).toString().split("\"")[1];
+            String value;
+            try {
+                // some value is [], there's not "\"",
+                // and the length of values may be shorter than keys, so it must be filled with "<<null>>".
+                value = values.get(i).toString().split("\"")[1];
+            } catch (ArrayIndexOutOfBoundsException | JSONException e) {
+                value = "<<null>>";
+            }
+            // some value is ["v"], the others are ["<<null>>"]
             result.append(key, value);
         }
         return result;

@@ -28,6 +28,7 @@ read-personalized-exam: |
   MATCH (:Student {name:"<<studentId>>"})-[:Weakness]-(t:Test)
   RETURN t
 
+#COMING SOON
 #查個人化教材 目前neo4j缺範例程式、練習題 所以暫時無法實作
 read-personalized-subject-matter: |
   MATCH (:Student {name:"<<studentId>>"})-[:Weakness]-(t:Test)

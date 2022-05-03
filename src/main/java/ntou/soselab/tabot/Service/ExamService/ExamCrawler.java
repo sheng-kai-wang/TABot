@@ -14,7 +14,6 @@ import java.util.Map;
 /**
  * get the student's answer status on Google sheets, and update it to neo4j.
  */
-@Service
 public class ExamCrawler {
 
     private SheetsHandler examSheetsHandler;
@@ -56,7 +55,8 @@ public class ExamCrawler {
                 studentExam = putOneSheetsRecord(examIndex, sheetTitle, studentExam);
                 examIndex++;
             }
-//            System.out.println(studentExam);
+
+            System.out.println(studentExam);
             allExamRecords.add(studentExam);
         }
     }

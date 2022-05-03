@@ -51,7 +51,9 @@ public class GoogleSheetsTest {
      */
     @Test
     public void readByHeaderTest() {
-        JSONObject result = new SheetsHandler("Java").readContentByHeader("QuestionBank", "corresponding exam / exam");
+//        JSONObject result = new SheetsHandler("Java").readContentByHeader("QuestionBank", "corresponding exam / exam");
+//        System.out.println("result: " + result);
+        JSONObject result = new SheetsHandler("Java").readContentByHeader("QuestionBank", "publishable");
         System.out.println("result: " + result);
     }
 
