@@ -34,7 +34,8 @@ public class IntentHandleService {
     @Autowired
     public IntentHandleService(Environment env) {
         ongoingQuizMap = new HashMap<>();
-        this.SUGGEST_FORM_URL = env.getProperty("env.setting.suggest");
+        this.SUGGEST_FORM_URL = null;
+//        this.SUGGEST_FORM_URL = env.getProperty("env.setting.suggest");
     }
 
     /**
@@ -265,7 +266,7 @@ public class IntentHandleService {
             case "personal_score_query":
 //                return generatePersonalScoreQueryResponse(checkPersonalScore(studentId, scoreQueryTarget));
                 return generatePersonalScoreQueryResponse(checkPersonalScore(testId, scoreQueryTarget));
-              // coming soon
+            // coming soon
 //            case "personal_textbook_query":
 //                return getPersonalTextbook(studentId);
 //                return getPersonalTextbook(testId);
@@ -363,15 +364,62 @@ public class IntentHandleService {
         System.out.println("--- [DEBUG][personal quiz][neo4j] quizResp: " + quizResp);
         JsonArray quizNumList = gson.fromJson(quizResp, JsonArray.class);
         // random pick one of the quiz, retrieve quiz data from Google sheet
-        JsonObject quiz = parsePersonalQuiz(new SheetsHandler("Java").readContentByKey("QuestionBank", pickRandomQuiz(quizNumList).strip()));
+        JsonObject quiz = parsePersonalQuiz(new SheetsHandler("Java").readContentByKey("QuestionBank", setExamAlgorithm(quizNumList)));
         System.out.println("--- [DEBUG][personal quiz] quiz: " + quiz);
         // store user data and quiz in ongoing quiz map
         ongoingQuizMap.put(studentId, quiz);
         return createQuizMessage(quiz);
     }
 
-    private String pickRandomQuiz(JsonArray quizList) {
-        return quizList.get(ThreadLocalRandom.current().nextInt(0, quizList.size())).getAsString();
+    private String setExamAlgorithm(JsonArray incorrectExamList) {
+        JsonArray correctExamList = getCorrectExamList(incorrectExamList);
+        int randomInt = ThreadLocalRandom.current().nextInt(0, 10);
+        if (randomInt >= 8) return getRandomExam(correctExamList);
+        else return getRandomExam(incorrectExamList);
+//        may be wrong
+//        return quizList.get(ThreadLocalRandom.current().nextInt(0, quizList.size())).getAsString();
+    }
+
+    /**
+     * @param examList correct or incorrect exam list
+     * @return random exam in exam list
+     */
+    private String getRandomExam(JsonArray examList) {
+        int index = ThreadLocalRandom.current().nextInt(0, examList.size());
+        // "16" to 16
+        return String.valueOf(examList.get(index)).split("\"")[1];
+    }
+
+    /**
+     * @param incorrectExamList used to compute the intersection
+     * @return publishable and correct exam list
+     */
+    private JsonArray getCorrectExamList(JsonArray incorrectExamList) {
+        JsonArray allPublishableExam = getAllPublishableExam();
+        JsonArray result = new JsonArray();
+        for (JsonElement exam : allPublishableExam) {
+            boolean isCorrect = true;
+            for (JsonElement incorrectExam : incorrectExamList) {
+                // it means that this exam is incorrect
+                if (exam.equals(incorrectExam)) isCorrect = false;
+            }
+            if (isCorrect) result.add(exam);
+        }
+        return result;
+    }
+
+    /**
+     * @return all publishable exam
+     */
+    private JsonArray getAllPublishableExam() {
+        JSONObject allPublishableExam = new SheetsHandler("Java").readContentByHeader("QuestionBank", "publishable");
+        JsonArray result = new JsonArray();
+        for (String key : allPublishableExam.keySet()) {
+            // ["v"] to v
+            String value = allPublishableExam.get(key).toString().split("\"")[1];
+            if (value.equals("v")) result.add(key);
+        }
+        return result;
     }
 
     /**
@@ -382,6 +430,7 @@ public class IntentHandleService {
      * @return
      */
     private JsonObject parsePersonalQuiz(JSONObject quiz) {
+        System.out.println("quiz: " + quiz);
         JsonObject result = new JsonObject();
         Iterator<String> jsonKey = quiz.keys();
         while (jsonKey.hasNext()) {

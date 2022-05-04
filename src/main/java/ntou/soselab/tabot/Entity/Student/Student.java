@@ -12,19 +12,19 @@ public class Student {
         this.studentId = studentId;
     }
 
-    public String getName() {
+    public final String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public final void setName(String name) {
         this.name = name;
     }
 
-    public String getStudentId() {
+    public final String getStudentId() {
         return studentId;
     }
 
-    public void setStudentId(String studentId) {
+    public final void setStudentId(String studentId) {
         this.studentId = studentId;
     }
 }

@@ -161,7 +161,7 @@ public class Neo4jHandler implements AutoCloseable {
         List<String> cypherResponses = doCypher(cypherString);
         List<String> results = new ArrayList<>();
         for (String cypherResponse : cypherResponses) {
-            results.add(JsonPath.read(cypherResponse, "$.values[0].adapted.properties.name.val"));
+            results.add(JsonPath.read(cypherResponse, "$.values[0].adapted.properties.id.val"));
         }
         return gson.toJson(results);
     }

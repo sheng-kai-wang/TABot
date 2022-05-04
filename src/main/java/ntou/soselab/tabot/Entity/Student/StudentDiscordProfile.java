@@ -8,8 +8,6 @@ public class StudentDiscordProfile {
     private String discordId;
 
     public StudentDiscordProfile(String name, String studentId, String discordId){
-//        this.student = new Student(name, studentId);
-//        this.student.name = name;
         this.student.setName(name);
         this.student.setStudentId(studentId);
         this.discordId = discordId;
