@@ -395,15 +395,11 @@ public class IntentHandleService {
      * @return publishable and correct exam list
      */
     private JsonArray getCorrectExamList(JsonArray incorrectExamList) {
-        JsonArray allPublishableExam = getAllPublishableExam();
         JsonArray result = new JsonArray();
+        JsonArray allPublishableExam = getAllPublishableExam();
         for (JsonElement exam : allPublishableExam) {
-            boolean isCorrect = true;
-            for (JsonElement incorrectExam : incorrectExamList) {
-                // it means that this exam is incorrect
-                if (exam.equals(incorrectExam)) isCorrect = false;
-            }
-            if (isCorrect) result.add(exam);
+            // it means that this exam is correct
+            if (!incorrectExamList.contains(exam)) result.add(exam);
         }
         return result;
     }
