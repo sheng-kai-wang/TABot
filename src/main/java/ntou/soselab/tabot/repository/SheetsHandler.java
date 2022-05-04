@@ -271,7 +271,8 @@ public class SheetsHandler {
         JSONArray values = new JSONArray(readContent(worksheet, coordinateChar + ":" + coordinateChar));
 
         // package the result into the key-value pairs
-        for (int i=0; i<keys.length(); i++) {
+        // start at 1, skip the header
+        for (int i=1; i<keys.length(); i++) {
             String key = keys.get(i).toString().split("\"")[1];
             String value;
             try {

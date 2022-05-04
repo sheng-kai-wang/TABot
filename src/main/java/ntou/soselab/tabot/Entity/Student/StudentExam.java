@@ -1,11 +1,12 @@
 package ntou.soselab.tabot.Entity.Student;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class StudentExam {
 
     private Student student = new Student();
-    private Map<String, Boolean> examRecord;
+    private Map<String, Boolean> examRecord = new HashMap<>();
 
     public StudentExam(String studentId) {
         this.student.setStudentId(studentId);

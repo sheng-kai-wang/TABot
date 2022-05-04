@@ -32,7 +32,7 @@ public class ExamService {
 
     /**
      * neo4j exam data update method for external class.
-     *
+     * <p>
      * execute every day.
      */
     @Scheduled(cron = "0 0 0 * * *")
@@ -50,9 +50,9 @@ public class ExamService {
      */
     private List<String> getCommonExam() {
         List<String> result = new ArrayList<String>();
-        // index to exam number
-        for (int i=1; i<examCorresponding.length(); i++) {
-            String examNumber = String.valueOf(i);
+        for (int i = 0; i < examCorresponding.length(); i++) {
+            // index to exam number
+            String examNumber = String.valueOf(i+1);
             // ["*"] to *
             String correspondingValue = examCorresponding.get(examNumber).toString().split("\"")[1];
             // ["v"] to v
