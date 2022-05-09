@@ -50,7 +50,7 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
 //        if(studentId.equals("286145047169335298"))
 //        studentId = "00000000";
         /* --- end of test block --- */
-        JsonObject quiz = IntentHandleService.ongoingQuizMap.get(studentId);
+        JsonObject quiz = IntentHandleService.getOngoingQuizMap().get(studentId);
         System.out.println("--- [DEBUG][onButton] retrieve quiz: " + quiz);
         String ansOpt = quiz.get("ans").getAsString();
         String ansContent = quiz.get("opt" + ansOpt).getAsString();
@@ -64,6 +64,6 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
             event.getHook().sendMessage("Wrong. Correct answer is `" + ansContent + "`").queue();
         }
         // remove quiz from ongoing quiz map
-        IntentHandleService.ongoingQuizMap.remove(studentId);
+        IntentHandleService.getOngoingQuizMap().remove(studentId);
     }
 }

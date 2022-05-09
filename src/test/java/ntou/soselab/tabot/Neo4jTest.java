@@ -55,14 +55,14 @@ public class Neo4jTest {
     /**
      * 擴增課程地圖
      */
-    @Test
-    public void addReferenceTest() {
-        new Neo4jHandler("Java").addReference(
-                "Control Statements",
-                "test",
-                "testURL",
-                "testRemark");
-    }
+//    @Test
+//    public void addReferenceTest() {
+//        new Neo4jHandler("Java").addReference(
+//                "Control Statements",
+//                "test",
+//                "testURL",
+//                "testRemark");
+//    }
 
     /**
      * 查個人化考題
@@ -85,8 +85,8 @@ public class Neo4jTest {
     /**
      * test for whether it can update personalized exam
      */
-    @Test
-    public void updatePersonalizedExamTest() {
-        new Neo4jHandler("Java").updatePersonalizedExam("000", "aaa", "1");
-    }
+//    @Test
+//    public void updatePersonalizedExamTest() {
+//        new Neo4jHandler("Java").updatePersonalizedExam("000", "aaa", "1");
+//    }
 }

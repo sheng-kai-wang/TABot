@@ -129,7 +129,7 @@ public class Neo4jHandler implements AutoCloseable {
      * @return the URL of the slideshow.
      */
     public String readSlideshowById(int chapterId) {
-        String cypherString = cypherData.get("read-slideshow-by-id").replace("<<id>>", String.valueOf(chapterId));
+        String cypherString = cypherData.get("read-slideshow-by-id").replace("<<chapterId>>", String.valueOf(chapterId));
         List<String> cypherResponses = doCypher(cypherString);
         return JsonPath.read(cypherResponses.get(0), "$.values[0].val");
     }

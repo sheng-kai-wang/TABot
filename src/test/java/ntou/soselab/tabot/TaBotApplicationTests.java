@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.jayway.jsonpath.JsonPath;
 import ntou.soselab.tabot.Entity.Student.StudentDiscordProfile;
 import ntou.soselab.tabot.repository.Neo4jHandler;
 import ntou.soselab.tabot.repository.SheetsHandler;
@@ -26,6 +27,7 @@ import javax.mail.internet.MimeMessage;
 import java.io.FileInputStream;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +39,7 @@ class TaBotApplicationTests {
     }
 
     @Test
-    void languageTest(){
+    void languageTest() {
         String testMsg = "中文測試";
         String testMsg1 = "天氣總算放晴，沒有rain、太陽很big、有點hot、讓我想到以前還是student時，喜歡在這樣的天氣，吃一球ice cream，真的會讓人很happy";
         String testMsg2 = "我是很busy，因為我很多things要do";
@@ -52,13 +54,13 @@ class TaBotApplicationTests {
     }
 
     @Test
-    void unicodeTest(){
+    void unicodeTest() {
         String test = "\u597d\u7684";
         System.out.println(test);
     }
 
     @Test
-    void matcherTest(){
+    void matcherTest() {
         String test = "0000A000-abcd";
         String result = "";
         Pattern pattern = Pattern.compile("^[0-9A-Z]{8}-(.*)$");
@@ -71,24 +73,24 @@ class TaBotApplicationTests {
     }
 
     @Test
-    void matcherTest2(){
+    void matcherTest2() {
         Pattern pattern = Pattern.compile("^\\[\"(.*)\"\\]$");
         Matcher matcher = pattern.matcher("[\"Methods\"]");
         String result = "";
-        if(matcher.find())
+        if (matcher.find())
             result = matcher.group(1);
         System.out.println(result);
     }
 
     @Test
-    void allMatchTest(){
+    void allMatchTest() {
         List<String> components = Arrays.asList("[Sender ID]", "[Ref]", "[Channel]");
         String test = "[Sender ID][Channel]123";
         System.out.println(components.stream().allMatch(test::contains));
     }
 
     @Test
-    void extractIdTest(){
+    void extractIdTest() {
         String rawMessage = "[fads]asfds \nafeafea \nfaegfa \n[Message ID] 456789\ntgfaga4eg";
         String temp = Arrays.stream(rawMessage.split("\n")).filter(line -> line.strip().startsWith("[Message ID] ")).findFirst().get().replace("[Message ID] ", "").strip();
         System.out.println(temp);
@@ -115,29 +117,29 @@ class TaBotApplicationTests {
         System.out.println(personalScoreMap.get("midterm_exam"));
     }
 
-    @Test
-    void personalTextTest(){
-        String query = new Neo4jHandler("Java").readPersonalizedSubjectMatter("0076D053");
-        Gson gson = new Gson();
-        JsonArray result = gson.fromJson(query, JsonArray.class);
-        System.out.println(result);
-        for(JsonElement chapter: result){
-            System.out.println(chapter.getAsString());
-        }
-    }
+//    @Test
+//    void personalTextTest() {
+//        String query = new Neo4jHandler("Java").readPersonalizedSubjectMatter("0076D053");
+//        Gson gson = new Gson();
+//        JsonArray result = gson.fromJson(query, JsonArray.class);
+//        System.out.println(result);
+//        for (JsonElement chapter : result) {
+//            System.out.println(chapter.getAsString());
+//        }
+//    }
 
     @Test
-    void quizSearchTest(){
+    void quizSearchTest() {
         JSONObject resp = new SheetsHandler("Java").readContentByKey("QuestionBank", "1");
         System.out.println(resp);
         JsonObject result = new JsonObject();
         Iterator<String> jsonKey = resp.keys();
-        while(jsonKey.hasNext()){
+        while (jsonKey.hasNext()) {
             String key = jsonKey.next();
             String keyName = key.split(" / ")[1].strip();
             String value = resp.getJSONArray(key).getString(0);
 //            result.addProperty(keyName, value);
-            if(value.isEmpty()) continue;
+            if (value.isEmpty()) continue;
 //            System.out.println(keyName);
 //            System.out.println(value);
             result.addProperty(keyName, value);
@@ -153,7 +155,7 @@ class TaBotApplicationTests {
     }
 
     @Test
-    void charTest(){
+    void charTest() {
         char test = 'A';
         System.out.println(Character.toString(test + 1));
     }
@@ -167,7 +169,7 @@ class TaBotApplicationTests {
 
         // test iterator (iterate score map)
         Iterator<String> iter = value.keys();
-        while(iter.hasNext()){
+        while (iter.hasNext()) {
             String key = iter.next();
             System.out.println("key: " + key);
             System.out.println("value: " + value.getJSONArray(key).getString(0));
@@ -175,7 +177,7 @@ class TaBotApplicationTests {
 //        System.out.println(value.getJSONArray("answer").get(0).toString());
     }
 
-    private Firestore initFirestore() throws Exception{
+    private Firestore initFirestore() throws Exception {
         /* init phase */
         FileInputStream serviceAccount = new FileInputStream("src/main/resources/static/firebaseKey.json");
         FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
@@ -186,8 +188,25 @@ class TaBotApplicationTests {
         return db;
     }
 
+//    @Test
+//    void testAssertNewUser() throws Exception {
+//        String name = "李俊杰";
+//        String studentId = "11057035";
+//        String discordId = "222276938369073152";
+//        StudentDiscordProfile user = new StudentDiscordProfile(name, studentId, discordId);
+//
+//        Firestore db = initFirestore();
+//        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(user.getProfileMap()));
+//        try {
+//            System.out.println("[DEBUG][UserService] Complete update userList at " + future.get().getUpdateTime());
+//        } catch (InterruptedException | ExecutionException e) {
+//            e.printStackTrace();
+//            System.out.println("[DEBUG][UserService] error occurs when trying to update user list to firestore.");
+//        }
+//    }
+
     @Test
-    public void testFirestore() throws Exception{
+    public void testFirestore() throws Exception {
 //        /* init phase */
 //        FileInputStream serviceAccount = new FileInputStream("src/main/resources/static/firebaseKey.json");
 //        FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
@@ -205,57 +224,57 @@ class TaBotApplicationTests {
 //        System.out.println(">>> UserMap: " + userMap);
 //        System.out.println(userMap.size());
         System.out.println(">>>>> " + collection.document("userData").get().get().get("userList"));
-        ArrayList userList = (ArrayList)collection.document("userData").get().get().get("userList");
+        ArrayList userList = (ArrayList) collection.document("userData").get().get().get("userList");
         System.out.println(">>>>> class type: " + userList.get(0).getClass());
         System.out.println(">>>>> userList: " + userList);
         System.out.println(">>>>> first obj: " + userList.get(0));
-        System.out.println(">>>>> cast to entity: " + new StudentDiscordProfile((HashMap)userList.get(0)));
+        System.out.println(">>>>> cast to entity: " + new StudentDiscordProfile((HashMap) userList.get(0)));
 
         /* try to write data from firestore */
     }
 
-    @Test
-    void TestFirestoreArray() throws Exception{
-        Firestore db = initFirestore();
-        HashMap<String, Object> test = new HashMap<>();
-        test.put("name", "test");
-        test.put("studentId", "0000");
-        test.put("discordId", "fakeId");
-        HashMap<String, Object> tester = new HashMap<>();
-        tester.put("name", "tester");
-        tester.put("studentId", "00000000");
-        tester.put("discordId", "fakeDcId");
-        StudentDiscordProfile testProfile = new StudentDiscordProfile(test);
-        StudentDiscordProfile testerProfile = new StudentDiscordProfile(tester);
-        /* try to add stuff in firestore database */
-//        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").set(new UserProfile("tester", "00000000", "fakeDdId").getProfileMap(), SetOptions.merge());
-//        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(new UserProfile("tester", "00000000", "anotherFakeId").getProfileMap()));
-//        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(testProfile.getProfileMap(), testerProfile.getProfileMap()));
-        ArrayList<HashMap> testList = new ArrayList<>();
-        testList.add(testProfile.getProfileMap());
-        testList.add(testerProfile.getProfileMap());
-        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(testList.toArray()));
-        System.out.println("Update time: " + future.get().getUpdateTime());
-    }
+//    @Test
+//    void TestFirestoreArray() throws Exception {
+//        Firestore db = initFirestore();
+//        HashMap<String, Object> test = new HashMap<>();
+//        test.put("name", "test");
+//        test.put("studentId", "0000");
+//        test.put("discordId", "fakeId");
+//        HashMap<String, Object> tester = new HashMap<>();
+//        tester.put("name", "tester");
+//        tester.put("studentId", "00000000");
+//        tester.put("discordId", "fakeDcId");
+//        StudentDiscordProfile testProfile = new StudentDiscordProfile(test);
+//        StudentDiscordProfile testerProfile = new StudentDiscordProfile(tester);
+//        /* try to add stuff in firestore database */
+////        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").set(new UserProfile("tester", "00000000", "fakeDdId").getProfileMap(), SetOptions.merge());
+////        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(new UserProfile("tester", "00000000", "anotherFakeId").getProfileMap()));
+////        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(testProfile.getProfileMap(), testerProfile.getProfileMap()));
+//        ArrayList<HashMap> testList = new ArrayList<>();
+//        testList.add(testProfile.getProfileMap());
+//        testList.add(testerProfile.getProfileMap());
+//        ApiFuture<WriteResult> future = db.collection("tabotUser").document("userData").update("userList", FieldValue.arrayUnion(testList.toArray()));
+//        System.out.println("Update time: " + future.get().getUpdateTime());
+//    }
+
+//    @Test
+//    void TestFirestoreRemove() throws Exception{
+//        Firestore db = initFirestore();
+//        HashMap<String, Object> test = new HashMap<>();
+//        test.put("name", "test");
+//        test.put("studentId", "0000");
+//        test.put("discordId", "fakeId");
+//        /* try to remove stuff from firestore */
+//        // create delete map
+//        Map<String, Object> deleteUpdate = new HashMap<>();
+//        deleteUpdate.put("userList", FieldValue.delete());
+//        DocumentReference docRef = db.collection("tabotUser").document("userData");
+//        ApiFuture<WriteResult> future = docRef.update(deleteUpdate);
+//        System.out.println(">>> " + future.get().toString());
+//    }
 
     @Test
-    void TestFirestoreRemove() throws Exception{
-        Firestore db = initFirestore();
-        HashMap<String, Object> test = new HashMap<>();
-        test.put("name", "test");
-        test.put("studentId", "0000");
-        test.put("discordId", "fakeId");
-        /* try to remove stuff from firestore */
-        // create delete map
-        Map<String, Object> deleteUpdate = new HashMap<>();
-        deleteUpdate.put("userList", FieldValue.delete());
-        DocumentReference docRef = db.collection("tabotUser").document("userData");
-        ApiFuture<WriteResult> future = docRef.update(deleteUpdate);
-        System.out.println(">>> " + future.get().toString());
-    }
-
-    @Test
-    void sendMailTest(){
+    void sendMailTest() {
         String to = "dskyshad9527@gmail.com";
         String from = "noreply@test.com";
         String username = to;
@@ -275,7 +294,7 @@ class TaBotApplicationTests {
             }
         });
 
-        try{
+        try {
             Message msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(from));
             msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
@@ -283,13 +302,13 @@ class TaBotApplicationTests {
             msg.setText("hello from java mail");
             Transport.send(msg);
             System.out.println("try to send mail");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Test
-    void testArrayListParse(){
+    void testArrayListParse() {
         StudentDiscordProfile profile1 = new StudentDiscordProfile("a", "1", "11");
         StudentDiscordProfile profile2 = new StudentDiscordProfile("b", "2", "22");
         ArrayList<StudentDiscordProfile> testList = new ArrayList<>();
@@ -297,7 +316,7 @@ class TaBotApplicationTests {
         testList.add(profile2);
         System.out.println(testList);
         ArrayList<HashMap> resultMapList = new ArrayList<>();
-        for(StudentDiscordProfile profile: testList){
+        for (StudentDiscordProfile profile : testList) {
             resultMapList.add(profile.getProfileMap());
         }
         System.out.println(resultMapList);
@@ -343,33 +362,33 @@ class TaBotApplicationTests {
 ////        System.out.println(intent);
 //    }
 
-    private String checkString(String raw){
+    private String checkString(String raw) {
         return raw.replace("\"{", "{").replace("}\"", "}");
     }
 
-    private String removeBackSlash(String raw){
+    private String removeBackSlash(String raw) {
         String[] token = raw.split("");
         StringBuilder result = new StringBuilder();
-        for(String t: token){
-            if(t.equals("\\")) continue;
-            if(t.equals("'")){
+        for (String t : token) {
+            if (t.equals("\\")) continue;
+            if (t.equals("'")) {
                 result.append("\"");
                 continue;
             }
             result.append(t);
         }
-        result.deleteCharAt(result.length()-1);
+        result.deleteCharAt(result.length() - 1);
         result.deleteCharAt(0);
 
         String temp = result.toString();
         StringBuilder output = new StringBuilder("{");
         String[] second = temp.split("");
-        for(int i=1; i<second.length; i++){
+        for (int i = 1; i < second.length; i++) {
             int open = StringUtils.countOccurrencesOf(temp.substring(0, i), "{");
             int close = StringUtils.countOccurrencesOf(temp.substring(0, i), "}");
-            if(second[i].equals("\"")){
-                if(open - close == 1){
-                    if(second[i+1].equals("{") || second[i-1].equals("}")) {
+            if (second[i].equals("\"")) {
+                if (open - close == 1) {
+                    if (second[i + 1].equals("{") || second[i - 1].equals("}")) {
                         continue;
                     }
                 }
@@ -380,7 +399,7 @@ class TaBotApplicationTests {
     }
 
     @Test
-    void testPath(){
+    void testPath() {
         String fileName = "static/firebaseKey.json";
         URL url = getClass().getClassLoader().getResource(fileName);
         System.out.println(url.getPath());

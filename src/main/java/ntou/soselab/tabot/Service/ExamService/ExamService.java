@@ -26,7 +26,7 @@ public class ExamService {
      */
     public ExamService() {
         SheetsHandler sheetsHandler = new SheetsHandler("Java");
-        this.examCorresponding = sheetsHandler.readContentByHeader("QuestionBank", "corresponding exam / exam");
+        this.examCorresponding = sheetsHandler.readContentByHeader("QuestionBank", "corresponding exam");
         this.examPublishable = sheetsHandler.readContentByHeader("QuestionBank", "publishable");
     }
 

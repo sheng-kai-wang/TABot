@@ -28,7 +28,8 @@ import java.util.regex.Pattern;
 @Service
 public class IntentHandleService {
 
-    public static HashMap<String, JsonObject> ongoingQuizMap;
+    // ConcurrentHashMap
+    private static HashMap<String, JsonObject> ongoingQuizMap;
     private final String SUGGEST_FORM_URL;
 
     @Autowired
@@ -36,6 +37,10 @@ public class IntentHandleService {
         ongoingQuizMap = new HashMap<>();
         this.SUGGEST_FORM_URL = null;
 //        this.SUGGEST_FORM_URL = env.getProperty("env.setting.suggest");
+    }
+
+    public static HashMap<String, JsonObject> getOngoingQuizMap() {
+        return ongoingQuizMap;
     }
 
     /**
@@ -153,13 +158,13 @@ public class IntentHandleService {
 
     /**
      * get chapter number from raw chapter name<br>
-     * example: get chapter number 'n' from 'chapter_n'
+     * example: get chapter number 'n' from 'lesson_n'
      *
      * @param rawChapterName
      * @return
      */
     private int extractChapterNumber(String rawChapterName) {
-        String raw = rawChapterName.strip().replace("chapter_", "");
+        String raw = rawChapterName.strip().replace("lesson_", "");
         return Integer.parseInt(raw);
     }
 
@@ -234,7 +239,7 @@ public class IntentHandleService {
         String resultKeyword = "";
         for (JsonElement keywordSet : keywordSheet) {
             JsonArray temp = keywordSet.getAsJsonArray();
-            if (Arrays.stream(temp.get(1).getAsString().split(",")).anyMatch(keyword -> keyword.strip().equals(target))) {
+            if (Arrays.stream(temp.get(0).getAsString().split(",")).anyMatch(keyword -> keyword.strip().equals(target))) {
                 resultKeyword = temp.get(0).getAsString().strip();
                 return resultKeyword;
             }
@@ -431,10 +436,10 @@ public class IntentHandleService {
         Iterator<String> jsonKey = quiz.keys();
         while (jsonKey.hasNext()) {
             String key = jsonKey.next();
-            String keyName = key.split(" / ")[1].strip();
+//            String keyName = key.split(" / ")[1].strip();
             String value = quiz.getJSONArray(key).getString(0);
             if (value.isEmpty()) continue;
-            result.addProperty(keyName, value);
+            result.addProperty(key, value);
         }
         return result;
     }
@@ -508,15 +513,15 @@ public class IntentHandleService {
         Iterator<String> jsonKey = scoreMap.keys();
         while (jsonKey.hasNext()) {
             String key = jsonKey.next();
-            String keyName = "";
+//            String keyName = "";
             String value = scoreMap.getJSONArray(key).getString(0);
             // check if key has entity name
-            if (key.contains(" / ")) {
-                keyName = key.split(" / ")[1];
-            } else {
-                keyName = key;
-            }
-            personalScoreMap.put(keyName, value);
+//            if (key.contains(" / ")) {
+//                keyName = key.split(" / ")[1];
+//            } else {
+//                keyName = key;
+//            }
+            personalScoreMap.put(key, value);
         }
         return personalScoreMap.get(target);
     }

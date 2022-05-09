@@ -16,7 +16,7 @@ public class ExamCrawler {
     private SheetsHandler examSheetsHandler;
     private SheetsHandler courseSheetsHandler;
     private List<StudentExam> allExamRecords = new ArrayList<>();
-    private static final int WAIT_FOR_GOOGLE_SHEETS_API_LIMIT = 1500;
+    private static final int WAIT_FOR_GOOGLE_SHEETS_API_LIMIT = 3000;
 
     /**
      * construct "SheetsHandler" for course data and exam data.
@@ -55,6 +55,13 @@ public class ExamCrawler {
                 // there is no such data on Google sheets
                 if (studentData.isEmpty()) putOneSheetsAbsentRecord(examIndex, sheetTitle, studentExam);
                 else putOneSheetsRecord(examIndex, studentData, studentExam);
+
+                // avoid exceeding the Google sheets api call limit
+                try {
+                    Thread.sleep(WAIT_FOR_GOOGLE_SHEETS_API_LIMIT);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
             System.out.println(studentExam);
@@ -70,13 +77,6 @@ public class ExamCrawler {
      * @param studentExam the entity for storage student's exam data
      */
     private void putOneSheetsRecord(int examIndex, JSONObject studentData, StudentExam studentExam) {
-        // avoid exceeding the Google sheets api call limit
-        try {
-            Thread.sleep(WAIT_FOR_GOOGLE_SHEETS_API_LIMIT);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
         // the first time get data on Google sheets, maybe absent the first exam.
         if (studentExam.getName() == null) putNameRecord(studentData, studentExam);
         putAnswerStatusRecord(examIndex, studentData, studentExam);
@@ -85,8 +85,8 @@ public class ExamCrawler {
     /**
      * if the student absents that exam, the answer is all wrong.
      *
-     * @param examIndex the index of exam
-     * @param sheetTitle the title of sheet
+     * @param examIndex   the index of exam
+     * @param sheetTitle  the title of sheet
      * @param studentExam the entity for storage student's exam data
      */
     private void putOneSheetsAbsentRecord(int examIndex, String sheetTitle, StudentExam studentExam) {
