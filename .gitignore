@@ -39,3 +39,4 @@ application.properties
 ## configuration file
 *.json
 /src/main/resources/application.yml
+/src/main/resources/students.txt
