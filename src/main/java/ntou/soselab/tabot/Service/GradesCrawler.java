@@ -10,10 +10,13 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -35,6 +38,7 @@ public class GradesCrawler {
 
     /**
      * automatically get students grades as long as it is constructed
+     *
      * @param env it will be autowired by IOC.
      */
     @Autowired
@@ -68,8 +72,8 @@ public class GradesCrawler {
      * login to tronclass
      *
      * @param gradesUrl grades page of java course
-     * @param username temporarily use the student ID of sheng-kai-wang
-     * @param password temporarily use the password of sheng-kai-wang
+     * @param username  temporarily use the student ID of sheng-kai-wang
+     * @param password  temporarily use the password of sheng-kai-wang
      */
     private void login(String gradesUrl, String username, String password) {
         // use headless mode without open the browser window
