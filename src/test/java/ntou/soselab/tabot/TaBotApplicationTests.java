@@ -3,31 +3,21 @@ package ntou.soselab.tabot;
 import com.github.pemistahl.lingua.api.Language;
 import com.github.pemistahl.lingua.api.LanguageDetector;
 import com.github.pemistahl.lingua.api.LanguageDetectorBuilder;
-import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.*;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.jayway.jsonpath.JsonPath;
 import ntou.soselab.tabot.Entity.Student.StudentDiscordProfile;
-import ntou.soselab.tabot.repository.Neo4jHandler;
 import ntou.soselab.tabot.repository.SheetsHandler;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.StringUtils;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import java.io.FileInputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -189,7 +179,20 @@ class TaBotApplicationTests {
     }
 
 //    @Test
-//    void testAssertNewUser() throws Exception {
+//    void testAssertAllUser() throws Exception {
+//        File file = new File("./src/main/resources/students.txt");
+//        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+//        String line;
+//        while ((line = br.readLine()) != null) {
+//            String studentId = line.split("-")[0];
+//            String name = line.split("-")[1];
+//            String discordId = line.split("-")[2];
+//            testAssertNewUser(name, studentId, discordId);
+//        }
+//    }
+
+//    @Test
+//    public void testAssertNewUser() throws Exception {
 //        String name = "李俊杰";
 //        String studentId = "11057035";
 //        String discordId = "222276938369073152";
@@ -273,39 +276,39 @@ class TaBotApplicationTests {
 //        System.out.println(">>> " + future.get().toString());
 //    }
 
-    @Test
-    void sendMailTest() {
-        String to = "dskyshad9527@gmail.com";
-        String from = "noreply@test.com";
-        String username = to;
-        String pwd = "";
-        String host = "smtp.gmail.com";
-
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.port", 587);
-
-        Session session = Session.getInstance(props, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, pwd);
-            }
-        });
-
-        try {
-            Message msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress(from));
-            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-            msg.setSubject("testing subject");
-            msg.setText("hello from java mail");
-            Transport.send(msg);
-            System.out.println("try to send mail");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @Test
+//    void sendMailTest() {
+//        String to = "dskyshad9527@gmail.com";
+//        String from = "noreply@test.com";
+//        String username = to;
+//        String pwd = "";
+//        String host = "smtp.gmail.com";
+//
+//        Properties props = new Properties();
+//        props.put("mail.smtp.auth", "true");
+//        props.put("mail.smtp.starttls.enable", "true");
+//        props.put("mail.smtp.host", host);
+//        props.put("mail.smtp.port", 587);
+//
+//        Session session = Session.getInstance(props, new Authenticator() {
+//            @Override
+//            protected PasswordAuthentication getPasswordAuthentication() {
+//                return new PasswordAuthentication(username, pwd);
+//            }
+//        });
+//
+//        try {
+//            Message msg = new MimeMessage(session);
+//            msg.setFrom(new InternetAddress(from));
+//            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+//            msg.setSubject("testing subject");
+//            msg.setText("hello from java mail");
+//            Transport.send(msg);
+//            System.out.println("try to send mail");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @Test
     void testArrayListParse() {
@@ -400,7 +403,7 @@ class TaBotApplicationTests {
 
     @Test
     void testPath() {
-        String fileName = "static/firebaseKey.json";
+        String fileName = "firebaseKey.json";
         URL url = getClass().getClassLoader().getResource(fileName);
         System.out.println(url.getPath());
     }

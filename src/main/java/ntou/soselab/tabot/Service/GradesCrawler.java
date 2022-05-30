@@ -20,7 +20,7 @@ import java.util.*;
  * automatically periodically crawl student grades from tronclass and update to google sheets.
  */
 @Service
-//@SpringBootApplication
+@SpringBootApplication
 @EnableScheduling
 public class GradesCrawler {
 

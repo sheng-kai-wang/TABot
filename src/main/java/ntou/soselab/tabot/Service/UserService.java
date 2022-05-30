@@ -9,12 +9,15 @@ import com.google.firebase.cloud.FirestoreClient;
 import ntou.soselab.tabot.Entity.Student.StudentDiscordProfile;
 import ntou.soselab.tabot.Exception.NoAccountFoundError;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -55,10 +58,11 @@ public class UserService {
         try{
 //            String path = getClass().getClassLoader().getResource(tokenPath).getPath();
 
-            FileInputStream serviceAccount = new FileInputStream(tokenPath);
+            ClassPathResource resource = new ClassPathResource(tokenPath);
+            InputStream inputStream = resource.getInputStream();
 
             FirebaseOptions options = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
+                    .setCredentials(GoogleCredentials.fromStream(inputStream)).build();
             FirebaseApp.initializeApp(options);
             System.out.println(">> Firebase init complete.");
 
