@@ -140,31 +140,31 @@ public class IntentHandleService {
 
     private Message searchSlide(Intent intent) {
         System.out.println("[DEBUG][intentHandle] slide search triggered.");
-        String targetChapter = intent.getCustom().getEntity();
-        System.out.println("--- [DEBUG][search slide] raw chapter name: " + targetChapter);
+        String targetLesson = intent.getCustom().getEntity();
+        System.out.println("--- [DEBUG][search slide] raw lesson name: " + targetLesson);
         // check if entity extraction successfully captured values
-        if (targetChapter == null || targetChapter.equals("None") || targetChapter.isEmpty())
+        if (targetLesson == null || targetLesson.equals("None") || targetLesson.isEmpty())
             return sendErrorMessage(intent);
-        int chapterNum = extractChapterNumber(targetChapter);
-        System.out.println("--- [DEBUG][search slide] chapterNum: " + chapterNum);
-        System.out.println("--- [DEBUG][search slide] raw chapter name: " + targetChapter);
-        // search neo4j for chapter slide info
-        String queryResp = new Neo4jHandler("Java").readSlideshowById(chapterNum);
+        int lessonNum = extractLessonNumber(targetLesson);
+        System.out.println("--- [DEBUG][search slide] lessonNum: " + lessonNum);
+        System.out.println("--- [DEBUG][search slide] raw lesson name: " + targetLesson);
+        // search neo4j for lesson slide info
+        String queryResp = new Neo4jHandler("Java").readSlideshowById(lessonNum);
         MessageBuilder builder = new MessageBuilder();
         builder.append("Here you are ! :grinning:");
-        builder.setEmbeds(new EmbedBuilder().addField("Chapter " + chapterNum, "[link](" + queryResp + ")", false).build());
+        builder.setEmbeds(new EmbedBuilder().addField("Lesson " + lessonNum, "[link](" + queryResp + ")", false).build());
         return builder.build();
     }
 
     /**
-     * get chapter number from raw chapter name<br>
-     * example: get chapter number 'n' from 'lesson_n'
+     * get lesson number from raw lesson name<br>
+     * example: get lesson number 'n' from 'lesson_n'
      *
-     * @param rawChapterName
+     * @param rawLessonName
      * @return
      */
-    private int extractChapterNumber(String rawChapterName) {
-        String raw = rawChapterName.strip().replace("lesson_", "");
+    private int extractLessonNumber(String rawLessonName) {
+        String raw = rawLessonName.strip().replace("lesson_", "");
         return Integer.parseInt(raw);
     }
 
@@ -187,31 +187,31 @@ public class IntentHandleService {
         if (sectionName.isEmpty())
             return sendErrorMessage(intent);
         // check query result from neo4j
-        String chapterTitle = removeBrackets(new Neo4jHandler("Java").readCurriculumMap(sectionName));
-        System.out.println("--- [DEBUG][search class map][neo4j] found correspond chapter title: " + chapterTitle);
+        String lessonTitle = removeBrackets(new Neo4jHandler("Java").readCurriculumMap(sectionName));
+        System.out.println("--- [DEBUG][search class map][neo4j] found correspond lesson title: " + lessonTitle);
         String slideLink = new Neo4jHandler("Java").readSlideshowByName(sectionName);
         System.out.println("--- [DEBUG][search class map][neo4j] found section slideLink: " + slideLink);
         // build response message
-        Message result = generateSearchClassMapResponseMessage(sectionName, chapterTitle, slideLink);
+        Message result = generateSearchClassMapResponseMessage(sectionName, lessonTitle, slideLink);
         return result;
     }
 
     /**
      * generate response message for class map search
-     * response message should contain keyword, correspond chapter title and slide link
-     * chapter title and slide link will be placed in an embed object
+     * response message should contain keyword, correspond lesson title and slide link
+     * lesson title and slide link will be placed in an embed object
      *
      * @param sectionName
-     * @param chapterTitle correspond chapter title
+     * @param lessonTitle correspond lesson title
      * @param slideLink    slide link
      * @return
      */
-    private Message generateSearchClassMapResponseMessage(String sectionName, String chapterTitle, String slideLink) {
+    private Message generateSearchClassMapResponseMessage(String sectionName, String lessonTitle, String slideLink) {
         MessageBuilder builder = new MessageBuilder();
         builder.append("Looks like you are searching about `" + sectionName + "` .\n");
         builder.append("Maybe you can checkout more from link below. :sunglasses:");
-//        builder.setEmbeds(new EmbedBuilder().addField("Section '" + sectionName + "' from Chapter '" + chapterTitle + "'", "[" + sectionName + "](" + slideLink + ")", false).build());
-        builder.setEmbeds(new EmbedBuilder().addField(chapterTitle, "[" + sectionName + "](" + slideLink + ")", false).build());
+//        builder.setEmbeds(new EmbedBuilder().addField("Section '" + sectionName + "' from Lesson '" + lessonTitle + "'", "[" + sectionName + "](" + slideLink + ")", false).build());
+        builder.setEmbeds(new EmbedBuilder().addField(lessonTitle, "[" + sectionName + "](" + slideLink + ")", false).build());
         return builder.build();
     }
 
@@ -304,10 +304,10 @@ public class IntentHandleService {
             return getNullTextbookMessage();
         // search neo4j for each slide data
         HashMap<String, String> resultMap = new HashMap<>();
-        for (JsonElement chapterName : queryResult) {
-            String chapterData = new Neo4jHandler("Java").readSlideshowByName(chapterName.getAsString());
-            System.out.println("--- [DEBUG][personal textbook] chapterData: " + chapterData);
-            resultMap.put(chapterName.getAsString(), chapterData);
+        for (JsonElement lessonName : queryResult) {
+            String lessonData = new Neo4jHandler("Java").readSlideshowByName(lessonName.getAsString());
+            System.out.println("--- [DEBUG][personal textbook] lessonData: " + lessonData);
+            resultMap.put(lessonName.getAsString(), lessonData);
         }
         return generatePersonalTextbookMsg(resultMap, queryResp);
     }
