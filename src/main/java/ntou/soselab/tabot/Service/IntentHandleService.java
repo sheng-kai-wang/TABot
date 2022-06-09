@@ -259,7 +259,7 @@ public class IntentHandleService {
     public Message personalFuncHandler(String studentId, Intent personalIntent) {
         /* --- test block: change all personal function access from testing id --- */
         // remember to change all testId back to studentId
-//        String testId = "00000000";
+//        String testId = "00957001";
         String testId = studentId;
         /* --- end of test block --- */
         String intentName = personalIntent.getCustom().getIntent();
