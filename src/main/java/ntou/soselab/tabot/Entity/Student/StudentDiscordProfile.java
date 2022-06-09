@@ -15,7 +15,7 @@ public class StudentDiscordProfile {
 
     public StudentDiscordProfile(HashMap map){
         this.student.setName((String) map.get("name"));
-        this.student.setName((String) map.get("studentId"));
+        this.student.setStudentId((String) map.get("studentId"));
         this.discordId = (String)map.get("discordId");
     }
 
