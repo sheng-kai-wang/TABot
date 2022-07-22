@@ -48,13 +48,13 @@ public class GradesCrawler {
         this.password = env.getProperty("tronclass.account.password");
 
         System.setProperty("webdriver.chrome.driver", Objects.requireNonNull(env.getProperty("chromedriver.path")));
-        this.grades = getGrades();
+//        this.grades = getGrades();
     }
 
     /**
      * execute every hour
      */
-    @Scheduled(cron = "0 0 * * * *")
+//    @Scheduled(cron = "0 0 * * * *")
     public void updateSheet() {
         List<List<Object>> gradeList = new ArrayList<>();
         gradeList.add(new ArrayList<Object>(gradeHeaders));
