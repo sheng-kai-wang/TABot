@@ -97,4 +97,15 @@ public class JDAConnect {
             ch.sendMessage(msg).queue();
         }
     }
+
+    /**
+     * TESTING METHOD<br>
+     * send message to target channel
+     * @param serverId target server
+     * @param channelId target channel
+     * @param msg message
+     */
+    public void send(String serverId, String channelId, String msg){
+        jda.getGuildById(serverId).getTextChannelById(channelId).sendMessage(msg).queue();
+    }
 }
