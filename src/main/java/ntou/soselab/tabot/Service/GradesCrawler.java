@@ -64,7 +64,7 @@ public class GradesCrawler {
             tableRow.addAll(student.getGrades());
             gradeList.add(tableRow);
         }
-        new SheetsHandler("Java").updateContent("Grades", "A1", gradeList);
+        new SheetsHandler("course").updateContent("Grades", "A1", gradeList);
         System.out.println("[DEBUG][GradesCrawler] update student's course grades on Google sheets");
     }
 

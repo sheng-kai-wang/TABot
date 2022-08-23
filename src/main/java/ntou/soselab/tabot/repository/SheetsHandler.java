@@ -39,14 +39,14 @@ public class SheetsHandler {
      * we configure member variables by application.yml,
      * and initialize the "getSheetsService" method.
      *
-     * @param course like "SE" or "Java"
+     * @param sheet like "course" or "exam"
      */
-    public SheetsHandler(String course) {
+    public SheetsHandler(String sheet) {
         InputStream inputStream = getClass().getResourceAsStream("/application.yml");
         Map<String, Map<String, String>> configData = new Yaml().load(inputStream);
 
         this.applicationName = configData.get("sheets").get("application-name");
-        this.spreadsheetId = configData.get("sheets").get("spread-sheet-id-" + course);
+        this.spreadsheetId = configData.get("sheets").get("spread-sheet-id-" + sheet);
         this.credentialsFilePath = configData.get("sheets").get("credentials-file-path");
         try {
             assert inputStream != null;

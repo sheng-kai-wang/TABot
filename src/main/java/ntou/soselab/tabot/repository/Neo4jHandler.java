@@ -29,14 +29,12 @@ public class Neo4jHandler implements AutoCloseable {
      * It's the constructor,
      * we configure member variables by application.yml,
      * and "cypher" statement is come from cypher.yml.
-     *
-     * @param course like "SE" or "Java"
      */
-    public Neo4jHandler(String course) {
+    public Neo4jHandler() {
         InputStream configInputStream = getClass().getResourceAsStream("/application.yml");
         Map<String, Map<String, String>> configData = new Yaml().load(configInputStream);
 
-        this.url = configData.get("neo4j").get(course + "Url");
+        this.url = configData.get("neo4j").get("url");
         this.username = configData.get("neo4j").get("username");
         this.password = configData.get("neo4j").get("password");
         this.driver = GraphDatabase.driver(url, AuthTokens.basic(username, password));

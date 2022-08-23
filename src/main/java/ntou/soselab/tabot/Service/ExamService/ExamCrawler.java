@@ -22,8 +22,8 @@ public class ExamCrawler {
      * construct "SheetsHandler" for course data and exam data.
      */
     public ExamCrawler() {
-        this.courseSheetsHandler = new SheetsHandler("Java");
-        this.examSheetsHandler = new SheetsHandler("Java-exam");
+        this.courseSheetsHandler = new SheetsHandler("course");
+        this.examSheetsHandler = new SheetsHandler("exam");
         readExamRecords();
     }
 

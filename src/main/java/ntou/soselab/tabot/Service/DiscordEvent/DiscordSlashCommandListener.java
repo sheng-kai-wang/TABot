@@ -79,25 +79,25 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             }else
                 event.reply("not enough permission to access").setEphemeral(true).queue();
         }
-        if(event.getName().equals("suggest_material")){
-            String sectionName = event.getOption("section").getAsString();
-            String title = event.getOption("title").getAsString();
-            String content = event.getOption("content").getAsString();
-            String note = event.getOption("note").getAsString();
-            Member author = event.getMember();
-            event.reply("ok, thanks for you suggestion.").setEphemeral(true).queue();
-            // add suggest to suggest-warehouse channel
-            MessageBuilder suggest = new MessageBuilder();
-            suggest.append("```")
-                    .append("[Referrer] " + author.getId() + "\n")
-                    .append("[Section] " + sectionName + "\n")
-                    .append("[Title] " + title + "\n")
-                    .append("[Content] " + content + "\n")
-                    .append("[note] " + note + "\n```");
-            DiscordGeneralEventListener.adminChannelMap.get(suggestChannelName).sendMessage(suggest.build()).queue();
-            // add to google sheet
-            new SheetsHandler("Java").createContent("AuditList", new ArrayList<>(List.of(new ArrayList<>(List.of(sectionName, title, content, note)))));
-        }
+//        if(event.getName().equals("suggest_material")){
+//            String sectionName = event.getOption("section").getAsString();
+//            String title = event.getOption("title").getAsString();
+//            String content = event.getOption("content").getAsString();
+//            String note = event.getOption("note").getAsString();
+//            Member author = event.getMember();
+//            event.reply("ok, thanks for you suggestion.").setEphemeral(true).queue();
+//            // add suggest to suggest-warehouse channel
+//            MessageBuilder suggest = new MessageBuilder();
+//            suggest.append("```")
+//                    .append("[Referrer] " + author.getId() + "\n")
+//                    .append("[Section] " + sectionName + "\n")
+//                    .append("[Title] " + title + "\n")
+//                    .append("[Content] " + content + "\n")
+//                    .append("[note] " + note + "\n```");
+//            DiscordGeneralEventListener.adminChannelMap.get(suggestChannelName).sendMessage(suggest.build()).queue();
+//            // add to google sheet
+//            new SheetsHandler("course").createContent("AuditList", new ArrayList<>(List.of(new ArrayList<>(List.of(sectionName, title, content, note)))));
+//        }
     }
 
     @Override

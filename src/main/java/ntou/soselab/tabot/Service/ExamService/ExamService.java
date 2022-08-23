@@ -25,7 +25,7 @@ public class ExamService {
      * get exam correspondence table
      */
     public ExamService() {
-        SheetsHandler sheetsHandler = new SheetsHandler("Java");
+        SheetsHandler sheetsHandler = new SheetsHandler("course");
         this.examCorresponding = sheetsHandler.readContentByHeader("QuestionBank", "corresponding exam");
         this.examPublishable = sheetsHandler.readContentByHeader("QuestionBank", "publishable");
     }

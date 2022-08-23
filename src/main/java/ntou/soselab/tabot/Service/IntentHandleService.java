@@ -112,7 +112,7 @@ public class IntentHandleService {
         String faqName = faqIntent.getCustom().getIntent().replace("faq/", "");
         System.out.println(" --- [DEBUG][faq] " + faqName + " detected.");
         // call google sheet api to query correspond result of faq
-        JSONObject searchResult = new SheetsHandler("Java").readContentByKey("FAQ", faqName);
+        JSONObject searchResult = new SheetsHandler("course").readContentByKey("FAQ", faqName);
         System.out.println("--- [DEBUG][faq] searchResult: " + searchResult);
         String response = searchResult.getJSONArray("answer").get(0).toString();
         return new MessageBuilder().append(response).build();
@@ -149,7 +149,7 @@ public class IntentHandleService {
         System.out.println("--- [DEBUG][search slide] lessonNum: " + lessonNum);
         System.out.println("--- [DEBUG][search slide] raw lesson name: " + targetLesson);
         // search neo4j for lesson slide info
-        String queryResp = new Neo4jHandler("Java").readSlideshowById(lessonNum);
+        String queryResp = new Neo4jHandler().readSlideshowById(lessonNum);
         MessageBuilder builder = new MessageBuilder();
         builder.append("Here you are ! :grinning:");
         builder.setEmbeds(new EmbedBuilder().addField("Lesson " + lessonNum, "[link](" + queryResp + ")", false).build());
@@ -187,9 +187,9 @@ public class IntentHandleService {
         if (sectionName.isEmpty())
             return sendErrorMessage(intent);
         // check query result from neo4j
-        String lessonTitle = removeBrackets(new Neo4jHandler("Java").readCurriculumMap(sectionName));
+        String lessonTitle = removeBrackets(new Neo4jHandler().readCurriculumMap(sectionName));
         System.out.println("--- [DEBUG][search class map][neo4j] found correspond lesson title: " + lessonTitle);
-        String slideLink = new Neo4jHandler("Java").readSlideshowByName(sectionName);
+        String slideLink = new Neo4jHandler().readSlideshowByName(sectionName);
         System.out.println("--- [DEBUG][search class map][neo4j] found section slideLink: " + slideLink);
         // build response message
         Message result = generateSearchClassMapResponseMessage(sectionName, lessonTitle, slideLink);
@@ -232,7 +232,7 @@ public class IntentHandleService {
     }
 
     private String searchKeywordSheet(String target) {
-        String rawKeywordSheet = new SheetsHandler("Java").readContent("Keyword", "");
+        String rawKeywordSheet = new SheetsHandler("course").readContent("Keyword", "");
         System.out.println("--- [DEBUG][class map search] retrieve all keyword data from google sheet.");
         Gson gson = new Gson();
         JsonArray keywordSheet = gson.fromJson(rawKeywordSheet, JsonArray.class);
@@ -294,7 +294,7 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] personal textbook triggered.");
         System.out.println("[DEBUG] try to search personal textbook for " + studentId);
         Gson gson = new Gson();
-        String queryResp = new Neo4jHandler("Java").readPersonalizedSubjectMatter(studentId);
+        String queryResp = new Neo4jHandler().readPersonalizedSubjectMatter(studentId);
         System.out.println("--- [DEBUG][personal textbook][neo4j] raw queryResp: " + queryResp);
         // get textbook title from neo4j
         JsonArray queryResult = gson.fromJson(queryResp, JsonArray.class);
@@ -305,7 +305,7 @@ public class IntentHandleService {
         // search neo4j for each slide data
         HashMap<String, String> resultMap = new HashMap<>();
         for (JsonElement lessonName : queryResult) {
-            String lessonData = new Neo4jHandler("Java").readSlideshowByName(lessonName.getAsString());
+            String lessonData = new Neo4jHandler().readSlideshowByName(lessonName.getAsString());
             System.out.println("--- [DEBUG][personal textbook] lessonData: " + lessonData);
             resultMap.put(lessonName.getAsString(), lessonData);
         }
@@ -364,12 +364,12 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] personal quiz triggered.");
         Gson gson = new Gson();
         // search quiz number from neo4j
-        String quizResp = new Neo4jHandler("Java").readPersonalizedExam(studentId);
+        String quizResp = new Neo4jHandler().readPersonalizedExam(studentId);
         System.out.println("--- [DEBUG][personal quiz] id: " + studentId);
         System.out.println("--- [DEBUG][personal quiz][neo4j] quizResp: " + quizResp);
         JsonArray quizNumList = gson.fromJson(quizResp, JsonArray.class);
         // random pick one of the quiz, retrieve quiz data from Google sheet
-        JsonObject quiz = parsePersonalQuiz(new SheetsHandler("Java").readContentByKey("QuestionBank", setExamAlgorithm(quizNumList)));
+        JsonObject quiz = parsePersonalQuiz(new SheetsHandler("course").readContentByKey("QuestionBank", setExamAlgorithm(quizNumList)));
         System.out.println("--- [DEBUG][personal quiz] quiz: " + quiz);
         // store user data and quiz in ongoing quiz map
         ongoingQuizMap.put(studentId, quiz);
@@ -413,7 +413,7 @@ public class IntentHandleService {
      * @return all publishable exam
      */
     private JsonArray getAllPublishableExam() {
-        JSONObject allPublishableExam = new SheetsHandler("Java").readContentByHeader("QuestionBank", "publishable");
+        JSONObject allPublishableExam = new SheetsHandler("course").readContentByHeader("QuestionBank", "publishable");
         JsonArray result = new JsonArray();
         for (String key : allPublishableExam.keySet()) {
             // ["v"] to v
@@ -508,7 +508,7 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] personal score triggered.");
         HashMap<String, String> personalScoreMap = new HashMap<>();
         System.out.println("--- [DEBUG][personal score] student id: " + studentId);
-        JSONObject scoreMap = new SheetsHandler("Java").readContentByKey("Grades", studentId);
+        JSONObject scoreMap = new SheetsHandler("course").readContentByKey("Grades", studentId);
         System.out.println("--- [DEBUG][personal score] scoreMap: " + scoreMap);
         Iterator<String> jsonKey = scoreMap.keys();
         while (jsonKey.hasNext()) {

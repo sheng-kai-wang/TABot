@@ -18,7 +18,7 @@ public class ExamUpdater {
      * get neo4j handler
      */
     public ExamUpdater() {
-        this.neo4jHandler = new Neo4jHandler("Java");
+        this.neo4jHandler = new Neo4jHandler();
     }
 
     /**
