@@ -13,6 +13,9 @@ import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.env.Environment;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
@@ -24,7 +27,6 @@ import java.util.*;
  * CURD of Google Sheets API.
  */
 public class SheetsHandler {
-
     private Sheets sheetsService;
     private String applicationName;
     private String spreadsheetId;
@@ -36,25 +38,21 @@ public class SheetsHandler {
 
     /**
      * It's the constructor,
-     * we configure member variables by application.yml,
      * and initialize the "getSheetsService" method.
      *
-     * @param sheet like "course" or "exam"
+     * @param sheetName like "course" or "exam"
      */
-    public SheetsHandler(String sheet) {
-        InputStream inputStream = getClass().getResourceAsStream("/application.yml");
-        Map<String, Map<String, String>> configData = new Yaml().load(inputStream);
-
-        this.applicationName = configData.get("sheets").get("application-name");
-        this.spreadsheetId = configData.get("sheets").get("spread-sheet-id-" + sheet);
-        this.credentialsFilePath = configData.get("sheets").get("credentials-file-path");
-        try {
-            assert inputStream != null;
-            inputStream.close();
+    public SheetsHandler(String sheetName) {
+        Properties properties = new Properties();
+        try (InputStream is = getClass().getResourceAsStream("/application.properties")) {
+            properties.load(is);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
+        this.applicationName = properties.getProperty("sheets.application.name");
+        this.spreadsheetId = properties.getProperty("sheets." + sheetName + ".id");
+        this.credentialsFilePath = properties.getProperty("sheets.credentials.path");
         this.sheetsService = getSheetsService();
         this.gson = new Gson();
         trimWorksheet();
@@ -262,7 +260,7 @@ public class SheetsHandler {
         // find the coordinates corresponding to the header
         JSONArray headers = new JSONArray(readContent(worksheet, "1:1")).getJSONArray(0);
         int columnIndex = 0;
-        for (int i=0; i<headers.length(); i++) {
+        for (int i = 0; i < headers.length(); i++) {
             if (headers.get(i).equals(header)) columnIndex = i;
         }
         char coordinateChar = (char) (columnIndex + INDEX_TO_CHAR);
@@ -272,7 +270,7 @@ public class SheetsHandler {
 
         // package the result into the key-value pairs
         // start at 1, skip the header
-        for (int i=1; i<keys.length(); i++) {
+        for (int i = 1; i < keys.length(); i++) {
             String key = keys.get(i).toString().split("\"")[1];
             String value;
             try {

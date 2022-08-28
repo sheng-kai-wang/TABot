@@ -33,6 +33,9 @@ public class IntentHandleService {
     private final String SUGGEST_FORM_URL;
 
     @Autowired
+    private Neo4jHandler neo4jHandler;
+
+    @Autowired
     public IntentHandleService(Environment env) {
         ongoingQuizMap = new HashMap<>();
         this.SUGGEST_FORM_URL = null;
@@ -149,7 +152,7 @@ public class IntentHandleService {
         System.out.println("--- [DEBUG][search slide] lessonNum: " + lessonNum);
         System.out.println("--- [DEBUG][search slide] raw lesson name: " + targetLesson);
         // search neo4j for lesson slide info
-        String queryResp = new Neo4jHandler().readSlideshowById(lessonNum);
+        String queryResp = neo4jHandler.readSlideshowById(lessonNum);
         MessageBuilder builder = new MessageBuilder();
         builder.append("Here you are ! :grinning:");
         builder.setEmbeds(new EmbedBuilder().addField("Lesson " + lessonNum, "[link](" + queryResp + ")", false).build());
@@ -187,9 +190,9 @@ public class IntentHandleService {
         if (sectionName.isEmpty())
             return sendErrorMessage(intent);
         // check query result from neo4j
-        String lessonTitle = removeBrackets(new Neo4jHandler().readCurriculumMap(sectionName));
+        String lessonTitle = removeBrackets(neo4jHandler.readCurriculumMap(sectionName));
         System.out.println("--- [DEBUG][search class map][neo4j] found correspond lesson title: " + lessonTitle);
-        String slideLink = new Neo4jHandler().readSlideshowByName(sectionName);
+        String slideLink = neo4jHandler.readSlideshowByName(sectionName);
         System.out.println("--- [DEBUG][search class map][neo4j] found section slideLink: " + slideLink);
         // build response message
         Message result = generateSearchClassMapResponseMessage(sectionName, lessonTitle, slideLink);
@@ -203,7 +206,7 @@ public class IntentHandleService {
      *
      * @param sectionName
      * @param lessonTitle correspond lesson title
-     * @param slideLink    slide link
+     * @param slideLink   slide link
      * @return
      */
     private Message generateSearchClassMapResponseMessage(String sectionName, String lessonTitle, String slideLink) {
@@ -294,7 +297,7 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] personal textbook triggered.");
         System.out.println("[DEBUG] try to search personal textbook for " + studentId);
         Gson gson = new Gson();
-        String queryResp = new Neo4jHandler().readPersonalizedSubjectMatter(studentId);
+        String queryResp = neo4jHandler.readPersonalizedSubjectMatter(studentId);
         System.out.println("--- [DEBUG][personal textbook][neo4j] raw queryResp: " + queryResp);
         // get textbook title from neo4j
         JsonArray queryResult = gson.fromJson(queryResp, JsonArray.class);
@@ -305,7 +308,7 @@ public class IntentHandleService {
         // search neo4j for each slide data
         HashMap<String, String> resultMap = new HashMap<>();
         for (JsonElement lessonName : queryResult) {
-            String lessonData = new Neo4jHandler().readSlideshowByName(lessonName.getAsString());
+            String lessonData = neo4jHandler.readSlideshowByName(lessonName.getAsString());
             System.out.println("--- [DEBUG][personal textbook] lessonData: " + lessonData);
             resultMap.put(lessonName.getAsString(), lessonData);
         }
@@ -364,7 +367,7 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] personal quiz triggered.");
         Gson gson = new Gson();
         // search quiz number from neo4j
-        String quizResp = new Neo4jHandler().readPersonalizedExam(studentId);
+        String quizResp = neo4jHandler.readPersonalizedExam(studentId);
         System.out.println("--- [DEBUG][personal quiz] id: " + studentId);
         System.out.println("--- [DEBUG][personal quiz][neo4j] quizResp: " + quizResp);
         JsonArray quizNumList = gson.fromJson(quizResp, JsonArray.class);

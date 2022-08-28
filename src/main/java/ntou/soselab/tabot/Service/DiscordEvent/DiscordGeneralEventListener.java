@@ -28,7 +28,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
     private final String testUserId = "286145047169335298";
     private final String serverId;
     private final String studentRoleId;
-    private final String adminCategoryId;
+    private final String taCategoryId;
     public static Guild guild;
     public static HashMap<String, MessageChannel> channelMap;
     public static HashMap<String, MessageChannel> adminChannelMap;
@@ -39,7 +39,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
     public DiscordGeneralEventListener(Environment env, UserService userService){
         this.serverId = env.getProperty("discord.server.id");
         this.studentRoleId = env.getProperty("discord.role.student");
-        this.adminCategoryId = env.getProperty("discord.admin.category.id");
+        this.taCategoryId = env.getProperty("discord.category.ta-office");
         this.userService = userService;
     }
 
@@ -59,7 +59,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
             channelMap.put(channel.getName(), channel);
         }
 //        System.out.println(event.getJDA().getGuildById(serverId).getCategoryById(adminCategoryId).getTextChannels());
-        for(TextChannel channel: event.getJDA().getGuildById(serverId).getCategoryById(adminCategoryId).getTextChannels()){
+        for(TextChannel channel: event.getJDA().getGuildById(serverId).getCategoryById(taCategoryId).getTextChannels()){
             adminChannelMap.put(channel.getName(), channel);
         }
         guild = event.getJDA().getGuildById(serverId);
@@ -70,31 +70,40 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         System.out.println("[JDA onReady]: channel map init complete.");
 
         // create global slash command
-        event.getJDA().upsertCommand("global_test", "global command test").queue();
-        event.getJDA().upsertCommand("contact_ta", "direct contact ta")
-                .addOption(OptionType.STRING, "msg", "message content", true)
+        // TODO (anonymous_question, user_requirements, classmap_ppt, personal_quiz_query, personal_score_query)
+//        event.getJDA().upsertCommand("global_test", "global command test").queue();
+//        event.getJDA().upsertCommand("contact_ta", "direct contact ta")
+//                .addOption(OptionType.STRING, "msg", "message content", true)
+//                .queue();
+        event.getJDA().upsertCommand("anonymous_question", "Send an anonymous question during class.")
+                .addOption(OptionType.STRING, "question", "Anonymous question", true)
                 .queue();
+        event.getJDA().upsertCommand("user_requirements", "Check out the user requirements of our group.").queue();
         // create guild slash command
-        event.getJDA().getGuildById(serverId).upsertCommand("guild_test", "testing guild command")
-                .addOption(OptionType.STRING, "msg", "test option", true)
-                .queue();
-        event.getJDA().getGuildById(serverId).upsertCommand("send_public_as_bot", "send message as bot")
-                .addOption(OptionType.CHANNEL, "channel", "target channel", true)
-                .addOption(OptionType.STRING, "message", "message content", true)
-                .queue();
-        event.getJDA().getGuildById(serverId).upsertCommand("send_private_as_bot", "send private message as bot")
-                .addOption(OptionType.USER, "user", "target user", true)
-                .addOption(OptionType.STRING, "message", "message content", true)
-                .queue();
-        event.getJDA().getGuildById(serverId).upsertCommand("suggest_material", "suggest material")
-                .addOption(OptionType.STRING, "section", "suggest section", true)
-                .addOption(OptionType.STRING, "title", "suggest title", true)
-                .addOption(OptionType.STRING, "content", "suggestion content", true)
-                .addOption(OptionType.STRING, "note", "suggestion remark", true)
-                .queue();
+        // TODO (keep)
+//        event.getJDA().getGuildById(serverId).upsertCommand("guild_test", "testing guild command")
+//                .addOption(OptionType.STRING, "msg", "test option", true)
+//                .queue();
+//        event.getJDA().getGuildById(serverId).upsertCommand("send_public_as_bot", "send message as bot")
+//                .addOption(OptionType.CHANNEL, "channel", "target channel", true)
+//                .addOption(OptionType.STRING, "message", "message content", true)
+//                .queue();
+//        event.getJDA().getGuildById(serverId).upsertCommand("send_private_as_bot", "send private message as bot")
+//                .addOption(OptionType.USER, "user", "target user", true)
+//                .addOption(OptionType.STRING, "message", "message content", true)
+//                .queue();
+//        event.getJDA().getGuildById(serverId).upsertCommand("suggest_material", "suggest material")
+//                .addOption(OptionType.STRING, "section", "suggest section", true)
+//                .addOption(OptionType.STRING, "title", "suggest title", true)
+//                .addOption(OptionType.STRING, "content", "suggestion content", true)
+//                .addOption(OptionType.STRING, "note", "suggestion remark", true)
+//                .queue();
         /* print current slash command */
+        event.getJDA().retrieveCommands().queue(commands -> {
+            System.out.println("[DEBUG][onReady] available global command: " + commands);
+        });
         event.getJDA().getGuildById(serverId).retrieveCommands().queue(commands -> {
-            System.out.println("[DEBUG][onReady] available command: " + commands);
+            System.out.println("[DEBUG][onReady] available guild command: " + commands);
         });
         System.out.println("<< [DEBUG] all role: " + guild.getRoles());
         System.out.println("<< [DEBUG] bot role: " + guild.getBotRole());

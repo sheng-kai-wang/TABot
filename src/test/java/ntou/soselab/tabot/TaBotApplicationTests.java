@@ -13,6 +13,7 @@ import ntou.soselab.tabot.Entity.Student.StudentDiscordProfile;
 import ntou.soselab.tabot.repository.SheetsHandler;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
@@ -21,7 +22,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-//@SpringBootTest
+@SpringBootTest
 class TaBotApplicationTests {
 
     @Test

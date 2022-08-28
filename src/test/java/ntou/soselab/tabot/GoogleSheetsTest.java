@@ -3,10 +3,12 @@ package ntou.soselab.tabot;
 import ntou.soselab.tabot.repository.SheetsHandler;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@SpringBootTest
 public class GoogleSheetsTest {
     /**
      * Clear unimportant characters in google sheet

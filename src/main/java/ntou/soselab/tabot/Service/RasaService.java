@@ -27,7 +27,7 @@ public class RasaService {
 
     @Autowired
     public RasaService(Environment env){
-        this.rasaChinese = env.getProperty("env.setting.rasa.zh");
+        this.rasaChinese = env.getProperty("env.setting.rasa.ch");
         this.rasaEnglish = env.getProperty("env.setting.rasa.en");
         // initialize language detector with english and chinese
         this.languageDetector = LanguageDetectorBuilder.fromLanguages(Language.ENGLISH, Language.CHINESE).build();
@@ -64,7 +64,11 @@ public class RasaService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
         HttpEntity<String> entity = new HttpEntity<>(content.toString(), headers);
+        System.out.println("!================");
         ResponseEntity<String> response = template.exchange(path, HttpMethod.POST, entity, String.class);
+        System.out.println("!================");
+        System.out.println(response);
+        System.out.println("!================");
         System.out.println(response.getBody());
 
 //        String raw = removeBackSlash(response.getBody());

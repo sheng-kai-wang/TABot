@@ -2,7 +2,6 @@ package ntou.soselab.tabot.Service;
 
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import ntou.soselab.tabot.Exception.NoAccountFoundError;
 import ntou.soselab.tabot.Service.DiscordEvent.DiscordGeneralEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,7 @@ import java.util.NoSuchElementException;
 public class JDAMessageHandleService {
 
     private final String botId;
-    private final String adminChannel;
+    private final String officeChannel;
     private final String miscLogChannel;
     private final String suggestAdminChannel;
     private final String suggestPassedChannel;
@@ -26,10 +25,10 @@ public class JDAMessageHandleService {
     @Autowired
     public JDAMessageHandleService(Environment env, UserService userService){
         this.botId = env.getProperty("discord.application.id");
-        this.adminChannel = env.getProperty("discord.admin.channel.name");
+        this.officeChannel = env.getProperty("discord.channel.office.name");
         this.suggestAdminChannel = env.getProperty("discord.admin.channel.suggest.name");
         this.suggestPassedChannel = env.getProperty("discord.admin.channel.suggest.pass");
-        this.miscLogChannel = env.getProperty("discord.admin.channel.log");
+        this.miscLogChannel = env.getProperty("discord.channel.misc-log.name");
 
         this.userService = userService;
     }
@@ -153,17 +152,17 @@ public class JDAMessageHandleService {
     }
 
     /**
-     * send same message to admin channel if student want to talk to admin directly (mention TA)
+     * send same message to admin channel (mention TABot)
      * expect message from public channel looks like this:
-     * '@TA bla bla bla'
+     * '@TABot bla bla bla'
      * note that message may have attachment object
      * @param originalMsg
      * @param author
      */
     public void addAdminMentionedMessageList(Message originalMsg, User author){
-        String rawMsg = originalMsg.getContentDisplay().replace("@TA", "").replace("```", "").strip();
-        if(!originalMsg.isFromGuild() && rawMsg.strip().startsWith("Bot"))
-            rawMsg = rawMsg.replaceFirst("Bot", "").strip();
+        String rawMsg = originalMsg.getContentDisplay().replace("@TABot", "").replace("```", "").strip();
+//        if(!originalMsg.isFromGuild() && rawMsg.strip().startsWith("Bot"))
+//            rawMsg = rawMsg.replaceFirst("Bot", "").strip();
         System.out.println("[DEBUG][jdaMsgHandle] raw message: " + rawMsg);
         /* create log message */
         MessageBuilder builder = new MessageBuilder();
@@ -186,12 +185,12 @@ public class JDAMessageHandleService {
         else
             builder.append("[Attachment] ");
         /* send log message */
-        DiscordGeneralEventListener.adminChannelMap.get(adminChannel).sendMessage(builder.build()).queue();
-        DiscordGeneralEventListener.adminChannelMap.get(adminChannel).sendMessage("-----").queue();
+        DiscordGeneralEventListener.adminChannelMap.get(officeChannel).sendMessage(builder.build()).queue();
+        DiscordGeneralEventListener.adminChannelMap.get(officeChannel).sendMessage("-----").queue();
     }
 
     /**
-     * add message log when @TABot or @TA triggered
+     * add message log when @TABot triggered
      * @param originalMsg
      * @param author
      */

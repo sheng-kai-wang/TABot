@@ -2,16 +2,24 @@ package ntou.soselab.tabot;
 
 import ntou.soselab.tabot.repository.Neo4jHandler;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest
 public class Neo4jTest {
+
+    @Autowired
+    private Neo4jHandler neo4jHandler;
+
     /**
      * 查課程地圖 by Chapter
      */
     @Test
     public void readCurriculumMapByChapterTest() {
-        String result = new Neo4jHandler().readCurriculumMap("[07]Inheritance");
-//        String result = new Neo4jHandler("SE").readCurriculumMap("[1]軟體工程導論");
-        System.out.println("result: " + result);
+        System.out.println("neo4jHandler: " + neo4jHandler);
+//        String result = neo4jHandler.readCurriculumMap("[07]Inheritance");
+////        String result = new Neo4jHandler("SE").readCurriculumMap("[1]軟體工程導論");
+//        System.out.println("result: " + result);
     }
 
     /**
@@ -19,7 +27,7 @@ public class Neo4jTest {
      */
     @Test
     public void readCurriculumMapBySectionTest() {
-        String result = new Neo4jHandler().readCurriculumMap("Displaying Text with printf");
+        String result = neo4jHandler.readCurriculumMap("Displaying Text with printf");
 //        String result = new Neo4jHandler("SE").readCurriculumMap("軟體開發主要活動");
         System.out.println("result: " + result);
     }
@@ -29,7 +37,7 @@ public class Neo4jTest {
      */
     @Test
     public void readSlideshowByChapterNameTest() {
-        String result = new Neo4jHandler().readSlideshowByName("Displaying Text with printf");
+        String result = neo4jHandler.readSlideshowByName("Displaying Text with printf");
 //        String result = new Neo4jHandler("SE").readSlideshowByName("軟體開發主要活動");
         System.out.println("result: " + result);
     }
@@ -39,7 +47,7 @@ public class Neo4jTest {
      */
     @Test
     public void readSlideshowBySectionNameTest() {
-        String result = new Neo4jHandler().readSlideshowByName("Displaying Text with printf");
+        String result = neo4jHandler.readSlideshowByName("Displaying Text with printf");
         System.out.println("result: " + result);
     }
 
@@ -48,7 +56,7 @@ public class Neo4jTest {
      */
     @Test
     public void readSlideshowByChapterIdTest() {
-        String result = new Neo4jHandler().readSlideshowById(1);
+        String result = neo4jHandler.readSlideshowById(1);
         System.out.println("result: " + result);
     }
 
@@ -69,7 +77,7 @@ public class Neo4jTest {
      */
     @Test
     public void readPersonalizedExamTest() {
-        String result = new Neo4jHandler().readPersonalizedExam("00957034");
+        String result = neo4jHandler.readPersonalizedExam("00957034");
         System.out.println(result);
     }
 
@@ -78,7 +86,7 @@ public class Neo4jTest {
      */
     @Test
     public void readPersonalizedSubjectMatterTest() {
-        String result = new Neo4jHandler().readPersonalizedSubjectMatter("00957034");
+        String result = neo4jHandler.readPersonalizedSubjectMatter("00957034");
         System.out.println("result: " + result);
     }
 

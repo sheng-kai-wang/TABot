@@ -1,0 +1,51 @@
+#課程知識地圖cypher語法
+
+#查課程地圖
+read-curriculum-map: |
+  MATCH ({name:"<<queryName>>"})-[:Item]-(n)
+  RETURN n
+
+#查投影片 by name
+read-slideshow-by-name: |
+  MATCH (n {name:"<<queryName>>"})
+  RETURN n.URL
+
+#查投影片 by id
+read-slideshow-by-id: |
+  MATCH (c:Chapter {chapterId: "<<chapterId>>"})
+  RETURN c.URL
+
+#擴增課程地圖 maybe variable-length arguments
+add-reference: |
+  MERGE (ref:Reference {name:"<<referenceName>>", URL:"<<referenceURL>>", remark:"<<referenceRemark>>"})
+  WITH ref
+  MATCH (s:Section {name:"<<sectionName>>"})-[:Item]-(c:Chapter)
+  MERGE (ref)<-[:Reference]-(s)
+  MERGE (ref)<-[:Reference]-(c)
+
+#查個人化考題
+read-personalized-exam: |
+  MATCH (:Student {studentId:"<<studentId>>"})-[:Weakness]-(e:Exam)
+  RETURN e
+
+#COMING SOON
+#查個人化教材 目前neo4j缺範例程式、練習題 所以暫時無法實作
+read-personalized-subject-matter: |
+  MATCH (:Student {studentId:"<<studentId>>"})-[:Weakness]-(e:Exam)
+  MATCH (e)-[:Exam]-(s:Section)
+  MATCH (s)<-[]-(n)
+  RETURN s.name, n.name
+
+#更新個人化考題
+update-personalized-exam: |
+  MERGE (s:Student {studentId: "<<studentId>>"})
+  SET s.name = "<<studentName>>"
+  MERGE (e:Exam {number: "<<examId>>"})
+  MERGE (s)-[:Weakness]->(e)
+
+#更新個人化考題(overload)
+#因為缺考所以沒有姓名以及答題狀況資料，但還是要給他共同考題
+update-personalized-exam-common: |
+  MERGE (s:Student {studentId: "<<studentId>>"})
+  MERGE (e:Exam {number: "<<examId>>"})
+  MERGE (s)-[:Weakness]->(e)

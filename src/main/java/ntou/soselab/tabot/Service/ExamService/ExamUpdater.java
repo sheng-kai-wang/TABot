@@ -3,6 +3,7 @@ package ntou.soselab.tabot.Service.ExamService;
 import ntou.soselab.tabot.Entity.Student.StudentExam;
 import ntou.soselab.tabot.repository.Neo4jHandler;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,14 +13,8 @@ import java.util.List;
  */
 public class ExamUpdater {
 
+    @Autowired
     private Neo4jHandler neo4jHandler;
-
-    /**
-     * get neo4j handler
-     */
-    public ExamUpdater() {
-        this.neo4jHandler = new Neo4jHandler();
-    }
 
     /**
      * neo4j exam data update method for external class.

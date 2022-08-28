@@ -1,0 +1,61 @@
+version: "3.0"
+
+services:
+  neo4j:
+    image: neo4j:4.4.9-community
+    container_name: tabot-neo4j
+    restart: always
+    networks: ["tabot"]
+    ports:
+    - 7474:7474
+    - 7473:7473 
+    - 7687:7687
+    volume:
+    - $(pwd)/neo4j/SE/data:/data
+    - $(pwd)/neo4j/SE/logs:/logs
+    - $(pwd)/neo4j/SE/conf:/conf
+    - $(pwd)/neo4j/SE/import:/import
+    environment:
+    - NEO4J_AUTH=neo4j/root
+
+  # msdobot:
+  #   image: msdobot/msdobot:v1
+  #   container_name: msdobot
+  #   restart: on-failure
+  #   networks: ["msdobot"]
+  #   depends_on:
+  #     - rabbitmq
+  #     - outer_api
+  #   links:
+  #     - rabbitmq
+  #   ports:
+  #     - 8888:8888
+
+  # rabbitmq:
+  #   image: msdobot/rabbitmq:v1
+  #   container_name: msdobot-rabbitmq
+  #   restart: always
+  #   networks: ["msdobot"]
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=admin
+  #     - RABBITMQ_DEFAULT_PASS=admin
+  #   ports:
+  #     - 5672:5672
+  #     - 15672:15672
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:15672"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+
+  # outer_api:
+  #   image: msdobot/outer:v0
+  #   container_name: msdobot-outer-api
+  #   restart: always
+  #   networks: ["msdobot"]
+  #   ports:
+  #     - 10001:10001
+
+networks:
+  tabot:
+    name: tabot

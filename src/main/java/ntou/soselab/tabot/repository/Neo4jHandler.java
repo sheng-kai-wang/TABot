@@ -5,6 +5,10 @@ import com.google.gson.GsonBuilder;
 import com.jayway.jsonpath.JsonPath;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
@@ -15,6 +19,7 @@ import java.util.*;
  * Cypher statement for curriculum map related functions,
  * currently java and SE are in the same database.
  */
+@Repository
 public class Neo4jHandler implements AutoCloseable {
 
     private String url;
@@ -22,31 +27,24 @@ public class Neo4jHandler implements AutoCloseable {
     private String password;
     private Driver driver;
 
+    private String cypherDataPath;
     private Map<String, String> cypherData;
     private Gson gson;
 
     /**
      * It's the constructor,
-     * we configure member variables by application.yml,
      * and "cypher" statement is come from cypher.yml.
      */
-    public Neo4jHandler() {
-        InputStream configInputStream = getClass().getResourceAsStream("/application.yml");
-        Map<String, Map<String, String>> configData = new Yaml().load(configInputStream);
-
-        this.url = configData.get("neo4j").get("url");
-        this.username = configData.get("neo4j").get("username");
-        this.password = configData.get("neo4j").get("password");
+    @Autowired
+    public Neo4jHandler(Environment env) {
+        this.url = env.getProperty("neo4j.database.url");
+        this.username = env.getProperty("neo4j.database.username");
+        this.password = env.getProperty("neo4j.database.password");
+        this.cypherDataPath = env.getProperty("neo4j.cypher-data.path");
         this.driver = GraphDatabase.driver(url, AuthTokens.basic(username, password));
-        try {
-            assert configInputStream != null;
-            configInputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        InputStream cypherInputStream = getClass().getResourceAsStream("/cypher.yml");
-        cypherData = new Yaml().load(cypherInputStream);
+        InputStream cypherInputStream = getClass().getResourceAsStream(cypherDataPath);
+        this.cypherData = new Yaml().load(cypherInputStream);
         try {
             assert cypherInputStream != null;
             cypherInputStream.close();
