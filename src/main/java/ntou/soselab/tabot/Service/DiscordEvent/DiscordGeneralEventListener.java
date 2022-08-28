@@ -36,10 +36,10 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
     private final UserService userService;
 
     @Autowired
-    public DiscordGeneralEventListener(Environment env, UserService userService){
+    public DiscordGeneralEventListener(Environment env, UserService userService) {
         this.serverId = env.getProperty("discord.server.id");
-        this.studentRoleId = env.getProperty("discord.role.student");
-        this.taCategoryId = env.getProperty("discord.category.ta-office");
+        this.studentRoleId = env.getProperty("discord.role.student.id");
+        this.taCategoryId = env.getProperty("discord.category.ta-office.id");
         this.userService = userService;
     }
 
@@ -48,18 +48,18 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         // all jda entity loaded successfully
         System.out.println(">> onReady");
         /*
-        * load channel setting from property and create map instance,
-        * all existed setting should be TextChannel,
-        * assume only one guild exist in this server/application for now
-        */
+         * load channel setting from property and create map instance,
+         * all existed setting should be TextChannel,
+         * assume only one guild exist in this server/application for now
+         */
         System.out.println("[JDA onReady]: try to initialize channel map.");
         channelMap = new HashMap<>();
         adminChannelMap = new HashMap<>();
-        for(TextChannel channel: event.getJDA().getGuildById(serverId).getTextChannels()){
+        for (TextChannel channel : event.getJDA().getGuildById(serverId).getTextChannels()) {
             channelMap.put(channel.getName(), channel);
         }
 //        System.out.println(event.getJDA().getGuildById(serverId).getCategoryById(adminCategoryId).getTextChannels());
-        for(TextChannel channel: event.getJDA().getGuildById(serverId).getCategoryById(taCategoryId).getTextChannels()){
+        for (TextChannel channel : event.getJDA().getGuildById(serverId).getCategoryById(taCategoryId).getTextChannels()) {
             adminChannelMap.put(channel.getName(), channel);
         }
         guild = event.getJDA().getGuildById(serverId);
@@ -70,17 +70,26 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         System.out.println("[JDA onReady]: channel map init complete.");
 
         // create global slash command
-        // TODO (anonymous_question, user_requirements, classmap_ppt, personal_quiz_query, personal_score_query)
+        // TODO (classmap_ppt, personal_quiz_query, personal_score_query)
 //        event.getJDA().upsertCommand("global_test", "global command test").queue();
 //        event.getJDA().upsertCommand("contact_ta", "direct contact ta")
 //                .addOption(OptionType.STRING, "msg", "message content", true)
 //                .queue();
-        event.getJDA().upsertCommand("anonymous_question", "Send an anonymous question during class.")
+        event.getJDA()
+                .upsertCommand("anonymous_question", "Send an anonymous question during class.")
                 .addOption(OptionType.STRING, "question", "Anonymous question", true)
                 .queue();
-        event.getJDA().upsertCommand("user_requirements", "Check out the user requirements of our group.").queue();
         // create guild slash command
         // TODO (keep)
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("show_user_requirements", "Check out the user requirements of our group.")
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("add_keep", "Add content to group keep note, all group members can see the content.")
+                .queue();
 //        event.getJDA().getGuildById(serverId).upsertCommand("guild_test", "testing guild command")
 //                .addOption(OptionType.STRING, "msg", "test option", true)
 //                .queue();
@@ -121,6 +130,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
     /**
      * listen to GuildMemberUpdateNickname event, basically, do stuff when any guild member updates his/her nickname
+     *
      * @param event GuildMemberUpdateNicknameEvent
      */
     @Override
@@ -131,20 +141,20 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         String currentNickname = event.getNewNickname();
 
         // check user's current role, return if already registered
-        if(event.getMember().getRoles().size() > 0){
+        if (event.getMember().getRoles().size() > 0) {
             System.out.println("[DEBUG][nickname update]" + event.getNewNickname() + " already has role. do nothing.");
             return;
         }
 
         // check new nickname, if nickname fits specific format, assign role to user and store their id and name in database
-        if(UserService.verifyNickNameFormat(currentNickname)) {
+        if (UserService.verifyNickNameFormat(currentNickname)) {
             String userName = UserService.getNameByNickName(currentNickname);
             String userStudentId = UserService.getStudentIdByNickName(currentNickname);
             // create profile for current user
             StudentDiscordProfile studentDiscordProfile = new StudentDiscordProfile(userName, userStudentId, event.getUser().getId());
 
             // check if user is trying to change application content
-            if(UserService.verifyList.entrySet().stream().anyMatch(user -> user.getValue().getDiscordId().equals(event.getUser().getId()))){
+            if (UserService.verifyList.entrySet().stream().anyMatch(user -> user.getValue().getDiscordId().equals(event.getUser().getId()))) {
                 System.out.println("[DEBUG][nickname update] remove previous application for " + event.getNewNickname());
                 UserService.verifyList.values().removeIf(profile -> profile.getDiscordId().equals(event.getUser().getId()));
             }
@@ -157,13 +167,14 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 //            event.getGuild().addRoleToMember(event.getMember(), event.getGuild().getRoleById(studentRoleId)).queue();
 //            System.out.println("[GuildMemberUpdateNicknameEvent]: role assigned, try to store user info in database.");
 //            storeUserIdentity(event.getUser(), event.getNewNickname());
-        }else{
+        } else {
             System.out.println("[GuildMemberUpdateNicknameEvent] Nickname update detected with wrong format, do nothing.");
         }
     }
 
     /**
      * verify user and assign role to user
+     *
      * @param uuid target user's uuid
      */
     public void verifyUserAndAssignRole(String uuid) throws Exception {
@@ -184,16 +195,17 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
     /**
      * try to store user's information in database, include discord id and name(student id)
-     * @param user target user
+     *
+     * @param user     target user
      * @param nickname user nickname
      */
-    private void storeUserIdentity(User user, String nickname){
+    private void storeUserIdentity(User user, String nickname) {
         String name = user.getName();
         String discordId = user.getId();
         String studentId = "00000000";
         Pattern namePattern = Pattern.compile("^([0-9]{8})-.*$");
         Matcher matcher = namePattern.matcher(nickname);
-        if(matcher.find())
+        if (matcher.find())
             studentId = matcher.group(1);
         System.out.println("[storeUserIdentity] student id '" + studentId + "' extracted.");
         // todo: do stuff in database

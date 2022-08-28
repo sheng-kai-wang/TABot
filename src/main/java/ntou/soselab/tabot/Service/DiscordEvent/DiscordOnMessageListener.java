@@ -54,11 +54,11 @@ public class DiscordOnMessageListener extends ListenerAdapter {
 
     @Autowired
     public DiscordOnMessageListener(RasaService rasa, IntentHandleService intentHandle, JDAMessageHandleService jdaMsgHandle, UserService userService, Environment env) {
-        this.taCategoryId = env.getProperty("discord.category.ta-office");
+        this.taCategoryId = env.getProperty("discord.category.ta-office.id");
 //        this.adminChannelId = env.getProperty("discord.admin.channel.id");
         this.adminSuggestChannelId = env.getProperty("discord.admin.channel.suggest");
         this.botId = env.getProperty("discord.application.id");
-        this.taRoleId = env.getProperty("discord.role.ta");
+        this.taRoleId = env.getProperty("discord.role.ta.id");
         this.miscLogPath = env.getProperty("discord.log.path");
         this.jdaMsgHandleService = jdaMsgHandle;
         this.intentHandleService = intentHandle;

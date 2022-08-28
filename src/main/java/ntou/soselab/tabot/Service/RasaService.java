@@ -64,12 +64,7 @@ public class RasaService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
         HttpEntity<String> entity = new HttpEntity<>(content.toString(), headers);
-        System.out.println("!================");
         ResponseEntity<String> response = template.exchange(path, HttpMethod.POST, entity, String.class);
-        System.out.println("!================");
-        System.out.println(response);
-        System.out.println("!================");
-        System.out.println(response.getBody());
 
 //        String raw = removeBackSlash(response.getBody());
         String raw = normalizeJsonString(gson.fromJson(response.getBody(), JsonArray.class).get(0).getAsJsonObject().toString());
