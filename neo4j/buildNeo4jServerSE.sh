@@ -1,7 +1,15 @@
-# cd to /workspace
-# pre-created folders for volumes
+# cd to /workspace/TABot
 
-sudo docker run \
+# create folders for volumes
+# mkdir neo4j
+# cd neo4j
+# mkdir SE
+# cd SE
+# mkdir data logs conf import
+# cd ../..
+
+# run container
+docker run \
  -p 7474:7474 \
  -p 7473:7473 \
  -p 7687:7687 \

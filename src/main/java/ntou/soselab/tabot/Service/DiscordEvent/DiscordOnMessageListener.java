@@ -72,25 +72,25 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         if (event.getAuthor().isBot()) return; // ignore all message from bot
 
         // print received message
-        System.out.println(" ================ ");
-        System.out.println("[onMessage]: try to print received message.");
-        System.out.println("> [author] " + event.getAuthor().getId());
-        if (event.isFromGuild()) System.out.println("> [role] " + event.getMember().getRoles());
-        else System.out.println("> [role] from private channel, no role found");
-        System.out.println("> [message id] " + event.getMessage().getId());
-        System.out.println("> [content raw] " + event.getMessage().getContentRaw());
-        System.out.println("> [content display] " + event.getMessage().getContentDisplay());
-        System.out.println("> [content strip] " + event.getMessage().getContentStripped());
-        System.out.println("> [embed] " + event.getMessage().getEmbeds());
-        System.out.println("> [attachment] " + event.getMessage().getAttachments());
-        if (event.getMessage().getAttachments().size() > 0) {
-            for (Message.Attachment attachment : event.getMessage().getAttachments()) {
-                System.out.println("  > [attach id] " + attachment.getId());
-                System.out.println("  > [attach type] " + attachment.getContentType());
-                System.out.println("  > [attach url] " + attachment.getUrl());
-                System.out.println("  > [attach proxy url] " + attachment.getProxyUrl());
-            }
-        }
+//        System.out.println(" ================ ");
+//        System.out.println("[onMessage]: try to print received message.");
+//        System.out.println("> [author] " + event.getAuthor().getId());
+//        if (event.isFromGuild()) System.out.println("> [role] " + event.getMember().getRoles());
+//        else System.out.println("> [role] from private channel, no role found");
+//        System.out.println("> [message id] " + event.getMessage().getId());
+//        System.out.println("> [content raw] " + event.getMessage().getContentRaw());
+//        System.out.println("> [content display] " + event.getMessage().getContentDisplay());
+//        System.out.println("> [content strip] " + event.getMessage().getContentStripped());
+//        System.out.println("> [embed] " + event.getMessage().getEmbeds());
+//        System.out.println("> [attachment] " + event.getMessage().getAttachments());
+//        if (event.getMessage().getAttachments().size() > 0) {
+//            for (Message.Attachment attachment : event.getMessage().getAttachments()) {
+//                System.out.println("  > [attach id] " + attachment.getId());
+//                System.out.println("  > [attach type] " + attachment.getContentType());
+//                System.out.println("  > [attach url] " + attachment.getUrl());
+//                System.out.println("  > [attach proxy url] " + attachment.getProxyUrl());
+//            }
+//        }
         /* check if user account has assigned role */
         if (event.isFromGuild()) {
             if (!hasRole(event.getMember())) {

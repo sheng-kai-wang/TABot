@@ -1,14 +1,14 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
 import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import ntou.soselab.tabot.repository.RedisHandler;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
@@ -16,23 +16,27 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service
 public class DiscordSlashCommandListener extends ListenerAdapter {
 
+    @Autowired
+    RedisHandler redisHandler;
     private final String anonymousQuestionChannelName;
+    private final String groupWorkspaceChannelName;
     private final String userRequirementsFolderPath;
-    private final Map<String, String> userRequirementsConfig;
+    private final Map<String, String> userRequirementsMap;
     private final static String GROUP_PREFIX = "GROUP";
+    private final static String DOWN_ARROW = "↓";
 
+    @Autowired
     public DiscordSlashCommandListener(Environment env) {
         this.anonymousQuestionChannelName = env.getProperty("discord.channel.anonymous-question.name");
+        this.groupWorkspaceChannelName = env.getProperty("discord.channel.group-workspace.name");
         this.userRequirementsFolderPath = env.getProperty("user-requirements.folder.path");
 
         InputStream is = getClass().getResourceAsStream(env.getProperty("user-requirements.config.path"));
-        this.userRequirementsConfig = new Yaml().load(is);
+        this.userRequirementsMap = new Yaml().load(is);
         try {
             assert is != null;
             is.close();
@@ -43,8 +47,9 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
-        /* global command */
         System.out.println(">>> trigger slash command event");
+        System.out.println("[DEBUG] " + event.getName());
+        System.out.println("[User] " + event.getUser().getName());
 //        if(event.getName().equals("global_test")){
 //            System.out.println("[DEBUG] global slash command.");
 //            event.deferReply().queue();
@@ -66,6 +71,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 //            builder.append("[RawContent] " + msg);
 ////            DiscordGeneralEventListener.guild.getTextChannelById(adminChannelId).sendMessage().queue();
 //        }
+        /* global command */
         if (event.getName().equals("anonymous_question")) {
             // check user identity
 //            if(event.getMember().getRoles().stream().anyMatch(role -> role.getId().equals(adminRoleId))){
@@ -73,48 +79,103 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 //                event.reply("not enough permission to access").setEphemeral(true).queue();
 ////                event.reply("ok send send").setEphemeral(true).queue();
 //            }
-            System.out.println("[DEBUG] get anonymous question");
             MessageChannel targetChannel = DiscordGeneralEventListener.channelMap.get(anonymousQuestionChannelName);
             String question = event.getOption("question").getAsString();
             System.out.println("[Question] " + question);
             MessageBuilder mb = new MessageBuilder();
             mb.append("ok, got it.\n");
-            mb.append("Your question is `" + question + "`.\n");
+            mb.append("Your question is `").append(question).append("`.\n");
             mb.append("It will be show on the \"anonymous_question\" channel.");
             event.reply(mb.build()).setEphemeral(true).queue();
             targetChannel.sendMessage("[Question] " + question).queue();
+            return;
         }
 
-        if (event.getName().equals("show_user_requirements")) {
-            System.out.println("[DEBUG] show user requirements");
-            StringBuilder sb = new StringBuilder();
-            System.out.println("[Requester] " + event.getUser().getName());
-            String groupName = judgeGroupName(event);
-            System.out.println("[Group Name] " + groupName);
-            String groupTopic = userRequirementsConfig.get(groupName);
-            System.out.println("[Group Topic] " + groupTopic);
+        /* guild command */
+        System.out.println("[Channel] " + event.getChannel().getName());
+        String groupName = judgeGroupName(event);
+        System.out.println("[Group Name] " + groupName);
+        String groupTopic = userRequirementsMap.get(groupName);
+        System.out.println("[Group Topic] " + groupTopic);
+
+        if (event.getName().equals("read_user_requirements")) {
+            MessageBuilder mb = new MessageBuilder();
             String groupDocPath = userRequirementsFolderPath + File.separator + groupTopic + ".md";
             InputStream is = getClass().getResourceAsStream(groupDocPath);
             if (is != null) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(is));
-                sb.append("here are the user requirements of your group.\n");
-                sb.append("```markdown").append("\n");
+                mb.append("here are the user requirements of your group. ( ").append(groupName).append(" )\n");
+                mb.append("```markdown").append("\n");
                 while (true) {
                     try {
                         if (!br.ready()) break;
-                        sb.append(br.readLine()).append("\n");
+                        mb.append(br.readLine()).append("\n");
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
-                sb.append("```");
+                mb.append("```");
             }
             System.out.println("[Target Channel] " + event.getChannel());
-            event.reply(sb.toString()).setEphemeral(false).queue();
+            event.reply(mb.build()).setEphemeral(false).queue();
         }
 
-        if (event.getName().equals("add_keep")) {
-            System.out.println("[DEBUG] add keep note");
+        if (event.getName().equals("create_keep")) {
+            String key = event.getOption("key").getAsString();
+            System.out.println("[Key] " + key);
+            String value = event.getOption("value").getAsString();
+            System.out.println("[Value] " + value);
+            redisHandler.createPair(groupName, key, value);
+            MessageBuilder mb = new MessageBuilder();
+            mb.append("ok, got it.\n");
+            mb.append("you created a content:\n");
+            mb.append("```properties\n");
+            mb.append(key).append(" = ").append(value).append("\n");
+            mb.append("```");
+            event.reply(mb.build()).setEphemeral(isOutsideTheGroup(event)).queue();
+        }
+
+        if (event.getName().equals("read_keep")) {
+            Map allPair = redisHandler.readPair(groupName);
+            MessageBuilder mb = new MessageBuilder();
+            mb.append("ok, got it.\n");
+            mb.append("The following are the contents of your group's keep:\n");
+            mb.append("```properties\n");
+            allPair.forEach((k, v) -> mb.append(k).append(" = ").append(v).append("\n"));
+            mb.append("```");
+            event.reply(mb.build()).setEphemeral(isOutsideTheGroup(event)).queue();
+        }
+
+        if (event.getName().equals("update_keep")) {
+            String key = event.getOption("key").getAsString();
+            System.out.println("[Key] " + key);
+            String value = event.getOption("value").getAsString();
+            String oldValue = redisHandler.updatePair(groupName, key, value);
+            System.out.println("[Old Value] " + oldValue);
+            System.out.println("[New Value] " + value);
+            MessageBuilder mb = new MessageBuilder();
+            mb.append("ok, got it.\n");
+            mb.append("you update a content:\n");
+            mb.append("```properties\n");
+            mb.append(key).append(" = ").append(oldValue).append("\n");
+            mb.append(DOWN_ARROW).append("\n");
+            mb.append(key).append(" = ").append(value).append("\n");
+            mb.append("```");
+            event.reply(mb.build()).setEphemeral(isOutsideTheGroup(event)).queue();
+        }
+
+        if (event.getName().equals("delete_keep")) {
+            String key = event.getOption("key").getAsString();
+            System.out.println("[Deleted Key] " + key);
+            String deletedValue = redisHandler.deletePair(groupName, key);
+            System.out.println("[Deleted Value] " + deletedValue);
+            MessageBuilder mb = new MessageBuilder();
+            mb.append("ok, got it.\n");
+            mb.append("you deleted a content:\n");
+            mb.append("```properties\n");
+            mb.append(key).append(" = ").append(deletedValue).append("\n");
+            mb.append("```");
+            event.reply(mb.build()).setEphemeral(isOutsideTheGroup(event)).queue();
         }
 //        if (event.getName().equals("send_private_as_bot")) {
 //            // check user identity
@@ -162,4 +223,9 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 .get()
                 .getName();
     }
+
+    public boolean isOutsideTheGroup(SlashCommandEvent event) {
+        return !event.getChannel().getName().equals(groupWorkspaceChannelName);
+    }
+
 }

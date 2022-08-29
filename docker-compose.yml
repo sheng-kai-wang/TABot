@@ -17,6 +17,20 @@ services:
     - $(pwd)/neo4j/SE/import:/import
     environment:
     - NEO4J_AUTH=neo4j/root
+  
+  redis:
+    image: redis:7.0.4
+    container_name: tabot-redis
+    restart: always
+    networks: ["tabot"]
+    ports:
+    - 6379:6379
+    volumes:
+    - $(pwd)/redis/SE/data:/data
+    - $(pwd)/redis/SE/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+    - ENV=develop
 
   # msdobot:
   #   image: msdobot/msdobot:v1

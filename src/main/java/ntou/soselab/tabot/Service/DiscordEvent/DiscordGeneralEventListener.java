@@ -80,15 +80,34 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
                 .addOption(OptionType.STRING, "question", "Anonymous question", true)
                 .queue();
         // create guild slash command
-        // TODO (keep)
         event.getJDA()
                 .getGuildById(serverId)
-                .upsertCommand("show_user_requirements", "Check out the user requirements of our group.")
+                .upsertCommand("read_user_requirements", "Check out the user requirements of our group.")
                 .queue();
 
         event.getJDA()
                 .getGuildById(serverId)
-                .upsertCommand("add_keep", "Add content to group keep note, all group members can see the content.")
+                .upsertCommand("create_keep", "Create content to group keep note, all group members can see the content.")
+                .addOption(OptionType.STRING, "key", "the key of content", true)
+                .addOption(OptionType.STRING, "value", "the value of content", true)
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("read_keep", "Read content in group keep note, all group members can see the content.")
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("update_keep", "Update content in group keep note, all group members can see the content.")
+                .addOption(OptionType.STRING, "key", "the key of content", true)
+                .addOption(OptionType.STRING, "value", "the value of content", true)
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("delete_keep", "Delete content from group keep note, all group members can see the content.")
+                .addOption(OptionType.STRING, "key", "the key of content", true)
                 .queue();
 //        event.getJDA().getGuildById(serverId).upsertCommand("guild_test", "testing guild command")
 //                .addOption(OptionType.STRING, "msg", "test option", true)
