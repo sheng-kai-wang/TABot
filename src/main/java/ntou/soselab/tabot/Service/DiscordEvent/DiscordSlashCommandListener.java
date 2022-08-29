@@ -125,6 +125,13 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             System.out.println("[Key] " + key);
             String value = event.getOption("value").getAsString();
             System.out.println("[Value] " + value);
+            if (redisHandler.hasContent(groupName, key)) {
+                event.reply("[Warning] This key already exists.").setEphemeral(isOutsideTheGroup(event)).queue();
+                System.out.println("[Warning] This key already exists.");
+                System.out.println("<<< end of current slash command event");
+                System.out.println();
+                return;
+            }
             redisHandler.createPair(groupName, key, value);
             MessageBuilder mb = new MessageBuilder();
             mb.append("ok, got it.\n");
@@ -137,6 +144,13 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         if (event.getName().equals("read_keep")) {
             Map allPair = redisHandler.readPair(groupName);
+            if (allPair.size() == 0) {
+                event.reply("[Warning] no content yet.").setEphemeral(isOutsideTheGroup(event)).queue();
+                System.out.println("[Warning] no content yet.");
+                System.out.println("<<< end of current slash command event");
+                System.out.println();
+                return;
+            }
             MessageBuilder mb = new MessageBuilder();
             mb.append("ok, got it.\n");
             mb.append("The following are the contents of your group's keep:\n");
@@ -149,6 +163,13 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         if (event.getName().equals("update_keep")) {
             String key = event.getOption("key").getAsString();
             System.out.println("[Key] " + key);
+            if (!redisHandler.hasContent(groupName, key)) {
+                event.reply("[Warning] There is no such key in the keep.").setEphemeral(isOutsideTheGroup(event)).queue();
+                System.out.println("[Warning] There is no such key in the keep.");
+                System.out.println("<<< end of current slash command event");
+                System.out.println();
+                return;
+            }
             String value = event.getOption("value").getAsString();
             String oldValue = redisHandler.updatePair(groupName, key, value);
             System.out.println("[Old Value] " + oldValue);
@@ -167,6 +188,13 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         if (event.getName().equals("delete_keep")) {
             String key = event.getOption("key").getAsString();
             System.out.println("[Deleted Key] " + key);
+            if (!redisHandler.hasContent(groupName, key)) {
+                event.reply("[Warning] There is no such key in the keep.").setEphemeral(isOutsideTheGroup(event)).queue();
+                System.out.println("[Warning] There is no such key in the keep.");
+                System.out.println("<<< end of current slash command event");
+                System.out.println();
+                return;
+            }
             String deletedValue = redisHandler.deletePair(groupName, key);
             System.out.println("[Deleted Value] " + deletedValue);
             MessageBuilder mb = new MessageBuilder();
@@ -177,6 +205,8 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             mb.append("```");
             event.reply(mb.build()).setEphemeral(isOutsideTheGroup(event)).queue();
         }
+        System.out.println("<<< end of current slash command event");
+        System.out.println();
 //        if (event.getName().equals("send_private_as_bot")) {
 //            // check user identity
 //            if (event.getMember().getRoles().stream().anyMatch(role -> role.getId().equals(taRoleId))) {
@@ -206,8 +236,6 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 //            // add to google sheet
 //            new SheetsHandler("course").createContent("AuditList", new ArrayList<>(List.of(new ArrayList<>(List.of(sectionName, title, content, note)))));
 //        }
-        System.out.println("<<< end of current slash command event");
-        System.out.println();
     }
 
     @Override
@@ -227,5 +255,4 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     public boolean isOutsideTheGroup(SlashCommandEvent event) {
         return !event.getChannel().getName().equals(groupWorkspaceChannelName);
     }
-
 }

@@ -44,6 +44,10 @@ public class RedisHandler {
         return deletedValue;
     }
 
+    public boolean hasContent(String groupName, String key) {
+        return hashOperations.hasKey(groupName, key);
+    }
+
     private void setSerializer() {
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new StringRedisSerializer());
