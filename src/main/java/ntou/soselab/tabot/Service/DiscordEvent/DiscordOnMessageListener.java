@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -110,6 +111,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         if (event.isFromType(ChannelType.PRIVATE)) {
             System.out.println("[DEBUG] private message received.");
             /* handle message from private channel: student personal message */
+            jdaMsgHandleService.preReplyPrivateMessage(event.getAuthor().getId(), event.getMessageId());
             // todo: log this message anyway
             jdaMsgHandleService.addMessageLog(event.getMessage(), event.getAuthor());
             recordBotLog(miscLogPath, event);
@@ -145,6 +147,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 // only react to incoming message if bot got mentioned in general channels (student user available channel, to be specific)
                 if (isBotMentioned(event)) {
                     // normal function
+                    jdaMsgHandleService.preReplyPublicMessage(event.getMessageId(), event.getChannel().getName());
                     System.out.println(">>> trigger normal handle (public)");
                     // todo: log message
                     jdaMsgHandleService.addMessageLog(event.getMessage(), event.getAuthor());

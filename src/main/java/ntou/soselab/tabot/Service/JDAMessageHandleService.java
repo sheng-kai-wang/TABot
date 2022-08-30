@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class JDAMessageHandleService {
@@ -21,6 +22,8 @@ public class JDAMessageHandleService {
     private final String suggestPassedChannel;
 
     private final UserService userService;
+    private final static String PRE_MESSAGE = "Analyzing...";
+    private final static int DELAY_TIME = 5;
 
     @Autowired
     public JDAMessageHandleService(Environment env, UserService userService) {
@@ -79,6 +82,16 @@ public class JDAMessageHandleService {
         }
     }
 
+    public void preReplyPrivateMessage(String receiverId, String messageId) {
+        DiscordGeneralEventListener.guild.retrieveMemberById(receiverId).queue(member -> {
+            member.getUser().openPrivateChannel().queue(channel -> {
+                channel.retrieveMessageById(messageId).queue(msg -> {
+                    msg.reply(PRE_MESSAGE).queue();
+                });
+            });
+        });
+    }
+
     /**
      * send private message to assigned user
      * message content will be the raw message content from user input
@@ -95,6 +108,19 @@ public class JDAMessageHandleService {
                 });
             });
         });
+    }
+
+    public void preReplyPublicMessage(String referenceId, String channelName) {
+        if (DiscordGeneralEventListener.channelMap.containsKey(channelName)) {
+            DiscordGeneralEventListener
+                    .channelMap
+                    .get(channelName)
+                    .sendMessage(PRE_MESSAGE)
+                    .referenceById(referenceId)
+                    .queue(m -> m.delete().queueAfter(DELAY_TIME, TimeUnit.SECONDS));
+        } else {
+            System.out.println("[sendPublicMessageWithReference] assigned channel not found.");
+        }
     }
 
     /**
