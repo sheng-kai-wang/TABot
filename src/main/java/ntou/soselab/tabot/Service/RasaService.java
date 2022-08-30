@@ -38,7 +38,7 @@ public class RasaService {
      * should receive something like this:
      * [{"recipient_id":'sender_name',"text":"{'intent': 'intent_name', 'entity': 'entity_name', 'endOfChat': 'True/False'}"}]
      * note that response from rasa might not be legal json format, change removeBackSlash() to fix this issue
-     * @param author chat sender's name
+     * @param author chat sender's id
      * @param msg message content
      * @return user intent
      */

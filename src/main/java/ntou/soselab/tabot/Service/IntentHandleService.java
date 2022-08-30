@@ -18,7 +18,9 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -27,19 +29,31 @@ import java.util.regex.Pattern;
 
 @Service
 public class IntentHandleService {
+    @Autowired
+    private Neo4jHandler neo4jHandler;
 
     // ConcurrentHashMap
     private static HashMap<String, JsonObject> ongoingQuizMap;
     private final String SUGGEST_FORM_URL;
-
-    @Autowired
-    private Neo4jHandler neo4jHandler;
+    private final String userRequirementsFolderPath;
+    private final Map<String, String> groupTopicMap;
+    public final static String PRIVATE_MESSAGE = "private message";
+    public final static String NO_GROUP = "no group";
 
     @Autowired
     public IntentHandleService(Environment env) {
         ongoingQuizMap = new HashMap<>();
         this.SUGGEST_FORM_URL = null;
 //        this.SUGGEST_FORM_URL = env.getProperty("env.setting.suggest");
+        this.userRequirementsFolderPath = env.getProperty("user-requirements.folder.path");
+        InputStream is = getClass().getResourceAsStream(env.getProperty("group-topic-map.path"));
+        this.groupTopicMap = new Yaml().load(is);
+        try {
+            assert is != null;
+            is.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static HashMap<String, JsonObject> getOngoingQuizMap() {
@@ -53,7 +67,7 @@ public class IntentHandleService {
      * @param userStudentId student id
      * @param intent        incoming intent
      */
-    public Message checkIntent(String userStudentId, Intent intent) {
+    public Message checkIntent(String userStudentId, String groupName, Intent intent) {
         String intentName = intent.getCustom().getIntent();
         switch (intentName) {
             case "greet":
@@ -62,6 +76,8 @@ public class IntentHandleService {
             case "help":
                 System.out.println("[DEBUG][checkIntent] help");
                 return generateHelpMessage();
+            case "read_user_requirements":
+                return getUserRequirements(groupName);
             case "classmap_search":
                 return searchClassMap(intent);
             case "classmap_ppt":
@@ -113,7 +129,7 @@ public class IntentHandleService {
     public Message faqHandle(Intent faqIntent) {
         System.out.println("[DEBUG][intentHandle] faq handle triggered.");
         String faqName = faqIntent.getCustom().getIntent().replace("faq/", "");
-        System.out.println(" --- [DEBUG][faq] " + faqName + " detected.");
+        System.out.println("--- [DEBUG][faq] " + faqName + " detected.");
         // call google sheet api to query correspond result of faq
         JSONObject searchResult = new SheetsHandler("course").readContentByKey("FAQ", faqName);
         System.out.println("--- [DEBUG][faq] searchResult: " + searchResult);
@@ -139,6 +155,36 @@ public class IntentHandleService {
         builder.append("That's sound good, check out link below to contribute material, thanks.");
         builder.setEmbeds(new EmbedBuilder().addField("Submit   your suggestion here !", ":scroll: [click me to submit stuff](" + SUGGEST_FORM_URL + ")", false).build());
         return builder.build();
+    }
+
+    private Message getUserRequirements(String groupName) {
+        System.out.println("[DEBUG][intentHandle] get user requirements.");
+        System.out.println("[Group Name] " + groupName);
+        MessageBuilder mb = new MessageBuilder();
+        if (groupName == PRIVATE_MESSAGE) {
+            mb.append("Sorry, the user requirements can only be obtained from the channel in the SE_1111 server.");
+            return mb.build();
+        }
+        if (groupName == NO_GROUP) return mb.append("Sorry, you don't have a group yet.").build();
+        String groupTopic = groupTopicMap.get(groupName);
+        System.out.println("[Group Topic] " + groupTopic);
+        String groupDocPath = userRequirementsFolderPath + File.separator + groupTopic + ".md";
+        InputStream is = getClass().getResourceAsStream(groupDocPath);
+        if (is != null) {
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            mb.append("here are the user requirements of your group. ( ").append(groupName).append(" )\n");
+            mb.append("```markdown").append("\n");
+            while (true) {
+                try {
+                    if (!br.ready()) break;
+                    mb.append(br.readLine()).append("\n");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            mb.append("```");
+        }
+        return mb.build();
     }
 
     private Message searchSlide(Intent intent) {

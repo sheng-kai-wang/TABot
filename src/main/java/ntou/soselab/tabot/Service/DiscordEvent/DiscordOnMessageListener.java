@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 
 import java.awt.*;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +36,7 @@ import java.util.regex.Pattern;
 @Service
 public class DiscordOnMessageListener extends ListenerAdapter {
 
-//    private final String adminChannelId;
+    //    private final String adminChannelId;
     private final String taCategoryId;
     private final String adminSuggestChannelId;
     private final String botId;
@@ -51,6 +50,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
 
     // current chatting status
     private HashMap<String, ChatStatus> chatStatusMap;
+    private final String groupNamePrefix;
 
     @Autowired
     public DiscordOnMessageListener(RasaService rasa, IntentHandleService intentHandle, JDAMessageHandleService jdaMsgHandle, UserService userService, Environment env) {
@@ -65,6 +65,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         this.rasa = rasa;
         this.userService = userService;
         this.chatStatusMap = new HashMap<>();
+        this.groupNamePrefix = env.getProperty("judge-group-name.prefix");
     }
 
     @Override
@@ -262,12 +263,15 @@ public class DiscordOnMessageListener extends ListenerAdapter {
             // todo: save/remove chat status
             // check sender id
             // todo: add function to get student id by discord id
+
+            String groupName = judgeGroupName(event);
             // get intent response message
-            Message result = intentHandleService.checkIntent(senderStudentId, intent);
+            Message result = intentHandleService.checkIntent(senderStudentId, groupName, intent);
             // reply message
             if (received.isFromGuild()) {
-                System.out.println("+++ [DEBUG][handle normal] sender : " + userService.getFullNameFromDiscordId(senderDiscordId));
-                System.out.println("+++ [DEBUG][handle normal] dc id : " + senderDiscordId);
+                System.out.println("+++ [DEBUG][handle normal] groupName: " + groupName);
+                System.out.println("+++ [DEBUG][handle normal] sender: " + userService.getFullNameFromDiscordId(senderDiscordId));
+                System.out.println("+++ [DEBUG][handle normal] dc id: " + senderDiscordId);
                 System.out.println("+++ [DEBUG][handle normal] channel: " + received.getTextChannel().getName());
                 jdaMsgHandleService.replyPublicMessage(result, receivedMsgId, received.getTextChannel().getName());
             } else {
@@ -289,31 +293,31 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         System.out.println("[DEBUG][onMsg][handle admin] triggered.");
         Message received = event.getMessage();
 
-        /* handle suggest */
-        if (fromSuggestList(event)) {
-            // only do stuff on reply (check suggestion)
-            if (received.getReferencedMessage() != null) {
-                Message ref = received.getReferencedMessage();
-                Intent intent = rasa.analyze(event.getMember().getId(), received.getContentRaw());
-                System.out.println("[DEBUG][handle Admin][detected intent] " + intent);
-                String intentName = intent.getCustom().getIntent();
-                if (intentName.equals("suggest_review_pass")) {
-                    // suggest passed, add suggestion in pending add list
-                    EmbedBuilder builder = new EmbedBuilder();
-                    builder.setTitle("Suggest passed");
-                    builder.setColor(Color.orange);
-                    builder.setDescription("audited by " + received.getAuthor().getName());
-                    builder.addField("", ref.getContentRaw(), false);
-                    builder.setTimestamp(Instant.now());
-                    MessageBuilder msgBuilder = new MessageBuilder();
-                    jdaMsgHandleService.sendSuggestPassMsg(builder.build());
-//                    jdaMsgHandleService.sendSuggestPassMsg(ref);
-                }
-                if (intentName.equals("suggest_review_failed")) {
-                    // todo: handle suggest failed
-                }
-            }
-        }
+        /* handle suggest (Pause) */
+//        if (fromSuggestList(event)) {
+//            // only do stuff on reply (check suggestion)
+//            if (received.getReferencedMessage() != null) {
+//                Message ref = received.getReferencedMessage();
+//                Intent intent = rasa.analyze(event.getMember().getId(), received.getContentRaw());
+//                System.out.println("[DEBUG][handle Admin][detected intent] " + intent);
+//                String intentName = intent.getCustom().getIntent();
+//                if (intentName.equals("suggest_review_pass")) {
+//                    // suggest passed, add suggestion in pending add list
+//                    EmbedBuilder builder = new EmbedBuilder();
+//                    builder.setTitle("Suggest passed");
+//                    builder.setColor(Color.orange);
+//                    builder.setDescription("audited by " + received.getAuthor().getName());
+//                    builder.addField("", ref.getContentRaw(), false);
+//                    builder.setTimestamp(Instant.now());
+//                    MessageBuilder msgBuilder = new MessageBuilder();
+//                    jdaMsgHandleService.sendSuggestPassMsg(builder.build());
+////                    jdaMsgHandleService.sendSuggestPassMsg(ref);
+//                }
+//                if (intentName.equals("suggest_review_failed")) {
+//                    // todo: handle suggest failed
+//                }
+//            }
+//        }
 
         /* replying to message log */
         if (received.getReferencedMessage() != null && isLegalMessageLog(received.getReferencedMessage().getContentRaw())) {
@@ -550,6 +554,22 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         if (DiscordGeneralEventListener.adminChannelMap.containsKey(channel.getName()))
             return true;
         return false;
+    }
+
+    private String judgeGroupName(MessageReceivedEvent event) {
+        if (event.isFromType(ChannelType.PRIVATE)) return IntentHandleService.PRIVATE_MESSAGE;
+        try {
+            List<Role> userRoles = event.getGuild().getMember(event.getAuthor()).getRoles();
+            return userRoles.stream()
+                    .filter(r -> r.getName().startsWith(groupNamePrefix))
+                    .findFirst()
+                    .get()
+                    .getName();
+
+        } catch (Exception e) {
+            System.out.println("[Warning] no group");
+            return IntentHandleService.NO_GROUP;
+        }
     }
 
     /**
