@@ -71,14 +71,22 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
         // create global slash command
         // TODO (classmap_ppt, personal_quiz_query, personal_score_query)
+        // personal_score_query -> show all score
+
 //        event.getJDA().upsertCommand("global_test", "global command test").queue();
 //        event.getJDA().upsertCommand("contact_ta", "direct contact ta")
 //                .addOption(OptionType.STRING, "msg", "message content", true)
 //                .queue();
         event.getJDA()
-                .upsertCommand("anonymous_question", "Send an anonymous question during class.")
+                .upsertCommand("send_anonymous_question", "Send an anonymous question during class.")
                 .addOption(OptionType.STRING, "question", "Anonymous question", true)
                 .queue();
+
+        event.getJDA()
+                .upsertCommand("read_ppt", "Read the course ppt.")
+                .addOption(OptionType.INTEGER, "chapter", "Chapter number like 1, 2, 3...", true)
+                .queue();
+
         // create guild slash command
         event.getJDA()
                 .getGuildById(serverId)

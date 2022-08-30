@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ntou.soselab.tabot.Service.SlashCommandHandleService;
-import ntou.soselab.tabot.repository.RedisHandler;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -20,9 +19,6 @@ import java.util.Map;
 
 @Service
 public class DiscordSlashCommandListener extends ListenerAdapter {
-
-    @Autowired
-    RedisHandler redisHandler;
     @Autowired
     SlashCommandHandleService slashCommandHandleService;
     private final String anonymousQuestionChannelName;
@@ -74,7 +70,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 ////            DiscordGeneralEventListener.guild.getTextChannelById(adminChannelId).sendMessage().queue();
 //        }
         /* global command */
-        if (event.getName().equals("anonymous_question")) {
+        if (event.getName().equals("send_anonymous_question")) {
             // check user identity
 //            if(event.getMember().getRoles().stream().anyMatch(role -> role.getId().equals(adminRoleId))){
 //            }else {
@@ -84,22 +80,33 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             MessageChannel targetChannel = DiscordGeneralEventListener.channelMap.get(anonymousQuestionChannelName);
             String question = event.getOption("question").getAsString();
             System.out.println("[Question] " + question);
-            Message response = slashCommandHandleService.anonymousQuestion(question);
+            Message response = slashCommandHandleService.getAnonymousQuestionResponse(question);
             event.reply(response).setEphemeral(true).queue();
             targetChannel.sendMessage("[Question] " + question).queue();
             return;
+        }
+
+        if (event.getName().equals("read_ppt")) {
+            int chapterNumber = Integer.parseInt(event.getOption("chapter").getAsString());
+            System.out.println("[chapterNumber] " + chapterNumber);
         }
 
         /* guild command */
         System.out.println("[Channel] " + event.getChannel().getName());
         String groupName = judgeGroupName(event);
         System.out.println("[Group Name] " + groupName);
+        if (groupName.equals(slashCommandHandleService.NO_GROUP)) {
+            System.out.println("<<< end of current slash command event");
+            System.out.println();
+            event.reply("Sorry, you don't have a group yet.").setEphemeral(true).queue();
+            return;
+        }
         String groupTopic = groupTopicMap.get(groupName);
         System.out.println("[Group Topic] " + groupTopic);
 
         if (event.getName().equals("read_user_requirements")) {
             System.out.println("[Target Channel] " + event.getChannel());
-            Message response = slashCommandHandleService.userRequirements(groupTopic, groupName);
+            Message response = slashCommandHandleService.readUserRequirements(groupTopic, groupName);
             event.reply(response).setEphemeral(false).queue();
         }
 
@@ -169,12 +176,18 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     }
 
     private String judgeGroupName(SlashCommandEvent event) {
-        List<Role> userRoles = event.getGuild().getMember(event.getUser()).getRoles();
-        return userRoles.stream()
-                .filter(r -> r.getName().startsWith(groupNamePrefix))
-                .findFirst()
-                .get()
-                .getName();
+        try {
+            List<Role> userRoles = event.getGuild().getMember(event.getUser()).getRoles();
+            return userRoles.stream()
+                    .filter(r -> r.getName().startsWith(groupNamePrefix))
+                    .findFirst()
+                    .get()
+                    .getName();
+
+        } catch (Exception e) {
+            System.out.println("[Warning] no group");
+            return slashCommandHandleService.NO_GROUP;
+        }
     }
 
     private boolean isOutsideTheGroup(SlashCommandEvent event) {

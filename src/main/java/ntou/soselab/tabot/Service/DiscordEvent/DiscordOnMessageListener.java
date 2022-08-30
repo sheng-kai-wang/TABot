@@ -560,7 +560,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
     }
 
     private String judgeGroupName(MessageReceivedEvent event) {
-        if (event.isFromType(ChannelType.PRIVATE)) return IntentHandleService.PRIVATE_MESSAGE;
+        if (event.isFromType(ChannelType.PRIVATE)) return intentHandleService.PRIVATE_MESSAGE;
         try {
             List<Role> userRoles = event.getGuild().getMember(event.getAuthor()).getRoles();
             return userRoles.stream()
@@ -571,7 +571,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
 
         } catch (Exception e) {
             System.out.println("[Warning] no group");
-            return IntentHandleService.NO_GROUP;
+            return intentHandleService.NO_GROUP;
         }
     }
 

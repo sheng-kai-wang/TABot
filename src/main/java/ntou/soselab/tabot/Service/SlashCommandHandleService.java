@@ -17,14 +17,15 @@ public class SlashCommandHandleService {
     RedisHandler redisHandler;
 
     private final String userRequirementsFolderPath;
-    private final static String DOWN_ARROW = "↓";
+    public final String NO_GROUP = "no group";
+    private final String DOWN_ARROW = "↓";
 
     @Autowired
     public SlashCommandHandleService(Environment env) {
         this.userRequirementsFolderPath = env.getProperty("user-requirements.folder.path");
     }
 
-    public Message anonymousQuestion(String question) {
+    public Message getAnonymousQuestionResponse(String question) {
         MessageBuilder mb = new MessageBuilder();
         mb.append("ok, got it.\n");
         mb.append("Your question is `").append(question).append("`.\n");
@@ -32,7 +33,11 @@ public class SlashCommandHandleService {
         return mb.build();
     }
 
-    public Message userRequirements(String groupTopic, String groupName) {
+    public Message readPpt(int chapterNumber) {
+        return null;
+    }
+
+    public Message readUserRequirements(String groupTopic, String groupName) {
         MessageBuilder mb = new MessageBuilder();
         String groupDocPath = userRequirementsFolderPath + File.separator + groupTopic + ".md";
         InputStream is = getClass().getResourceAsStream(groupDocPath);

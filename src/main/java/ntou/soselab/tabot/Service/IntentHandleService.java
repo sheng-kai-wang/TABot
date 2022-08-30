@@ -37,8 +37,8 @@ public class IntentHandleService {
     private final String SUGGEST_FORM_URL;
     private final String userRequirementsFolderPath;
     private final Map<String, String> groupTopicMap;
-    public final static String PRIVATE_MESSAGE = "private message";
-    public final static String NO_GROUP = "no group";
+    public final String PRIVATE_MESSAGE = "private message";
+    public final String NO_GROUP = "no group";
 
     @Autowired
     public IntentHandleService(Environment env) {
