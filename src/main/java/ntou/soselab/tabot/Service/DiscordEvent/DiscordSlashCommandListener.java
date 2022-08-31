@@ -83,59 +83,69 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             Message response = slashCommandHandleService.getAnonymousQuestionResponse(question);
             event.reply(response).setEphemeral(true).queue();
             targetChannel.sendMessage("[Question] " + question).queue();
-            return;
         }
 
         if (event.getName().equals("read_ppt")) {
-            int chapterNumber = Integer.parseInt(event.getOption("chapter").getAsString());
-            System.out.println("[chapterNumber] " + chapterNumber);
-        }
-
-        /* guild command */
-        System.out.println("[Channel] " + event.getChannel().getName());
-        String groupName = judgeGroupName(event);
-        System.out.println("[Group Name] " + groupName);
-        if (groupName.equals(slashCommandHandleService.NO_GROUP)) {
-            System.out.println("<<< end of current slash command event");
-            System.out.println();
-            event.reply("Sorry, you don't have a group yet.").setEphemeral(true).queue();
-            return;
-        }
-        String groupTopic = groupTopicMap.get(groupName);
-        System.out.println("[Group Topic] " + groupTopic);
-
-        if (event.getName().equals("read_user_requirements")) {
-            System.out.println("[Target Channel] " + event.getChannel());
-            Message response = slashCommandHandleService.readUserRequirements(groupTopic, groupName);
+            System.out.println("[chapterNumber] all");
+            Message response = slashCommandHandleService.readPpt();
             event.reply(response).setEphemeral(false).queue();
         }
 
-        if (event.getName().equals("create_keep")) {
-            String key = event.getOption("key").getAsString();
-            System.out.println("[Key] " + key);
-            String value = event.getOption("value").getAsString();
-            System.out.println("[Value] " + value);
-            Message response = slashCommandHandleService.createKeep(groupName, key, value);
-            event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+        if (event.getName().equals("personal_quiz")) {
+
         }
 
-        if (event.getName().equals("read_keep")) {
-            Message response = slashCommandHandleService.readKeep(groupName);
-            event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
-        }
+        /* guild command */
+        if (event.isFromGuild()) {
+            System.out.println("[Channel] " + event.getChannel().getName());
+            String groupName = judgeGroupName(event);
+            System.out.println("[Group Name] " + groupName);
+            if (groupName.equals(slashCommandHandleService.NO_GROUP)) {
+                System.out.println("<<< end of current slash command event");
+                System.out.println();
+                if (!event.isAcknowledged()) {
+                    event.reply("```[Warning] Sorry, you don't have a group yet.```")
+                            .setEphemeral(true)
+                            .queue();
+                }
+                return;
+            }
+            String groupTopic = groupTopicMap.get(groupName);
+            System.out.println("[Group Topic] " + groupTopic);
 
-        if (event.getName().equals("update_keep")) {
-            String key = event.getOption("key").getAsString();
-            System.out.println("[Key] " + key);
-            String value = event.getOption("value").getAsString();
-            Message response = slashCommandHandleService.updateKeep(groupName, key, value);
-            event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
-        }
 
-        if (event.getName().equals("delete_keep")) {
-            String key = event.getOption("key").getAsString();
-            Message response = slashCommandHandleService.deleteKeep(groupName, key);
-            event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            if (event.getName().equals("read_user_requirements")) {
+                Message response = slashCommandHandleService.readUserRequirements(groupTopic, groupName);
+                event.reply(response).setEphemeral(false).queue();
+            }
+
+            if (event.getName().equals("create_keep")) {
+                String key = event.getOption("key").getAsString();
+                System.out.println("[Key] " + key);
+                String value = event.getOption("value").getAsString();
+                System.out.println("[Value] " + value);
+                Message response = slashCommandHandleService.createKeep(groupName, key, value);
+                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            }
+
+            if (event.getName().equals("read_keep")) {
+                Message response = slashCommandHandleService.readKeep(groupName);
+                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            }
+
+            if (event.getName().equals("update_keep")) {
+                String key = event.getOption("key").getAsString();
+                System.out.println("[Key] " + key);
+                String value = event.getOption("value").getAsString();
+                Message response = slashCommandHandleService.updateKeep(groupName, key, value);
+                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            }
+
+            if (event.getName().equals("delete_keep")) {
+                String key = event.getOption("key").getAsString();
+                Message response = slashCommandHandleService.deleteKeep(groupName, key);
+                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            }
         }
         System.out.println("<<< end of current slash command event");
         System.out.println();

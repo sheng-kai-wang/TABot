@@ -1,7 +1,9 @@
 package ntou.soselab.tabot.Service;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import ntou.soselab.tabot.repository.Neo4jHandler;
 import ntou.soselab.tabot.repository.RedisHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -12,10 +14,12 @@ import java.util.Map;
 
 @Service
 public class SlashCommandHandleService {
-
+    @Autowired
+    Neo4jHandler neo4jHandler;
     @Autowired
     RedisHandler redisHandler;
 
+    private final String anonymousQuestionChannelUrl;
     private final String userRequirementsFolderPath;
     public final String NO_GROUP = "no group";
     private final String DOWN_ARROW = "↓";
@@ -23,18 +27,38 @@ public class SlashCommandHandleService {
     @Autowired
     public SlashCommandHandleService(Environment env) {
         this.userRequirementsFolderPath = env.getProperty("user-requirements.folder.path");
+        this.anonymousQuestionChannelUrl = env.getProperty("discord.channel.anonymous-question.url");
     }
 
     public Message getAnonymousQuestionResponse(String question) {
         MessageBuilder mb = new MessageBuilder();
         mb.append("ok, got it.\n");
         mb.append("Your question is `").append(question).append("`.\n");
-        mb.append("It will be show on the \"anonymous_question\" channel.");
+        mb.setEmbeds(new EmbedBuilder()
+                .addField("Click the link below to view", "[anonymous-question](" + anonymousQuestionChannelUrl + ")", false)
+                .build());
         return mb.build();
     }
 
-    public Message readPpt(int chapterNumber) {
-        return null;
+    public Message readPpt() {
+        MessageBuilder mb = new MessageBuilder();
+        Map<String, String> allSlideshowMap = neo4jHandler.readAllSlideshow();
+        if (allSlideshowMap == null || allSlideshowMap.isEmpty()) {
+            System.out.println("[Warning] No course ppt are available yet.");
+            mb.append("```[Warning] Sorry, No course ppt are available yet.```");
+            return mb.build();
+        }
+        mb.append("Here you are ! :grinning:\n");
+        EmbedBuilder eb = new EmbedBuilder();
+        // sort by key (chapter name)
+        allSlideshowMap.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(map -> {
+                    eb.addField("", "[" + map.getKey() + "](" + map.getValue() + ")", false);
+                });
+        mb.setEmbeds(eb.build());
+        return mb.build();
     }
 
     public Message readUserRequirements(String groupTopic, String groupName) {
@@ -55,7 +79,7 @@ public class SlashCommandHandleService {
             }
             mb.append("```");
         } else {
-            mb.append("[Warning] Your user requirements is not found.");
+            mb.append("```[Warning] Your user requirements is not found.```");
             System.out.println("[Warning] User requirements is not found.");
         }
         return mb.build();
@@ -67,7 +91,7 @@ public class SlashCommandHandleService {
             System.out.println("[Warning] This key already exists.");
             System.out.println("<<< end of current slash command event");
             System.out.println();
-            return mb.append("[Warning] This key already exists.").build();
+            return mb.append("```[Warning] This key already exists.```").build();
         }
         redisHandler.createPair(groupName, key, value);
         mb.append("ok, got it.\n");
@@ -85,7 +109,7 @@ public class SlashCommandHandleService {
             System.out.println("[Warning] no content yet.");
             System.out.println("<<< end of current slash command event");
             System.out.println();
-            return mb.append("[Warning] no content yet.").build();
+            return mb.append("```[Warning] no content yet.```").build();
         }
         mb.append("ok, got it.\n");
         mb.append("The following are the contents of your group's keep:\n");
@@ -101,7 +125,7 @@ public class SlashCommandHandleService {
             System.out.println("[Warning] There is no such key in the keep.");
             System.out.println("<<< end of current slash command event");
             System.out.println();
-            return mb.append("[Warning] There is no such key in the keep.").build();
+            return mb.append("```[Warning] There is no such key in the keep.```").build();
         }
         String oldValue = redisHandler.updatePair(groupName, key, value);
         System.out.println("[Old Value] " + oldValue);
@@ -123,7 +147,7 @@ public class SlashCommandHandleService {
             System.out.println("[Warning] There is no such key in the keep.");
             System.out.println("<<< end of current slash command event");
             System.out.println();
-            return mb.append("[Warning] There is no such key in the keep.").build();
+            return mb.append("```[Warning] There is no such key in the keep.```").build();
         }
         String deletedValue = redisHandler.deletePair(groupName, key);
         System.out.println("[Deleted Value] " + deletedValue);

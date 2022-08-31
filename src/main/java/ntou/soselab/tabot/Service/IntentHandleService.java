@@ -161,11 +161,11 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] get user requirements.");
         System.out.println("[Group Name] " + groupName);
         MessageBuilder mb = new MessageBuilder();
-        if (groupName == PRIVATE_MESSAGE) {
-            mb.append("Sorry, the user requirements can only be obtained from the channel in the SE_1111 server.");
+        if (groupName.equals(PRIVATE_MESSAGE)) {
+            mb.append("```Sorry, the user requirements can only be obtained from the channel in the SE_1111 server.```");
             return mb.build();
         }
-        if (groupName == NO_GROUP) return mb.append("Sorry, you don't have a group yet.").build();
+        if (groupName.equals(NO_GROUP)) return mb.append("```Sorry, you don't have a group yet.```").build();
         String groupTopic = groupTopicMap.get(groupName);
         System.out.println("[Group Topic] " + groupTopic);
         String groupDocPath = userRequirementsFolderPath + File.separator + groupTopic + ".md";

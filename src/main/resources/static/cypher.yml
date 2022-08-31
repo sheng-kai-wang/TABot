@@ -15,6 +15,11 @@ read-slideshow-by-id: |
   MATCH (c:Chapter {chapterId: "<<chapterId>>"})
   RETURN c.URL
 
+#查全部的投影片
+read-slideshow-all: |
+  MATCH (c:Chapter)
+  RETURN c
+
 #擴增課程地圖 maybe variable-length arguments
 add-reference: |
   MERGE (ref:Reference {name:"<<referenceName>>", URL:"<<referenceURL>>", remark:"<<referenceRemark>>"})

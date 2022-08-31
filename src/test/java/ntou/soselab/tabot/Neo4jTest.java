@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Map;
+
 @SpringBootTest
 public class Neo4jTest {
 
@@ -56,6 +58,15 @@ public class Neo4jTest {
     @Test
     public void readSlideshowByChapterIdTest() {
         String result = neo4jHandler.readSlideshowById(1);
+        System.out.println("result: " + result);
+    }
+
+    /**
+     * 查全部投影片
+     */
+    @Test
+    public void readAllSlideshowTest() {
+        Map<String, String> result = neo4jHandler.readAllSlideshow();
         System.out.println("result: " + result);
     }
 

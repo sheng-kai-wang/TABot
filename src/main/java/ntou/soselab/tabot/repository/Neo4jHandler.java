@@ -131,6 +131,23 @@ public class Neo4jHandler implements AutoCloseable {
     }
 
     /**
+     * read all slideshow
+     *
+     * @return a map containing many chapter name and chapter URL pairs.
+     */
+    public Map<String, String> readAllSlideshow() {
+        String cypherString = cypherData.get("read-slideshow-all");
+        List<String> cypherResponses = doCypher(cypherString);
+        HashMap<String, String> slideshowMap = new HashMap<>();
+        cypherResponses.forEach(chapterNode -> {
+            String name = JsonPath.read(chapterNode, "$.values[0].adapted.properties.name.val");
+            String url = JsonPath.read(chapterNode, "$.values[0].adapted.properties.URL.val");
+            slideshowMap.put(name, url);
+        });
+        return slideshowMap;
+    }
+
+    /**
      * add reference of Section in curriculum map.
      *
      * @param sectionName   the Section name of curriculum map you want to add data.

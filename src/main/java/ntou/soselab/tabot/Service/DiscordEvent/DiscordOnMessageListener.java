@@ -74,7 +74,8 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         if (event.getAuthor().isBot()) return; // ignore all message from bot
 
         // print received message
-//        System.out.println(" ================ ");
+        System.out.println(" ================ ");
+        System.out.println(">> [DEBUG][onMessage] received message");
 //        System.out.println("[onMessage]: try to print received message.");
 //        System.out.println("> [author] " + event.getAuthor().getId());
 //        if (event.isFromGuild()) System.out.println("> [role] " + event.getMember().getRoles());
