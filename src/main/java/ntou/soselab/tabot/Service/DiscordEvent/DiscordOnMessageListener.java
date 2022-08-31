@@ -243,12 +243,12 @@ public class DiscordOnMessageListener extends ListenerAdapter {
      */
     private void handleNormalMessage(MessageReceivedEvent event) {
         System.out.println("[DEBUG][onMsg][handle normal] triggered.");
+        Message received = event.getMessage();
+        String rawMsg = received.getContentRaw();
+        /* set received msg id as author's discord id in case message came from private channel */
+        String receivedMsgId = received.getId();
+        String senderDiscordId = event.getAuthor().getId();
         try {
-            Message received = event.getMessage();
-            String rawMsg = received.getContentRaw();
-            /* set received msg id as author's discord id in case message came from private channel */
-            String receivedMsgId = received.getId();
-            String senderDiscordId = event.getAuthor().getId();
             String senderStudentId = userService.getStudentIdFromDiscordId(senderDiscordId);
             if (received.isFromGuild()) {
                 rawMsg = received.getContentDisplay().strip().replace("@TABot", "").strip();
@@ -285,6 +285,16 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         } catch (NoAccountFoundError e) {
             System.out.println("[DEBUG][handleNormalMsg] " + e.getMessage());
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Message result = new MessageBuilder().append("Sorry, I don't know what you mean. :cry:").build();
+            // reply message
+            if (received.isFromGuild()) {
+                jdaMsgHandleService.replyPublicMessage(result, receivedMsgId, received.getTextChannel().getName());
+            } else {
+                jdaMsgHandleService.replyPrivateMessage(result, senderDiscordId, receivedMsgId);
+//            jdaMsgHandleService.replyPrivateMessage(result, testDiscordId, received.getId()); /* test */
+            }
         }
     }
 
@@ -444,11 +454,17 @@ public class DiscordOnMessageListener extends ListenerAdapter {
      */
     private Message generateRegisterNotifyMsg() {
         MessageBuilder builder = new MessageBuilder();
-        builder.append("You need to verify your identity first.\n");
-        builder.append("Change your nickname to `<your student id>-<your name>` to get a student role.");
+        builder.append("Welcome to SE_1111 :smiley:\n");
+        builder.append("If you are a student of SE_1111,\n");
+        builder.append("you need to verify your identity first.\n");
+        builder.append("Change your nickname to `<your student id>-<your name>` to get a student role.\n");
+        builder.append("\n");
+        builder.append("If you are a TA of SE_1111,\n");
+        builder.append("you need to change your nickname to `[TA] <your student id>-<your name>` to let everyone know you.\n");
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.addField("Example", "00000000-Bat Man", false);
-        embedBuilder.setColor(Color.orange);
+        embedBuilder.addField("Student", "00000000-Bat Man", false);
+        embedBuilder.addField("TA", "[TA] 00000000-Superman", false);
+        embedBuilder.setColor(Color.yellow);
         builder.setEmbeds(embedBuilder.build());
         return builder.build();
     }
@@ -571,7 +587,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                     .getName();
 
         } catch (Exception e) {
-            System.out.println("[Warning] no group");
+            System.out.println("[WARNING] no group");
             return intentHandleService.NO_GROUP;
         }
     }

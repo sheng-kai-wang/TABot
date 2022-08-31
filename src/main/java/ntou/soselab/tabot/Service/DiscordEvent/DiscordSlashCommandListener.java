@@ -6,7 +6,10 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.InteractionHook;
+import ntou.soselab.tabot.Exception.NoAccountFoundError;
 import ntou.soselab.tabot.Service.SlashCommandHandleService;
+import ntou.soselab.tabot.Service.UserService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -21,6 +24,8 @@ import java.util.Map;
 public class DiscordSlashCommandListener extends ListenerAdapter {
     @Autowired
     SlashCommandHandleService slashCommandHandleService;
+    @Autowired
+    UserService userService;
     private final String anonymousQuestionChannelName;
     private final String groupWorkspaceChannelName;
     private final Map<String, String> groupTopicMap;
@@ -47,7 +52,8 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
         System.out.println(">>> trigger slash command event");
         System.out.println("[DEBUG] " + event.getName());
-        System.out.println("[User] " + event.getUser().getName());
+        String userName = event.getUser().getName();
+        System.out.println("[User Name] " + userName);
 //        if(event.getName().equals("global_test")){
 //            System.out.println("[DEBUG] global slash command.");
 //            event.deferReply().queue();
@@ -86,13 +92,28 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         }
 
         if (event.getName().equals("read_ppt")) {
-            System.out.println("[chapterNumber] all");
+            System.out.println("[Chapter Number] all");
             Message response = slashCommandHandleService.readPpt();
             event.reply(response).setEphemeral(false).queue();
         }
 
         if (event.getName().equals("personal_quiz")) {
-
+            event.reply("Analyzing...").setEphemeral(true).queue();
+            InteractionHook hook = event.getHook();
+            String studentId;
+            try {
+                studentId = userService.getStudentIdFromDiscordId(event.getUser().getId());
+            } catch (NoAccountFoundError e) {
+                e.printStackTrace();
+                studentId =  slashCommandHandleService.NOT_STUDENT;
+            }
+//            try {
+//                studentId = userName.split("-")[0];
+//            } catch (Exception e) {
+//                studentId = slashCommandHandleService.NOT_STUDENT;
+//            }
+            Message response = slashCommandHandleService.personalQuiz(studentId);
+            hook.sendMessage(response).setEphemeral(true).queue();
         }
 
         /* guild command */
@@ -104,7 +125,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 System.out.println("<<< end of current slash command event");
                 System.out.println();
                 if (!event.isAcknowledged()) {
-                    event.reply("```[Warning] Sorry, you don't have a group yet.```")
+                    event.reply("```[WARNING] Sorry, you don't have a group yet.```")
                             .setEphemeral(true)
                             .queue();
                 }
@@ -195,7 +216,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                     .getName();
 
         } catch (Exception e) {
-            System.out.println("[Warning] no group");
+            System.out.println("[WARNING] no group");
             return slashCommandHandleService.NO_GROUP;
         }
     }

@@ -87,7 +87,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
                 .queue();
 
         event.getJDA()
-                .upsertCommand("personal_quiz", "Personalized quiz practice, this quiz will be adjusted according to the answering status of the usual exams, and review the weakness.")
+                .upsertCommand("personal_quiz", "This quiz will be adjusted according to the answering status of the usual exams.")
                 .queue();
 
         // create guild slash command

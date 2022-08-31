@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ntou.soselab.tabot.Exception.NoAccountFoundError;
 import ntou.soselab.tabot.Service.IntentHandleService;
+import ntou.soselab.tabot.Service.SlashCommandHandleService;
 import ntou.soselab.tabot.Service.UserService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,7 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
 //        if(studentId.equals("286145047169335298"))
 //        studentId = "00000000";
         /* --- end of test block --- */
-        JsonObject quiz = IntentHandleService.getOngoingQuizMap().get(studentId);
+        JsonObject quiz = SlashCommandHandleService.getOngoingQuizMap().get(studentId);
         System.out.println("--- [DEBUG][onButton] retrieve quiz: " + quiz);
         String ansOpt = quiz.get("ans").getAsString();
         String ansContent = quiz.get("opt" + ansOpt).getAsString();
@@ -64,6 +65,6 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
             event.getHook().sendMessage("Wrong. Correct answer is `" + ansContent + "`").queue();
         }
         // remove quiz from ongoing quiz map
-        IntentHandleService.getOngoingQuizMap().remove(studentId);
+        SlashCommandHandleService.getOngoingQuizMap().remove(studentId);
     }
 }
