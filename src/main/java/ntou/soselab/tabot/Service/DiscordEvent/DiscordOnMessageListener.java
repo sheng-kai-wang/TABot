@@ -464,7 +464,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.addField("Student", "00000000-Bat Man", false);
         embedBuilder.addField("TA", "[TA] 00000000-Superman", false);
-        embedBuilder.setColor(Color.yellow);
+        embedBuilder.setColor(Color.orange);
         builder.setEmbeds(embedBuilder.build());
         return builder.build();
     }

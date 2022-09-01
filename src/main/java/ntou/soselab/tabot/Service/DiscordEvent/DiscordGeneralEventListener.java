@@ -70,7 +70,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         System.out.println("[JDA onReady]: channel map init complete.");
 
         // create global slash command
-        // TODO (personal_quiz_query, personal_score_query)
+        // TODO (personal_score_query)
         // personal_score_query -> show all score
 
 //        event.getJDA().upsertCommand("global_test", "global command test").queue();
@@ -88,6 +88,10 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
         event.getJDA()
                 .upsertCommand("personal_quiz", "This quiz will be adjusted according to the answering status of the usual exams.")
+                .queue();
+
+        event.getJDA()
+                .upsertCommand("personal_score", "Check exam and homework scores.")
                 .queue();
 
         // create guild slash command

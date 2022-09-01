@@ -85,7 +85,7 @@ public class SlashCommandHandleService {
             return mb.build();
         }
         try {
-            // search quiz number from neo4j
+            // search quiz number from neo4j (incorrectExam contains common exam questions)
             String incorrectExam = neo4jHandler.readPersonalizedExam(studentId);
             System.out.println("[Neo4j] [Incorrect Exam] " + incorrectExam);
             JsonArray incorrectExamList = new Gson().fromJson(incorrectExam, JsonArray.class);
@@ -97,6 +97,7 @@ public class SlashCommandHandleService {
             mb.append(quiz.get("question").getAsString());
             mb.setActionRows(ActionRow.of(getQuizComponents(quiz)));
         } catch (Exception e) {
+            e.printStackTrace();
             return mb.append("```[WARNING] Sorry, something was wrong.```").build();
         }
         return mb.build();
@@ -192,6 +193,35 @@ public class SlashCommandHandleService {
         }
         Collections.shuffle(result); // shuffle button list
         return result;
+    }
+
+    public Message personalScore(String studentId) {
+        MessageBuilder mb = new MessageBuilder();
+        if (studentId.equals(NOT_STUDENT)) {
+            System.out.println("[WARNING] there isn't registered as a student role.");
+            mb.append("```[WARNING] Sorry, you are not registered as a student role yet.```");
+            return mb.build();
+        }
+        JSONObject scoreMap = new SheetsHandler("course").readContentByKey("Grades", studentId);
+        if (scoreMap.isEmpty()) {
+            System.out.println("[WARNING] there is no scores yet.");
+            mb.append("```[WARNING] Sorry, there is no scores yet.```");
+            return mb.build();
+        }
+        scoreMap.remove("班級成員");
+        mb.append("Here you are ! :grinning:\n");
+        mb.append("```properties\n");
+        // sort by key (exam or homework name)
+        scoreMap.keySet()
+                .stream()
+                .sorted()
+                .forEach(key -> {
+                    String value = scoreMap.get(key).toString().split("\"")[1];
+                    key = key.replaceAll(" ", "_");
+                    mb.append(key).append(" = ").append(value).append("\n");
+                });
+        mb.append("```");
+        return mb.build();
     }
 
     public Message readUserRequirements(String groupTopic, String groupName) {

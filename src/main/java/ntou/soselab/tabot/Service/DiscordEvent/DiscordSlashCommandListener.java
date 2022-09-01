@@ -98,22 +98,19 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         }
 
         if (event.getName().equals("personal_quiz")) {
-            event.reply("Analyzing...").setEphemeral(true).queue();
-            InteractionHook hook = event.getHook();
-            String studentId;
-            try {
-                studentId = userService.getStudentIdFromDiscordId(event.getUser().getId());
-            } catch (NoAccountFoundError e) {
-                e.printStackTrace();
-                studentId =  slashCommandHandleService.NOT_STUDENT;
-            }
-//            try {
-//                studentId = userName.split("-")[0];
-//            } catch (Exception e) {
-//                studentId = slashCommandHandleService.NOT_STUDENT;
-//            }
+            event.reply("Set a question...").setEphemeral(true).queue();
+            String studentId = judgeStudentId(event);
+            System.out.println("[Student ID] " + studentId);
             Message response = slashCommandHandleService.personalQuiz(studentId);
-            hook.sendMessage(response).setEphemeral(true).queue();
+            event.getHook().sendMessage(response).setEphemeral(true).queue();
+        }
+
+        if (event.getName().equals("personal_score")) {
+            event.reply("Loading...").setEphemeral(true).queue();
+            String studentId = judgeStudentId(event);
+            System.out.println("[Student ID] " + studentId);
+            Message response = slashCommandHandleService.personalScore(studentId);
+            event.getHook().sendMessage(response).setEphemeral(true).queue();
         }
 
         /* guild command */
@@ -219,6 +216,20 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             System.out.println("[WARNING] no group");
             return slashCommandHandleService.NO_GROUP;
         }
+    }
+
+    private String judgeStudentId(SlashCommandEvent event) {
+        try {
+            return userService.getStudentIdFromDiscordId(event.getUser().getId());
+        } catch (NoAccountFoundError e) {
+            e.printStackTrace();
+            return slashCommandHandleService.NOT_STUDENT;
+        }
+//            try {
+//                studentId = userName.split("-")[0];
+//            } catch (Exception e) {
+//                studentId = slashCommandHandleService.NOT_STUDENT;
+//            }
     }
 
     private boolean isOutsideTheGroup(SlashCommandEvent event) {
