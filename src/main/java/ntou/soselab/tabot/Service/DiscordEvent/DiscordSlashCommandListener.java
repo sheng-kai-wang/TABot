@@ -1,5 +1,6 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
@@ -122,7 +123,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 System.out.println("<<< end of current slash command event");
                 System.out.println();
                 if (!event.isAcknowledged()) {
-                    event.reply("```[WARNING] Sorry, you don't have a group yet.```")
+                    event.reply("```properties" + "\n[WARNING] Sorry, you don't have a group yet.```")
                             .setEphemeral(true)
                             .queue();
                 }
@@ -147,8 +148,16 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             }
 
             if (event.getName().equals("read_keep")) {
-                Message response = slashCommandHandleService.readKeep(groupName);
-                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+                String key = null;
+                try {
+                    key = event.getOption("key").getAsString();
+                    System.out.println("[Key] " + key);
+                } catch (Exception e) {
+                    System.out.println("[Key] no key");
+                } finally {
+                    Message response = slashCommandHandleService.readKeep(groupName, key);
+                    event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+                }
             }
 
             if (event.getName().equals("update_keep")) {
@@ -161,7 +170,20 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
             if (event.getName().equals("delete_keep")) {
                 String key = event.getOption("key").getAsString();
+                System.out.println("[Deleted Key] " + key);
                 Message response = slashCommandHandleService.deleteKeep(groupName, key);
+                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            }
+
+            if (event.getName().equals("set_github_repository")) {
+                String url = event.getOption("https_url").getAsString();
+                System.out.println("[https url] " + url);
+                Message response = slashCommandHandleService.setRepository(groupName, url);
+                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            }
+
+            if (event.getName().equals("contribution_analysis")) {
+                Message response = slashCommandHandleService.contributionAnalysis(groupName, groupTopic);
                 event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
             }
         }

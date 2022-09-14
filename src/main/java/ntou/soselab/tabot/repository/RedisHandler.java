@@ -25,9 +25,14 @@ public class RedisHandler {
         hashOperations.putIfAbsent(groupName, key, value);
     }
 
-    public Map readPair(String groupName) {
+    public Map readPairAll(String groupName) {
 //        setSerializer();
         return hashOperations.entries(groupName);
+    }
+
+    public String readPairByKey(String groupName, String key) {
+//        setSerializer();
+        return hashOperations.get(groupName, key).toString();
     }
 
     public String updatePair(String groupName, String key, String value) {

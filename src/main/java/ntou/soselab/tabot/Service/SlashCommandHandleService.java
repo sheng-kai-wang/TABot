@@ -31,15 +31,18 @@ public class SlashCommandHandleService {
 
     private final String anonymousQuestionChannelUrl;
     private final String userRequirementsFolderPath;
+    private final String contributionAnalysisUrl;
     public final String NO_GROUP = "no group";
     public final String NOT_STUDENT = "not student";
     private final String DOWN_ARROW = "↓";
+    private final String GITHUB_REPOSITORY_KEEP_KEY = "GitHub_repo";
 
     @Autowired
     public SlashCommandHandleService(Environment env) {
         ongoingQuizMap = new HashMap<>();
         this.userRequirementsFolderPath = env.getProperty("user-requirements.folder.path");
         this.anonymousQuestionChannelUrl = env.getProperty("discord.channel.anonymous-question.url");
+        this.contributionAnalysisUrl = env.getProperty("contribution-analysis-url");
     }
 
     public static HashMap<String, JsonObject> getOngoingQuizMap() {
@@ -61,7 +64,7 @@ public class SlashCommandHandleService {
         Map<String, String> allSlideshowMap = neo4jHandler.readAllSlideshow();
         if (allSlideshowMap == null || allSlideshowMap.isEmpty()) {
             System.out.println("[WARNING] No course ppt are available yet.");
-            mb.append("```[WARNING] Sorry, No course ppt are available yet.```");
+            mb.append("```properties" + "\n[WARNING] Sorry, No course ppt are available yet.```");
             return mb.build();
         }
         mb.append("Here you are ! :grinning:\n");
@@ -81,7 +84,7 @@ public class SlashCommandHandleService {
         MessageBuilder mb = new MessageBuilder();
         if (studentId.equals(NOT_STUDENT)) {
             System.out.println("[WARNING] there isn't registered as a student role.");
-            mb.append("```[WARNING] Sorry, you are not registered as a student role yet.```");
+            mb.append("```properties" + "\n[WARNING] Sorry, you are not registered as a student role yet.```");
             return mb.build();
         }
         try {
@@ -98,7 +101,7 @@ public class SlashCommandHandleService {
             mb.setActionRows(ActionRow.of(getQuizComponents(quiz)));
         } catch (Exception e) {
             e.printStackTrace();
-            return mb.append("```[WARNING] Sorry, something was wrong.```").build();
+            return mb.append("```properties" + "\n[WARNING] Sorry, something was wrong.```").build();
         }
         return mb.build();
     }
@@ -199,13 +202,13 @@ public class SlashCommandHandleService {
         MessageBuilder mb = new MessageBuilder();
         if (studentId.equals(NOT_STUDENT)) {
             System.out.println("[WARNING] there isn't registered as a student role.");
-            mb.append("```[WARNING] Sorry, you are not registered as a student role yet.```");
+            mb.append("```properties" + "\n[WARNING] Sorry, you are not registered as a student role yet.```");
             return mb.build();
         }
         JSONObject scoreMap = new SheetsHandler("course").readContentByKey("Grades", studentId);
         if (scoreMap.isEmpty()) {
             System.out.println("[WARNING] there is no scores yet.");
-            mb.append("```[WARNING] Sorry, there is no scores yet.```");
+            mb.append("```properties" + "\n[WARNING] Sorry, there is no scores yet.```");
             return mb.build();
         }
         scoreMap.remove("班級成員");
@@ -226,33 +229,39 @@ public class SlashCommandHandleService {
 
     public Message readUserRequirements(String groupTopic, String groupName) {
         MessageBuilder mb = new MessageBuilder();
-        String groupDocPath = userRequirementsFolderPath + File.separator + groupTopic + ".md";
-        InputStream is = getClass().getResourceAsStream(groupDocPath);
-        if (is != null) {
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            mb.append("here are the user requirements of your group. ( ").append(groupName).append(" )\n");
-            mb.append("```markdown").append("\n");
-            while (true) {
-                try {
-                    if (!br.ready()) break;
-                    mb.append(br.readLine()).append("\n");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+        try {
+            String groupDocPath = userRequirementsFolderPath + File.separator + groupTopic + ".md";
+            InputStream is = getClass().getResourceAsStream(groupDocPath);
+            if (is != null) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                mb.append("here are the user requirements of your group. ( ").append(groupName).append(" )\n");
+                mb.append("```markdown").append("\n");
+                while (true) {
+                    try {
+                        if (!br.ready()) break;
+                        mb.append(br.readLine()).append("\n");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
+                mb.append("```");
+            } else {
+                mb.append("```properties" + "\n[WARNING] Sorry, your group topic has NOT been set.```");
+                System.out.println("[WARNING] User requirements is not found.");
             }
-            mb.append("```");
-        } else {
-            mb.append("```[WARNING] Your user requirements is not found.```");
-            System.out.println("[WARNING] User requirements is not found.");
+            return mb.build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return mb.append("```properties" + "\n[WARNING] Sorry, your group topic has NOT been set.```").build();
         }
-        return mb.build();
     }
 
     public Message createKeep(String groupName, String key, String value) {
         MessageBuilder mb = new MessageBuilder();
         if (redisHandler.hasContent(groupName, key)) {
             System.out.println("[WARNING] This key already exists.");
-            return mb.append("```[WARNING] This key already exists.```").build();
+            return mb.append("```properties" + "\n[WARNING] This key already exists.```").build();
         }
         redisHandler.createPair(groupName, key, value);
         mb.append("ok, got it.\n");
@@ -263,17 +272,26 @@ public class SlashCommandHandleService {
         return mb.build();
     }
 
-    public Message readKeep(String groupName) {
-        Map allPair = redisHandler.readPair(groupName);
+    public Message readKeep(String groupName, String key) {
+        Map allPair = redisHandler.readPairAll(groupName);
         MessageBuilder mb = new MessageBuilder();
         if (allPair.size() == 0) {
             System.out.println("[WARNING] no content yet.");
-            return mb.append("```[WARNING] no content yet.```").build();
+            return mb.append("```properties" + "\n[WARNING] no content yet.```").build();
         }
         mb.append("ok, got it.\n");
         mb.append("The following are the contents of your group's keep:\n");
         mb.append("```properties\n");
-        allPair.forEach((k, v) -> mb.append(k).append(" = ").append(v).append("\n"));
+        if (key == null) {
+            allPair.forEach((k, v) -> mb.append(k).append(" = ").append(v).append("\n"));
+        } else {
+            if (redisHandler.hasContent(groupName, key)) {
+                mb.append(key).append(" = ").append(String.valueOf(allPair.get(key)));
+            } else {
+                mb.append("[WARNING] There is no such key in the keep.");
+                System.out.println("[WARNING] There is no such key in the keep.");
+            }
+        }
         mb.append("```");
         return mb.build();
     }
@@ -282,7 +300,7 @@ public class SlashCommandHandleService {
         MessageBuilder mb = new MessageBuilder();
         if (!redisHandler.hasContent(groupName, key)) {
             System.out.println("[WARNING] There is no such key in the keep.");
-            return mb.append("```[WARNING] There is no such key in the keep.```").build();
+            return mb.append("```properties" + "\n[WARNING] There is no such key in the keep.```").build();
         }
         String oldValue = redisHandler.updatePair(groupName, key, value);
         System.out.println("[Old Value] " + oldValue);
@@ -298,11 +316,10 @@ public class SlashCommandHandleService {
     }
 
     public Message deleteKeep(String groupName, String key) {
-        System.out.println("[Deleted Key] " + key);
         MessageBuilder mb = new MessageBuilder();
         if (!redisHandler.hasContent(groupName, key)) {
             System.out.println("[WARNING] There is no such key in the keep.");
-            return mb.append("```[WARNING] There is no such key in the keep.```").build();
+            return mb.append("```properties" + "\n[WARNING] There is no such key in the keep.```").build();
         }
         String deletedValue = redisHandler.deletePair(groupName, key);
         System.out.println("[Deleted Value] " + deletedValue);
@@ -311,6 +328,38 @@ public class SlashCommandHandleService {
         mb.append("```properties\n");
         mb.append(key).append(" = ").append(deletedValue).append("\n");
         mb.append("```");
+        return mb.build();
+    }
+
+    public Message setRepository(String groupName, String url) {
+        MessageBuilder mb = new MessageBuilder();
+        redisHandler.createPair(groupName, GITHUB_REPOSITORY_KEEP_KEY, url);
+        mb.append("ok, got it.\n");
+        mb.append("you created a content:\n");
+        mb.append("```properties\n");
+        mb.append(GITHUB_REPOSITORY_KEEP_KEY).append(" = ").append(url).append("\n");
+        mb.append("```");
+        return mb.build();
+    }
+
+    public Message contributionAnalysis(String groupName, String groupTopic) {
+        MessageBuilder mb = new MessageBuilder();
+        if (redisHandler.hasContent(groupName, GITHUB_REPOSITORY_KEEP_KEY)) {
+            String gitUrl = redisHandler.readPairByKey(groupName, GITHUB_REPOSITORY_KEEP_KEY);
+            String username = gitUrl.split("/")[3];
+            String repository = gitUrl.split("/")[4].split("\\.")[0];
+            String contributionUrl = contributionAnalysisUrl
+                    .replace("{username}", username)
+                    .replace("{repository}", repository);
+            mb.append("ok, got it.\n");
+            mb.append("This is your group's contribution analysis for master branch ! :grinning:\n");
+            EmbedBuilder eb = new EmbedBuilder();
+            eb.addField(groupTopic, "[" + repository + "](" + contributionUrl + ")", false);
+            mb.setEmbeds(eb.build());
+        } else {
+            System.out.println("[WARNING] GitHub Repository has not been set.");
+            mb.append("```properties" + "\n[WARNING] Your GitHub Repository has not been set.```");
+        }
         return mb.build();
     }
 }

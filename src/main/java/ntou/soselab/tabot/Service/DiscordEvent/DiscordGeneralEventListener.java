@@ -70,13 +70,6 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         System.out.println("[JDA onReady]: channel map init complete.");
 
         // create global slash command
-        // TODO (personal_score_query)
-        // personal_score_query -> show all score
-
-//        event.getJDA().upsertCommand("global_test", "global command test").queue();
-//        event.getJDA().upsertCommand("contact_ta", "direct contact ta")
-//                .addOption(OptionType.STRING, "msg", "message content", true)
-//                .queue();
         event.getJDA()
                 .upsertCommand("send_anonymous_question", "Send an anonymous question during class.")
                 .addOption(OptionType.STRING, "question", "Anonymous question", true)
@@ -110,6 +103,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         event.getJDA()
                 .getGuildById(serverId)
                 .upsertCommand("read_keep", "Read content in group keep note, all group members can see the content.")
+                .addOption(OptionType.STRING, "key", "the key of content", false)
                 .queue();
 
         event.getJDA()
@@ -124,23 +118,18 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
                 .upsertCommand("delete_keep", "Delete content from group keep note, all group members can see the content.")
                 .addOption(OptionType.STRING, "key", "the key of content", true)
                 .queue();
-//        event.getJDA().getGuildById(serverId).upsertCommand("guild_test", "testing guild command")
-//                .addOption(OptionType.STRING, "msg", "test option", true)
-//                .queue();
-//        event.getJDA().getGuildById(serverId).upsertCommand("send_public_as_bot", "send message as bot")
-//                .addOption(OptionType.CHANNEL, "channel", "target channel", true)
-//                .addOption(OptionType.STRING, "message", "message content", true)
-//                .queue();
-//        event.getJDA().getGuildById(serverId).upsertCommand("send_private_as_bot", "send private message as bot")
-//                .addOption(OptionType.USER, "user", "target user", true)
-//                .addOption(OptionType.STRING, "message", "message content", true)
-//                .queue();
-//        event.getJDA().getGuildById(serverId).upsertCommand("suggest_material", "suggest material")
-//                .addOption(OptionType.STRING, "section", "suggest section", true)
-//                .addOption(OptionType.STRING, "title", "suggest title", true)
-//                .addOption(OptionType.STRING, "content", "suggestion content", true)
-//                .addOption(OptionType.STRING, "note", "suggestion remark", true)
-//                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("set_github_repository", "Set up the group's GitHub repository for full functionality.")
+                .addOption(OptionType.STRING, "https_url", "https url of your group's repository", true)
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("contribution_analysis", "Analyze team members' contributions to the MASTER branch, you have to make it PUBLIC.")
+                .queue();
+
         /* print current slash command */
         event.getJDA().retrieveCommands().queue(commands -> {
             System.out.println("[DEBUG][onReady] available global command: " + commands);
@@ -150,10 +139,6 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         });
         System.out.println("<< [DEBUG] all role: " + guild.getRoles());
         System.out.println("<< [DEBUG] bot role: " + guild.getBotRole());
-        /* testing: send hyperlink in message */
-//        channelMap.get("test").sendMessage(new MessageBuilder().setEmbeds(new EmbedBuilder().addField("link", ":smile: [test](https://google.com)", false).build()).build()).queue();
-        // testing: send message with action row
-//        channelMap.get("test").sendMessage(new MessageBuilder().append("testing content").setActionRows(ActionRow.of(Button.primary("optB", "b"), Button.success("optA", "a"))).build()).queue();
     }
 
     @Override
