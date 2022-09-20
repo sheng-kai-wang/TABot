@@ -24,8 +24,6 @@ import java.util.regex.Pattern;
  */
 @Service
 public class DiscordGeneralEventListener extends ListenerAdapter {
-
-    private final String testUserId = "286145047169335298";
     private final String serverId;
     private final String studentRoleId;
     private final String taCategoryId;
@@ -96,8 +94,22 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         event.getJDA()
                 .getGuildById(serverId)
                 .upsertCommand("create_keep", "Create content to group keep note, all group members can see the content.")
-                .addOption(OptionType.STRING, "key", "the key of content", true)
+                .addOption(OptionType.STRING, "keys", "the keys of content, you can use multiple keys seperated by commas like (alias_1, alias_2, ...)", true)
                 .addOption(OptionType.STRING, "value", "the value of content", true)
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("create_aliases_of_keep's_key", "create aliases of keep's key")
+                .addOption(OptionType.STRING, "key", "the key of content", true)
+                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like (alias_1, alias_2, ...)", true)
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("delete_aliases_of_keep's_key", "delete aliases of keep's key")
+                .addOption(OptionType.STRING, "key", "the key of content", true)
+                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like (alias_1, alias_2, ...)", true)
                 .queue();
 
         event.getJDA()
