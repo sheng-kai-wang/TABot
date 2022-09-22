@@ -35,7 +35,7 @@ public class SlashCommandHandleService {
     public final String NO_GROUP = "no group";
     public final String NOT_STUDENT = "not student";
     private final String DOWN_ARROW = "↓";
-    private final String GITHUB_REPOSITORY_KEEP_KEY = "GitHub_repo";
+    private final String GITHUB_REPOSITORY_KEEP_KEY_PREFIX = "[repo]";
 
     @Autowired
     public SlashCommandHandleService(Environment env) {
@@ -52,7 +52,7 @@ public class SlashCommandHandleService {
     public Message getAnonymousQuestionResponse(String question) {
         MessageBuilder mb = new MessageBuilder();
         mb.append("ok, got it.\n");
-        mb.append("Your question is `").append(question).append("`.\n");
+        mb.append("Your question is `").append(question).append("`\n");
         mb.setEmbeds(new EmbedBuilder()
                 .addField("Click the link below to view", "[anonymous-question](" + anonymousQuestionChannelUrl + ")", false)
                 .build());
@@ -221,7 +221,7 @@ public class SlashCommandHandleService {
                 .forEach(key -> {
                     String value = scoreMap.get(key).toString().split("\"")[1];
                     key = key.replaceAll(" ", "_");
-                    mb.append(key).append(" = ").append(value).append("\n");
+                    mb.append(key).append(": ").append(value).append("\n");
                 });
         mb.append("```");
         return mb.build();
@@ -257,24 +257,109 @@ public class SlashCommandHandleService {
         }
     }
 
-    public Message createKeep(String groupName, String key, String value) {
+    public Message createKeep(String groupName, String keys, String value) {
         MessageBuilder mb = new MessageBuilder();
-        if (redisHandler.hasContent(groupName, key)) {
+
+        // format keys
+        StringBuilder sb = new StringBuilder();
+        Arrays.stream(keys.split(",")).forEach(k -> {
+            sb.append(k.trim().replace(" ", "_")).append(",");
+        });
+        String formattedKeys = sb.deleteCharAt(sb.length() - 1).toString();
+
+        if (redisHandler.hasSameKey(groupName, formattedKeys)) {
             System.out.println("[WARNING] This key already exists.");
             return mb.append("```properties" + "\n[WARNING] This key already exists.```").build();
         }
-        redisHandler.createPair(groupName, key, value);
+        redisHandler.createPair(groupName, formattedKeys, value);
         mb.append("ok, got it.\n");
         mb.append("you created a content:\n");
         mb.append("```properties\n");
-        mb.append(key).append(" = ").append(value).append("\n");
+        mb.append(formattedKeys).append(": ").append(value).append("\n");
+        mb.append("```");
+        return mb.build();
+    }
+
+    public Message createAliasesOfKey(String groupName, String key, String aliases) {
+        MessageBuilder mb = new MessageBuilder();
+
+        // format key
+        String formattedKey = key.trim().replace(" ", "_");
+
+        if (!redisHandler.hasSameKey(groupName, formattedKey)) {
+            System.out.println("[WARNING] There is no such key in the keep.");
+            return mb.append("```properties" + "\n[WARNING] There is no such key in the keep.```").build();
+        }
+
+        String oldKey = redisHandler.getCompletedKey(groupName, formattedKey);
+
+        // format aliases
+        Set<String> aliasSet = new HashSet<>(List.of(aliases.split(",")));
+        StringBuilder sb = new StringBuilder();
+        aliasSet.forEach(a -> {
+            if (!oldKey.contains(a)) sb.append(a.trim().replace(" ", "_")).append(",");
+        });
+        String formattedAliases = sb.deleteCharAt(sb.length() - 1).toString();
+
+        String newKey = oldKey + "," + formattedAliases;
+        String value = redisHandler.readPairByKey(groupName, formattedKey);
+
+        // update pair's key
+        redisHandler.createPair(groupName, newKey, value);
+        redisHandler.deletePair(groupName, oldKey);
+
+        mb.append("ok, got it.\n");
+        mb.append("You updated the key of a content:\n");
+        mb.append("```properties\n");
+        mb.append(newKey).append(": ").append(value).append("\n");
+        mb.append("```");
+        return mb.build();
+    }
+
+    public Message deleteAliasesOfKey(String groupName, String key, String aliases) {
+        MessageBuilder mb = new MessageBuilder();
+
+        // format key
+        String formattedKey = key.trim().replace(" ", "_");
+
+        if (!redisHandler.hasSameKey(groupName, formattedKey)) {
+            System.out.println("[WARNING] There is no such key in the keep.");
+            return mb.append("```properties" + "\n[WARNING] There is no such key in the keep.```").build();
+        }
+
+        // format aliases
+        Set<String> aliasSet = new HashSet<>(List.of(aliases.split(",")));
+        StringBuilder aliasSb = new StringBuilder();
+        aliasSet.forEach(a -> {
+            aliasSb.append(a.trim().replace(" ", "_")).append(",");
+        });
+        String formattedAliases = aliasSb.deleteCharAt(aliasSb.length() - 1).toString();
+
+        // remove aliases from oldKey
+        String oldKey = redisHandler.getCompletedKey(groupName, formattedKey);
+        StringBuilder newKeySb = new StringBuilder();
+        List.of(oldKey.split(",")).forEach(k -> {
+            if (!formattedAliases.contains(k)) newKeySb.append(k).append(",");
+        });
+        String newKey = newKeySb.deleteCharAt(newKeySb.length() - 1).toString();
+
+        String value = redisHandler.readPairByKey(groupName, formattedKey);
+
+        // update pair's key
+        redisHandler.createPair(groupName, newKey, value);
+        redisHandler.deletePair(groupName, oldKey);
+
+        mb.append("ok, got it.\n");
+        mb.append("You updated the key of a content:\n");
+        mb.append("```properties\n");
+        mb.append(newKey).append(": ").append(value).append("\n");
         mb.append("```");
         return mb.build();
     }
 
     public Message readKeep(String groupName, String key) {
-        Map allPair = redisHandler.readPairAll(groupName);
         MessageBuilder mb = new MessageBuilder();
+        Map allPair = redisHandler.readPairAll(groupName);
         if (allPair.size() == 0) {
             System.out.println("[WARNING] no content yet.");
             return mb.append("```properties" + "\n[WARNING] no content yet.```").build();
@@ -283,14 +368,18 @@ public class SlashCommandHandleService {
         mb.append("The following are the contents of your group's keep:\n");
         mb.append("```properties\n");
         if (key == null) {
-            allPair.forEach((k, v) -> mb.append(k).append(" = ").append(v).append("\n"));
+            allPair.forEach((k, v) -> mb.append(k).append(": ").append(v).append("\n"));
         } else {
-            if (redisHandler.hasContent(groupName, key)) {
-                mb.append(key).append(" = ").append(String.valueOf(allPair.get(key)));
-            } else {
-                mb.append("[WARNING] There is no such key in the keep.");
+            // format key
+            String formattedKey = key.trim().replace(" ", "_");
+
+            if (!redisHandler.hasSameKey(groupName, formattedKey)) {
                 System.out.println("[WARNING] There is no such key in the keep.");
+                return mb.append("[WARNING] There is no such key in the keep.```").build();
             }
+
+            String completedKey = redisHandler.getCompletedKey(groupName, formattedKey);
+            mb.append(completedKey).append(": ").append(String.valueOf(allPair.get(completedKey)));
         }
         mb.append("```");
         return mb.build();
@@ -298,56 +387,68 @@ public class SlashCommandHandleService {
 
     public Message updateKeep(String groupName, String key, String value) {
         MessageBuilder mb = new MessageBuilder();
-        if (!redisHandler.hasContent(groupName, key)) {
+
+        // format key
+        String formattedKey = key.trim().replace(" ", "_");
+
+        if (!redisHandler.hasSameKey(groupName, formattedKey)) {
             System.out.println("[WARNING] There is no such key in the keep.");
             return mb.append("```properties" + "\n[WARNING] There is no such key in the keep.```").build();
         }
-        String oldValue = redisHandler.updatePair(groupName, key, value);
+
+        String completedKey = redisHandler.getCompletedKey(groupName, formattedKey);
+        String oldValue = redisHandler.updatePair(groupName, completedKey, value);
         System.out.println("[Old Value] " + oldValue);
         System.out.println("[New Value] " + value);
         mb.append("ok, got it.\n");
         mb.append("you update a content:\n");
         mb.append("```properties\n");
-        mb.append(key).append(" = ").append(oldValue).append("\n");
+        mb.append(completedKey).append(": ").append(oldValue).append("\n");
         mb.append(DOWN_ARROW).append("\n");
-        mb.append(key).append(" = ").append(value).append("\n");
+        mb.append(completedKey).append(": ").append(value).append("\n");
         mb.append("```");
         return mb.build();
     }
 
     public Message deleteKeep(String groupName, String key) {
         MessageBuilder mb = new MessageBuilder();
-        if (!redisHandler.hasContent(groupName, key)) {
+
+        // format key
+        String formattedKey = key.trim().replace(" ", "_");
+
+        if (!redisHandler.hasSameKey(groupName, formattedKey)) {
             System.out.println("[WARNING] There is no such key in the keep.");
             return mb.append("```properties" + "\n[WARNING] There is no such key in the keep.```").build();
         }
-        String deletedValue = redisHandler.deletePair(groupName, key);
+
+        String completedKey = redisHandler.getCompletedKey(groupName, formattedKey);
+        String deletedValue = redisHandler.deletePair(groupName, completedKey);
         System.out.println("[Deleted Value] " + deletedValue);
         mb.append("ok, got it.\n");
         mb.append("you deleted a content:\n");
         mb.append("```properties\n");
-        mb.append(key).append(" = ").append(deletedValue).append("\n");
+        mb.append(completedKey).append(": ").append(deletedValue).append("\n");
         mb.append("```");
         return mb.build();
     }
 
     public Message setRepository(String groupName, String url) {
         MessageBuilder mb = new MessageBuilder();
-        redisHandler.createPair(groupName, GITHUB_REPOSITORY_KEEP_KEY, url);
+        String repository = url.split("/")[4].split("\\.")[0];
+        redisHandler.createPair(groupName, GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository, url);
         mb.append("ok, got it.\n");
         mb.append("you created a content:\n");
         mb.append("```properties\n");
-        mb.append(GITHUB_REPOSITORY_KEEP_KEY).append(" = ").append(url).append("\n");
+        mb.append(GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository).append(": ").append(url).append("\n");
         mb.append("```");
         return mb.build();
     }
 
-    public Message contributionAnalysis(String groupName, String groupTopic) {
+    public Message contributionAnalysis(String groupName, String groupTopic, String repository) {
         MessageBuilder mb = new MessageBuilder();
-        if (redisHandler.hasContent(groupName, GITHUB_REPOSITORY_KEEP_KEY)) {
-            String gitUrl = redisHandler.readPairByKey(groupName, GITHUB_REPOSITORY_KEEP_KEY);
+        if (redisHandler.hasSameKey(groupName, GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository)) {
+            String gitUrl = redisHandler.readPairByKey(groupName, GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository);
             String username = gitUrl.split("/")[3];
-            String repository = gitUrl.split("/")[4].split("\\.")[0];
             String contributionUrl = contributionAnalysisUrl
                     .replace("{username}", username)
                     .replace("{repository}", repository);
@@ -357,8 +458,8 @@ public class SlashCommandHandleService {
             eb.addField(groupTopic, "[" + repository + "](" + contributionUrl + ")", false);
             mb.setEmbeds(eb.build());
         } else {
-            System.out.println("[WARNING] GitHub Repository has not been set.");
-            mb.append("```properties" + "\n[WARNING] Your GitHub Repository has not been set.```");
+            System.out.println("[WARNING] This repository has not been set.");
+            mb.append("```properties" + "\n[WARNING] This repository has not been set.```");
         }
         return mb.build();
     }

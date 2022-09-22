@@ -89,7 +89,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             System.out.println("[Question] " + question);
             Message response = slashCommandHandleService.getAnonymousQuestionResponse(question);
             event.reply(response).setEphemeral(true).queue();
-            targetChannel.sendMessage("[Question] " + question).queue();
+            targetChannel.sendMessage("```yaml" + "\nQuestion: " + question + "```").queue();
         }
 
         if (event.getName().equals("read_ppt")) {
@@ -139,11 +139,29 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             }
 
             if (event.getName().equals("create_keep")) {
-                String key = event.getOption("key").getAsString();
-                System.out.println("[Key] " + key);
+                String keys = event.getOption("keys").getAsString();
+                System.out.println("[Keys] " + keys);
                 String value = event.getOption("value").getAsString();
                 System.out.println("[Value] " + value);
-                Message response = slashCommandHandleService.createKeep(groupName, key, value);
+                Message response = slashCommandHandleService.createKeep(groupName, keys, value);
+                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            }
+
+            if (event.getName().equals("create_aliases_of_key")) {
+                String key = event.getOption("key").getAsString();
+                System.out.println("[Key] " + key);
+                String aliases = event.getOption("key_aliases").getAsString();
+                System.out.println("[Key Aliases] " + aliases);
+                Message response = slashCommandHandleService.createAliasesOfKey(groupName, key, aliases);
+                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            }
+
+            if (event.getName().equals("delete_aliases_of_key")) {
+                String key = event.getOption("key").getAsString();
+                System.out.println("[Key] " + key);
+                String aliases = event.getOption("key_aliases").getAsString();
+                System.out.println("[Key Aliases] " + aliases);
+                Message response = slashCommandHandleService.deleteAliasesOfKey(groupName, key, aliases);
                 event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
             }
 
@@ -177,13 +195,15 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
             if (event.getName().equals("set_github_repository")) {
                 String url = event.getOption("https_url").getAsString();
-                System.out.println("[https url] " + url);
+                System.out.println("[Https Url] " + url);
                 Message response = slashCommandHandleService.setRepository(groupName, url);
                 event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
             }
 
             if (event.getName().equals("contribution_analysis")) {
-                Message response = slashCommandHandleService.contributionAnalysis(groupName, groupTopic);
+                String repository = event.getOption("repository_name").getAsString();
+                System.out.println("[Repository Name] " + repository);
+                Message response = slashCommandHandleService.contributionAnalysis(groupName, groupTopic, repository);
                 event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
             }
         }

@@ -70,7 +70,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         // create global slash command
         event.getJDA()
                 .upsertCommand("send_anonymous_question", "Send an anonymous question during class.")
-                .addOption(OptionType.STRING, "question", "Anonymous question", true)
+                .addOption(OptionType.STRING, "question", "anonymous question", true)
                 .queue();
 
         event.getJDA()
@@ -94,52 +94,53 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         event.getJDA()
                 .getGuildById(serverId)
                 .upsertCommand("create_keep", "Create content to group keep note, all group members can see the content.")
-                .addOption(OptionType.STRING, "keys", "the keys of content, you can use multiple keys seperated by commas like (alias_1, alias_2, ...)", true)
+                .addOption(OptionType.STRING, "keys", "the keys of content, you can use multiple keys seperated by commas like (alias_1,alias_2,...)", true)
                 .addOption(OptionType.STRING, "value", "the value of content", true)
                 .queue();
 
         event.getJDA()
                 .getGuildById(serverId)
-                .upsertCommand("create_aliases_of_keep's_key", "create aliases of keep's key")
-                .addOption(OptionType.STRING, "key", "the key of content", true)
-                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like (alias_1, alias_2, ...)", true)
+                .upsertCommand("create_aliases_of_key", "create aliases of keep's key")
+                .addOption(OptionType.STRING, "key", "one key of the content", true)
+                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like (alias_1,alias_2,...)", true)
                 .queue();
 
         event.getJDA()
                 .getGuildById(serverId)
-                .upsertCommand("delete_aliases_of_keep's_key", "delete aliases of keep's key")
-                .addOption(OptionType.STRING, "key", "the key of content", true)
-                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like (alias_1, alias_2, ...)", true)
+                .upsertCommand("delete_aliases_of_key", "delete aliases of keep's key")
+                .addOption(OptionType.STRING, "key", "one key of the content", true)
+                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like (alias_1,alias_2,...)", true)
                 .queue();
 
         event.getJDA()
                 .getGuildById(serverId)
                 .upsertCommand("read_keep", "Read content in group keep note, all group members can see the content.")
-                .addOption(OptionType.STRING, "key", "the key of content", false)
+                .addOption(OptionType.STRING, "key", "one key of the content", false)
                 .queue();
 
         event.getJDA()
                 .getGuildById(serverId)
                 .upsertCommand("update_keep", "Update content in group keep note, all group members can see the content.")
-                .addOption(OptionType.STRING, "key", "the key of content", true)
+                .addOption(OptionType.STRING, "key", "one key of the content", true)
                 .addOption(OptionType.STRING, "value", "the value of content", true)
                 .queue();
 
         event.getJDA()
                 .getGuildById(serverId)
                 .upsertCommand("delete_keep", "Delete content from group keep note, all group members can see the content.")
-                .addOption(OptionType.STRING, "key", "the key of content", true)
+                .addOption(OptionType.STRING, "key", "one key of the content", true)
                 .queue();
 
         event.getJDA()
                 .getGuildById(serverId)
-                .upsertCommand("set_github_repository", "Set up the group's GitHub repository for full functionality.")
+                .upsertCommand("set_github_repository", "Set up the group's GitHub repository for full TABot functionality.")
                 .addOption(OptionType.STRING, "https_url", "https url of your group's repository", true)
                 .queue();
 
         event.getJDA()
                 .getGuildById(serverId)
                 .upsertCommand("contribution_analysis", "Analyze team members' contributions to the MASTER branch, you have to make it PUBLIC.")
+                .addOption(OptionType.STRING, "repository_name", "one of the repository name of your group (case sensitive)", true)
                 .queue();
 
         /* print current slash command */
