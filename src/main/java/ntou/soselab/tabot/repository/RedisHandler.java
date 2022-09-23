@@ -47,7 +47,7 @@ public class RedisHandler {
 
     public String deletePair(String groupName, String key) {
 //        setSerializer();
-        String deletedValue = (String) hashOperations.get(groupName, key);
+        String deletedValue = hashOperations.get(groupName, key).toString();
         hashOperations.delete(groupName, key);
         return deletedValue;
     }
@@ -68,8 +68,9 @@ public class RedisHandler {
     public String getCompletedKey(String groupName, String key) {
         Iterator it = hashOperations.keys(groupName).iterator();
         while (it.hasNext()) {
-            String completedKeyString = it.next().toString();
-            if (completedKeyString.contains(key)) return completedKeyString;
+            String keyAliases = it.next().toString();
+            String[] keyAliasesArray = keyAliases.split(",");
+            if (Arrays.stream(keyAliasesArray).anyMatch(key::equals)) return keyAliases;
         }
         return null;
     }

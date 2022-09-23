@@ -297,7 +297,9 @@ public class SlashCommandHandleService {
         Set<String> aliasSet = new HashSet<>(List.of(aliases.split(",")));
         StringBuilder sb = new StringBuilder();
         aliasSet.forEach(a -> {
-            if (!oldKey.contains(a)) sb.append(a.trim().replace(" ", "_")).append(",");
+            if (!Arrays.stream(oldKey.split(",")).anyMatch(a::equals)) {
+                sb.append(a.trim().replace(" ", "_")).append(",");
+            }
         });
         String formattedAliases = sb.deleteCharAt(sb.length() - 1).toString();
 
@@ -339,7 +341,9 @@ public class SlashCommandHandleService {
         String oldKey = redisHandler.getCompletedKey(groupName, formattedKey);
         StringBuilder newKeySb = new StringBuilder();
         List.of(oldKey.split(",")).forEach(k -> {
-            if (!formattedAliases.contains(k)) newKeySb.append(k).append(",");
+            if (!Arrays.stream(formattedAliases.split(",")).anyMatch(k::equals)) {
+                newKeySb.append(k).append(",");
+            }
         });
         String newKey = newKeySb.deleteCharAt(newKeySb.length() - 1).toString();
 
@@ -359,6 +363,7 @@ public class SlashCommandHandleService {
 
     public Message readKeep(String groupName, String key) {
         MessageBuilder mb = new MessageBuilder();
+        EmbedBuilder eb = new EmbedBuilder();
         Map allPair = redisHandler.readPairAll(groupName);
         if (allPair.size() == 0) {
             System.out.println("[WARNING] no content yet.");
@@ -368,7 +373,12 @@ public class SlashCommandHandleService {
         mb.append("The following are the contents of your group's keep:\n");
         mb.append("```properties\n");
         if (key == null) {
-            allPair.forEach((k, v) -> mb.append(k).append(": ").append(v).append("\n"));
+            allPair.forEach((k, v) -> {
+                if (v.toString().toLowerCase().startsWith("https://")) {
+                    eb.addField(k.toString(), "[" + v + "](" + v + ")", false);
+                }
+                mb.append(k).append(": ").append(v).append("\n");
+            });
         } else {
             // format key
             String formattedKey = key.trim().replace(" ", "_");
@@ -379,9 +389,12 @@ public class SlashCommandHandleService {
             }
 
             String completedKey = redisHandler.getCompletedKey(groupName, formattedKey);
-            mb.append(completedKey).append(": ").append(String.valueOf(allPair.get(completedKey)));
+            String value = allPair.get(completedKey).toString();
+            eb.addField(completedKey, "[" + value + "](" + value + ")", false);
+            mb.append(completedKey).append(": ").append(value);
         }
         mb.append("```");
+        mb.setEmbeds(eb.build());
         return mb.build();
     }
 
