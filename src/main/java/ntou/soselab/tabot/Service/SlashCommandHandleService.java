@@ -298,7 +298,9 @@ public class SlashCommandHandleService {
         StringBuilder sb = new StringBuilder();
         aliasSet.forEach(a -> {
             if (!Arrays.stream(oldKey.split(",")).anyMatch(a::equals)) {
-                sb.append(a.trim().replace(" ", "_")).append(",");
+                if (!a.startsWith(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
+                    sb.append(a.trim().replace(" ", "_")).append(",");
+                }
             }
         });
         String formattedAliases = sb.deleteCharAt(sb.length() - 1).toString();
@@ -307,8 +309,8 @@ public class SlashCommandHandleService {
         String value = redisHandler.readPairByKey(groupName, formattedKey);
 
         // update pair's key
-        redisHandler.createPair(groupName, newKey, value);
         redisHandler.deletePair(groupName, oldKey);
+        redisHandler.createPair(groupName, newKey, value);
 
         mb.append("ok, got it.\n");
         mb.append("You updated the key of a content:\n");
@@ -333,7 +335,9 @@ public class SlashCommandHandleService {
         Set<String> aliasSet = new HashSet<>(List.of(aliases.split(",")));
         StringBuilder aliasSb = new StringBuilder();
         aliasSet.forEach(a -> {
-            aliasSb.append(a.trim().replace(" ", "_")).append(",");
+            if (!a.startsWith(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
+                aliasSb.append(a.trim().replace(" ", "_")).append(",");
+            }
         });
         String formattedAliases = aliasSb.deleteCharAt(aliasSb.length() - 1).toString();
 
@@ -350,8 +354,8 @@ public class SlashCommandHandleService {
         String value = redisHandler.readPairByKey(groupName, formattedKey);
 
         // update pair's key
-        redisHandler.createPair(groupName, newKey, value);
         redisHandler.deletePair(groupName, oldKey);
+        redisHandler.createPair(groupName, newKey, value);
 
         mb.append("ok, got it.\n");
         mb.append("You updated the key of a content:\n");
