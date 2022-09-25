@@ -139,8 +139,15 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
         event.getJDA()
                 .getGuildById(serverId)
-                .upsertCommand("contribution_analysis", "Analyze team members' contributions to the MASTER branch, you have to make it PUBLIC.")
-                .addOption(OptionType.STRING, "repository_name", "one of the repository name of your group (case sensitive)", true)
+                .upsertCommand("contribution_analysis", "Analyze team members' contributions to the MAIN branch, and you have to make it PUBLIC.")
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("commit_search", "Search the repository's commitment, view the content or revert the version.")
+                .addOption(OptionType.STRING, "keywords", "keywords for commit message", true)
+                .addOption(OptionType.STRING, "repository_name", "you can use (repo_1,repo_2,...) or keep empty to search multiple or all repositories.", false)
+                .addOption(OptionType.INTEGER, "quantity", "the quantity of response, keep empty to return 5 commitments (default value).", false)
                 .queue();
 
         /* print current slash command */

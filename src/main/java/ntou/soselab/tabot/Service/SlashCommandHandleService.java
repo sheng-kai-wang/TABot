@@ -261,11 +261,19 @@ public class SlashCommandHandleService {
         MessageBuilder mb = new MessageBuilder();
 
         // format keys
-        StringBuilder sb = new StringBuilder();
+        StringBuilder keySb = new StringBuilder();
         Arrays.stream(keys.split(",")).forEach(k -> {
-            sb.append(k.trim().replace(" ", "_")).append(",");
+            if (!k.startsWith(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
+                keySb.append(k.trim().replace(" ", "_")).append(",");
+            }
         });
-        String formattedKeys = sb.deleteCharAt(sb.length() - 1).toString();
+        String formattedKeys;
+        if (keySb.length() > 0) {
+            formattedKeys = keySb.deleteCharAt(keySb.length() - 1).toString();
+        } else {
+            System.out.println("[WARNING] Can't use these keys.");
+            return mb.append("```properties" + "\n[WARNING] Sorry, you cannot use these keys.```").build();
+        }
 
         if (redisHandler.hasSameKey(groupName, formattedKeys)) {
             System.out.println("[WARNING] This key already exists.");
@@ -295,15 +303,21 @@ public class SlashCommandHandleService {
 
         // format aliases
         Set<String> aliasSet = new HashSet<>(List.of(aliases.split(",")));
-        StringBuilder sb = new StringBuilder();
+        StringBuilder aliasSb = new StringBuilder();
         aliasSet.forEach(a -> {
             if (!Arrays.stream(oldKey.split(",")).anyMatch(a::equals)) {
                 if (!a.startsWith(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
-                    sb.append(a.trim().replace(" ", "_")).append(",");
+                    aliasSb.append(a.trim().replace(" ", "_")).append(",");
                 }
             }
         });
-        String formattedAliases = sb.deleteCharAt(sb.length() - 1).toString();
+        String formattedAliases;
+        if (aliasSb.length() > 0) {
+            formattedAliases = aliasSb.deleteCharAt(aliasSb.length() - 1).toString();
+        } else {
+            System.out.println("[WARNING] Can't use these aliases.");
+            return mb.append("```properties" + "\n[WARNING] Sorry, you cannot use these aliases.```").build();
+        }
 
         String newKey = oldKey + "," + formattedAliases;
         String value = redisHandler.readPairByKey(groupName, formattedKey);
@@ -339,7 +353,13 @@ public class SlashCommandHandleService {
                 aliasSb.append(a.trim().replace(" ", "_")).append(",");
             }
         });
-        String formattedAliases = aliasSb.deleteCharAt(aliasSb.length() - 1).toString();
+        String formattedAliases;
+        if (aliasSb.length() > 0) {
+            formattedAliases = aliasSb.deleteCharAt(aliasSb.length() - 1).toString();
+        } else {
+            System.out.println("[WARNING] Can't delete these aliases.");
+            return mb.append("```properties" + "\n[WARNING] Sorry, you cannot delete these aliases.```").build();
+        }
 
         // remove aliases from oldKey
         String oldKey = redisHandler.getCompletedKey(groupName, formattedKey);
@@ -349,7 +369,13 @@ public class SlashCommandHandleService {
                 newKeySb.append(k).append(",");
             }
         });
-        String newKey = newKeySb.deleteCharAt(newKeySb.length() - 1).toString();
+        String newKey;
+        if (newKeySb.length() > 0) {
+            newKey = newKeySb.deleteCharAt(newKeySb.length() - 1).toString();
+        } else {
+            System.out.println("[WARNING] Can't delete all of aliases.");
+            return mb.append("```properties" + "\n[WARNING] Sorry, you cannot delete all of aliases.```").build();
+        }
 
         String value = redisHandler.readPairByKey(groupName, formattedKey);
 
@@ -461,23 +487,35 @@ public class SlashCommandHandleService {
         return mb.build();
     }
 
-    public Message contributionAnalysis(String groupName, String groupTopic, String repository) {
+    public Message contributionAnalysis(String groupName, String groupTopic) {
         MessageBuilder mb = new MessageBuilder();
-        if (redisHandler.hasSameKey(groupName, GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository)) {
-            String gitUrl = redisHandler.readPairByKey(groupName, GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository);
-            String username = gitUrl.split("/")[3];
-            String contributionUrl = contributionAnalysisUrl
-                    .replace("{username}", username)
-                    .replace("{repository}", repository);
-            mb.append("ok, got it.\n");
-            mb.append("This is your group's contribution analysis for master branch ! :grinning:\n");
-            EmbedBuilder eb = new EmbedBuilder();
-            eb.addField(groupTopic, "[" + repository + "](" + contributionUrl + ")", false);
-            mb.setEmbeds(eb.build());
-        } else {
-            System.out.println("[WARNING] This repository has not been set.");
-            mb.append("```properties" + "\n[WARNING] This repository has not been set.```");
+
+        HashMap<String, String> repoMap = new HashMap<>();
+        redisHandler.readPairAll(groupName).forEach((k, v) -> {
+            if (k.toString().startsWith(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
+                String repository = k.toString().split(",")[0].replace(GITHUB_REPOSITORY_KEEP_KEY_PREFIX, "");
+                repoMap.put(repository, v.toString());
+            }
+        });
+
+        if (repoMap.size() == 0) {
+            System.out.println("[WARNING] Hasn't set up any repository.");
+            return mb.append("```properties" + "\n[WARNING] You haven't set up any repository, please use \"/set_github_repository\" command.```").build();
         }
+
+        mb.append("ok, got it.\n");
+        mb.append("These are your group's contribution analysis for MAIN branch ! :grinning:\n");
+        StringBuilder linkSb = new StringBuilder();
+        repoMap.forEach((k, v) -> {
+            String username = v.split("/")[3];
+            String contributionUrl = contributionAnalysisUrl
+                    .replace("<<username>>", username)
+                    .replace("<<repository>>", k);
+            linkSb.append("[").append(k).append("](").append(contributionUrl).append(")\n");
+        });
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.addField(groupTopic, linkSb.toString(), false);
+        mb.setEmbeds(eb.build());
         return mb.build();
     }
 }
