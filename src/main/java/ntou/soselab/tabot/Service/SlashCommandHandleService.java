@@ -518,4 +518,8 @@ public class SlashCommandHandleService {
         mb.setEmbeds(eb.build());
         return mb.build();
     }
+
+    public Message commitmentRetrieval(String groupName, String repository, int quantity, String keywords) {
+        return null;
+    }
 }

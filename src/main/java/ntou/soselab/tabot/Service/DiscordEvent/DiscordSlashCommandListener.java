@@ -205,16 +205,16 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
             }
 
-//            if (event.getName().equals("commit_search")) {
-//                String keywords = event.getOption("keywords").getAsString();
-//                System.out.println("[Keywords] " + keywords);
-//                String repository = event.getOption("repository_name").getAsString();
-//                System.out.println("[Repository Name] " + repository);
-//                int quantity = (int) event.getOption("quantity").getAsLong();
-//                System.out.println("[Quantity] " + quantity);
-//                Message response = slashCommandHandleService.commitSearch(groupName, groupTopic, repository);
-//                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
-//            }
+            if (event.getName().equals("commitment_retrieval")) {
+                String keywords = event.getOption("keywords").getAsString();
+                System.out.println("[Keywords] " + keywords);
+                String repository = event.getOption("repository_name").getAsString();
+                System.out.println("[Repository Name] " + repository);
+                int quantity = (int) event.getOption("quantity").getAsLong();
+                System.out.println("[Quantity] " + quantity);
+                Message response = slashCommandHandleService.commitmentRetrieval(groupName, repository, quantity, keywords);
+                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+            }
         }
         System.out.println("<<< end of current slash command event");
         System.out.println();
