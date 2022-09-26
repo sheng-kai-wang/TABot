@@ -1,12 +1,12 @@
 # cd to /workspace/TABot
 
 # create folders for volumes
-# mkdir neo4j
-# cd neo4j
-# mkdir SE
-# cd SE
-# mkdir data logs conf import
-# cd ../..
+mkdir neo4j
+cd neo4j
+mkdir SE
+cd SE
+mkdir data logs conf import
+cd ../..
 
 # run container
 docker run \
