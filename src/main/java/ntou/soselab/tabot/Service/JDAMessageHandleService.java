@@ -86,7 +86,7 @@ public class JDAMessageHandleService {
         DiscordGeneralEventListener.guild.retrieveMemberById(receiverId).queue(member -> {
             member.getUser().openPrivateChannel().queue(channel -> {
                 channel.retrieveMessageById(messageId).queue(msg -> {
-                    msg.reply(PRE_MESSAGE).queue();
+                    msg.reply(PRE_MESSAGE).queue(m -> m.delete().queueAfter(DELAY_TIME, TimeUnit.SECONDS));
                 });
             });
         });

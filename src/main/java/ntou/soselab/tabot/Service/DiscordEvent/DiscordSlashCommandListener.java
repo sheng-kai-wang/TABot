@@ -1,13 +1,11 @@
 package ntou.soselab.tabot.Service.DiscordEvent;
 
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import ntou.soselab.tabot.Exception.NoAccountFoundError;
 import ntou.soselab.tabot.Service.SlashCommandHandleService;
 import ntou.soselab.tabot.Service.UserService;
