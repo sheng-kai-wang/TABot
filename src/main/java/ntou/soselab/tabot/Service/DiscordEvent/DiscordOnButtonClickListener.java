@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * define what bot should do whenever somebody clicked button
  * implement personal question and stuff
@@ -20,9 +22,10 @@ import org.springframework.stereotype.Service;
 public class DiscordOnButtonClickListener extends ListenerAdapter {
 
     private final UserService userService;
+    private final static int DELAY_TIME = 5;
 
     @Autowired
-    public DiscordOnButtonClickListener(UserService userService, Environment env){
+    public DiscordOnButtonClickListener(UserService userService, Environment env) {
         this.userService = userService;
     }
 
@@ -55,11 +58,13 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
         System.out.println("--- [DEBUG][onButton] retrieve quiz: " + quiz);
         String ansOpt = quiz.get("ans").getAsString();
         String ansContent = quiz.get("opt" + ansOpt).getAsString();
-        if(componentId.equals(ansOpt)){
+        if (componentId.equals(ansOpt)) {
             // correct
 //            event.reply("Correct !").queue();
-            event.getHook().sendMessage("Correct !").queue();
-        }else{
+            event.getHook().sendMessage("Correct !").queue(m -> {
+                m.delete().queueAfter(DELAY_TIME, TimeUnit.SECONDS);
+            });
+        } else {
             // wrong
 //            event.reply("Wrong. Correct answer is `" + ansContent + "`").queue();
             event.getHook().sendMessage("Wrong. Correct answer is `" + ansContent + "`").queue();
