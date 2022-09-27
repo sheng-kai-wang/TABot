@@ -18,6 +18,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.*;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class DiscordSlashCommandListener extends ListenerAdapter {
@@ -29,6 +30,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     private final String groupWorkspaceChannelName;
     private final Map<String, String> groupTopicMap;
     private final String groupNamePrefix;
+    private final static int DELAY_TIME = 5;
 
     @Autowired
     public DiscordSlashCommandListener(Environment env) {
@@ -97,7 +99,9 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         }
 
         if (event.getName().equals("personal_quiz")) {
-            event.reply("Set a question...").setEphemeral(true).queue();
+            event.reply("Set a question...").setEphemeral(true).queue(m -> {
+                m.deleteOriginal().queueAfter(DELAY_TIME, TimeUnit.SECONDS);
+            });
             String studentId = judgeStudentId(event);
             System.out.println("[Student ID] " + studentId);
             Message response = slashCommandHandleService.personalQuiz(studentId);
@@ -105,7 +109,9 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         }
 
         if (event.getName().equals("personal_score")) {
-            event.reply("Loading...").setEphemeral(true).queue();
+            event.reply("Loading...").setEphemeral(true).queue(m -> {
+                m.deleteOriginal().queueAfter(DELAY_TIME, TimeUnit.SECONDS);
+            });
             String studentId = judgeStudentId(event);
             System.out.println("[Student ID] " + studentId);
             Message response = slashCommandHandleService.personalScore(studentId);
