@@ -142,14 +142,14 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
                 .upsertCommand("contribution_analysis", "Analyze team members' contributions to the MAIN branch, and you have to make it PUBLIC.")
                 .queue();
 
-        event.getJDA()
-                .getGuildById(serverId)
-                .upsertCommand("commitment_retrieval", "Search the repository's commitment, view the content or revert the version.")
-                .addOption(OptionType.STRING, "keywords", "keywords for commit message", true)
-                .addOption(OptionType.STRING, "repository_name", "you can use (repo_1,repo_2,...) or keep empty to search multiple or all repositories.", false)
-                .addOption(OptionType.STRING, "branch_name", "you can use (branch_1,branch_2,...) or keep empty to search multiple or all branches.", false)
-                .addOption(OptionType.INTEGER, "quantity", "the quantity of response, keep empty to return 5 commitments (default value).", false)
-                .queue();
+//        event.getJDA()
+//                .getGuildById(serverId)
+//                .upsertCommand("commitment_retrieval", "Search the repository's commitment, view the content or revert the version.")
+//                .addOption(OptionType.STRING, "keywords", "keywords for commit message", true)
+//                .addOption(OptionType.STRING, "repository_name", "you can use (repo_1,repo_2,...) or keep empty to search multiple or all repositories.", false)
+//                .addOption(OptionType.STRING, "branch_name", "you can use (branch_1,branch_2,...) or keep empty to search multiple or all branches.", false)
+//                .addOption(OptionType.INTEGER, "quantity", "the quantity of response, keep empty to return 5 commitments (default value).", false)
+//                .queue();
 
         /* print current slash command */
         event.getJDA().retrieveCommands().queue(commands -> {
