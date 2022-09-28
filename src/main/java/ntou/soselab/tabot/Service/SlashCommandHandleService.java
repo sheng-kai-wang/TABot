@@ -223,7 +223,7 @@ public class SlashCommandHandleService {
     public Message readUserRequirements(String groupTopic, String groupName) {
         MessageBuilder mb = new MessageBuilder();
         try {
-            String groupDocPath = userRequirementsFolderPath + File.separator + groupTopic + ".md";
+            String groupDocPath = userRequirementsFolderPath + groupTopic + ".md";
             InputStream is = getClass().getResourceAsStream(groupDocPath);
             if (is != null) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(is));
