@@ -2,6 +2,8 @@ package ntou.soselab.tabot.repository;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.HashOperations;
@@ -21,8 +23,13 @@ public class RedisHandler {
     RedisTemplate<String, HashMap<String, String>> redisTemplate;
 
     HashOperations<String, String, String> hashOperations;
-    private static final String GROUP_PREFIX = "GROUP";
     public final String GITHUB_REPOSITORY_KEEP_KEY_PREFIX = "[repo]";
+    private static String JUDGE_GROUP_NAME_PREFIX;
+
+    @Autowired
+    public RedisHandler(Environment env) {
+        RedisHandler.JUDGE_GROUP_NAME_PREFIX = env.getProperty(" judge-group-name.prefix");
+    }
 
     @PostConstruct
     public void init() {
@@ -88,7 +95,7 @@ public class RedisHandler {
         setSerializer();
         JsonObject allRepo = new JsonObject();
         try (RedisConnection redisConnection = Objects.requireNonNull(redisTemplate.getConnectionFactory()).getConnection()) {
-            ScanOptions options = ScanOptions.scanOptions().match(GROUP_PREFIX.concat("*")).count(100).build();
+            ScanOptions options = ScanOptions.scanOptions().match(JUDGE_GROUP_NAME_PREFIX.concat("*")).count(100).build();
             Cursor<byte[]> c = redisConnection.scan(options);
 
             while (c.hasNext()) {
