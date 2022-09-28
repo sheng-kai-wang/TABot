@@ -293,6 +293,11 @@ public class SlashCommandHandleService {
         }
 
         String oldKey = redisHandler.getCompletedKey(groupName, formattedKey);
+        if (oldKey == null) {
+            System.out.println("[WARNING] Just use one of the keys.");
+            return mb.append("```properties" + "\n[WARNING] Just use one of the keys.```").build();
+        }
+
 
         // format aliases
         Set<String> aliasSet = new HashSet<>(List.of(aliases.split(",")));
@@ -356,6 +361,11 @@ public class SlashCommandHandleService {
 
         // remove aliases from oldKey
         String oldKey = redisHandler.getCompletedKey(groupName, formattedKey);
+        if (oldKey == null) {
+            System.out.println("[WARNING] Just use one of the keys.");
+            return mb.append("```properties" + "\n[WARNING] Just use one of the keys.```").build();
+        }
+
         StringBuilder newKeySb = new StringBuilder();
         List.of(oldKey.split(",")).forEach(k -> {
             if (Arrays.stream(formattedAliases.split(",")).noneMatch(k::equals)) {
@@ -412,6 +422,10 @@ public class SlashCommandHandleService {
             }
 
             String completedKey = redisHandler.getCompletedKey(groupName, formattedKey);
+            if (completedKey == null) {
+                System.out.println("[WARNING] Just use one of the keys.");
+                return mb.append("```properties" + "\n[WARNING] Just use one of the keys.```").build();
+            }
             String value = allPair.get(completedKey);
             eb.addField(completedKey, "[" + value + "](" + value + ")", false);
             mb.append(completedKey).append(": ").append(value);
@@ -433,6 +447,11 @@ public class SlashCommandHandleService {
         }
 
         String completedKey = redisHandler.getCompletedKey(groupName, formattedKey);
+        if (completedKey == null) {
+            System.out.println("[WARNING] Just use one of the keys.");
+            return mb.append("```properties" + "\n[WARNING] Just use one of the keys.```").build();
+        }
+
         String oldValue = redisHandler.updatePair(groupName, completedKey, value);
         System.out.println("[Old Value] " + oldValue);
         System.out.println("[New Value] " + value);
@@ -458,6 +477,11 @@ public class SlashCommandHandleService {
         }
 
         String completedKey = redisHandler.getCompletedKey(groupName, formattedKey);
+        if (completedKey == null) {
+            System.out.println("[WARNING] Just use one of the keys.");
+            return mb.append("```properties" + "\n[WARNING] Just use one of the keys.```").build();
+        }
+
         String deletedValue = redisHandler.deletePair(groupName, completedKey);
         System.out.println("[Deleted Value] " + deletedValue);
         mb.append("ok, got it.\n");
