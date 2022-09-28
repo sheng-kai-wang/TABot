@@ -27,6 +27,7 @@ public class SheetsHandler {
     private String applicationName;
     private String spreadsheetId;
     private String credentialsFilePath;
+    private String chromedriverPath;
     private final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
 
     private Gson gson;
@@ -49,6 +50,7 @@ public class SheetsHandler {
         this.applicationName = properties.getProperty("sheets.application.name");
         this.spreadsheetId = properties.getProperty("sheets." + sheetName + ".id");
         this.credentialsFilePath = properties.getProperty("sheets.credentials.path");
+        this.chromedriverPath = properties.getProperty("chromedriver-path");
         this.sheetsService = getSheetsService();
         this.gson = new Gson();
         trimWorksheet();
@@ -196,7 +198,7 @@ public class SheetsHandler {
      * @return is a string of the sheet content, similar in form to a matrix.
      */
     public String readContent(String worksheet, String range) {
-        System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
+        System.setProperty("webdriver.chrome.driver", chromedriverPath);
 //        System.setProperty("webdriver.chrome.driver", "/opt/google/chrome/chromedriver");
 
         String requestRange = null;
