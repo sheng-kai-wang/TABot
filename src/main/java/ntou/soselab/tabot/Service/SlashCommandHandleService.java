@@ -32,10 +32,9 @@ public class SlashCommandHandleService {
     private final String anonymousQuestionChannelUrl;
     private final String userRequirementsFolderPath;
     private final String contributionAnalysisUrl;
-    public final String NO_GROUP = "no group";
-    public final String NOT_STUDENT = "not student";
-    private final String DOWN_ARROW = "↓";
-    private final String GITHUB_REPOSITORY_KEEP_KEY_PREFIX = "[repo]";
+    public final static String NO_GROUP = "no group";
+    public final static String NOT_STUDENT = "not student";
+    private final static String DOWN_ARROW = "↓";
 
     @Autowired
     public SlashCommandHandleService(Environment env) {
@@ -160,9 +159,6 @@ public class SlashCommandHandleService {
     /**
      * parse JSONObject(org.json) quiz to JsonObject(Gson)
      * change key name into english
-     *
-     * @param quiz
-     * @return
      */
     private JsonObject parsePersonalQuiz(JSONObject quiz) {
         System.out.println("quiz: " + quiz);
@@ -181,9 +177,6 @@ public class SlashCommandHandleService {
     /**
      * create button list for quiz options
      * button id should be 'A', 'B', 'C' and so on
-     *
-     * @param quiz
-     * @return
      */
     private List<Button> getQuizComponents(JsonObject quiz) {
         ArrayList<Button> result = new ArrayList<>();
@@ -263,7 +256,7 @@ public class SlashCommandHandleService {
         // format keys
         StringBuilder keySb = new StringBuilder();
         Arrays.stream(keys.split(",")).forEach(k -> {
-            if (!k.startsWith(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
+            if (!k.startsWith(redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
                 keySb.append(k.trim().replace(" ", "_")).append(",");
             }
         });
@@ -305,8 +298,8 @@ public class SlashCommandHandleService {
         Set<String> aliasSet = new HashSet<>(List.of(aliases.split(",")));
         StringBuilder aliasSb = new StringBuilder();
         aliasSet.forEach(a -> {
-            if (!Arrays.stream(oldKey.split(",")).anyMatch(a::equals)) {
-                if (!a.startsWith(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
+            if (Arrays.stream(oldKey.split(",")).noneMatch(a::equals)) {
+                if (!a.startsWith(redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
                     aliasSb.append(a.trim().replace(" ", "_")).append(",");
                 }
             }
@@ -349,7 +342,7 @@ public class SlashCommandHandleService {
         Set<String> aliasSet = new HashSet<>(List.of(aliases.split(",")));
         StringBuilder aliasSb = new StringBuilder();
         aliasSet.forEach(a -> {
-            if (!a.startsWith(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
+            if (!a.startsWith(redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
                 aliasSb.append(a.trim().replace(" ", "_")).append(",");
             }
         });
@@ -365,7 +358,7 @@ public class SlashCommandHandleService {
         String oldKey = redisHandler.getCompletedKey(groupName, formattedKey);
         StringBuilder newKeySb = new StringBuilder();
         List.of(oldKey.split(",")).forEach(k -> {
-            if (!Arrays.stream(formattedAliases.split(",")).anyMatch(k::equals)) {
+            if (Arrays.stream(formattedAliases.split(",")).noneMatch(k::equals)) {
                 newKeySb.append(k).append(",");
             }
         });
@@ -394,7 +387,7 @@ public class SlashCommandHandleService {
     public Message readKeep(String groupName, String key) {
         MessageBuilder mb = new MessageBuilder();
         EmbedBuilder eb = new EmbedBuilder();
-        Map allPair = redisHandler.readPairAll(groupName);
+        Map<String, String> allPair = redisHandler.readPairAll(groupName);
         if (allPair.size() == 0) {
             System.out.println("[WARNING] no content yet.");
             return mb.append("```properties" + "\n[WARNING] no content yet.```").build();
@@ -404,8 +397,8 @@ public class SlashCommandHandleService {
         mb.append("```properties\n");
         if (key == null) {
             allPair.forEach((k, v) -> {
-                if (v.toString().toLowerCase().startsWith("https://")) {
-                    eb.addField(k.toString(), "[" + v + "](" + v + ")", false);
+                if (v.toLowerCase().startsWith("https://")) {
+                    eb.addField(k, "[" + v + "](" + v + ")", false);
                 }
                 mb.append(k).append(": ").append(v).append("\n");
             });
@@ -419,7 +412,7 @@ public class SlashCommandHandleService {
             }
 
             String completedKey = redisHandler.getCompletedKey(groupName, formattedKey);
-            String value = allPair.get(completedKey).toString();
+            String value = allPair.get(completedKey);
             eb.addField(completedKey, "[" + value + "](" + value + ")", false);
             mb.append(completedKey).append(": ").append(value);
         }
@@ -478,11 +471,11 @@ public class SlashCommandHandleService {
     public Message setRepository(String groupName, String url) {
         MessageBuilder mb = new MessageBuilder();
         String repository = url.split("/")[4].split("\\.")[0];
-        redisHandler.createPair(groupName, GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository, url);
+        redisHandler.createPair(groupName, redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository, url);
         mb.append("ok, got it.\n");
         mb.append("you created a content:\n");
         mb.append("```properties\n");
-        mb.append(GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository).append(": ").append(url).append("\n");
+        mb.append(redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX).append(repository).append(": ").append(url).append("\n");
         mb.append("```");
         return mb.build();
     }
@@ -492,9 +485,9 @@ public class SlashCommandHandleService {
 
         HashMap<String, String> repoMap = new HashMap<>();
         redisHandler.readPairAll(groupName).forEach((k, v) -> {
-            if (k.toString().startsWith(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
-                String repository = k.toString().split(",")[0].replace(GITHUB_REPOSITORY_KEEP_KEY_PREFIX, "");
-                repoMap.put(repository, v.toString());
+            if (k.startsWith(redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
+                String repository = k.split(",")[0].replace(redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX, "");
+                repoMap.put(repository, v);
             }
         });
 
@@ -519,7 +512,9 @@ public class SlashCommandHandleService {
         return mb.build();
     }
 
-    public Message commitmentRetrieval(String groupName, String repository, int quantity, String keywords) {
-        return null;
+    public Message commitmentRetrieval(String groupName, String repository, String branch, String keywords, int quantity) {
+        MessageBuilder mb = new MessageBuilder();
+        System.out.println("[WARNING] Sorry, this feature is coming soon.");
+        return mb.append("```properties" + "\n[WARNING] Sorry, this feature is coming soon.```").build();
     }
 }

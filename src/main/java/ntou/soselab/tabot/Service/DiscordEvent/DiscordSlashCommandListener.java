@@ -208,9 +208,11 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 System.out.println("[Keywords] " + keywords);
                 String repository = event.getOption("repository_name").getAsString();
                 System.out.println("[Repository Name] " + repository);
+                String branch = event.getOption("branch_name").getAsString();
+                System.out.println("[Branch Name] " + branch);
                 int quantity = (int) event.getOption("quantity").getAsLong();
                 System.out.println("[Quantity] " + quantity);
-                Message response = slashCommandHandleService.commitmentRetrieval(groupName, repository, quantity, keywords);
+                Message response = slashCommandHandleService.commitmentRetrieval(groupName, repository, branch, keywords, quantity);
                 event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
             }
         }
