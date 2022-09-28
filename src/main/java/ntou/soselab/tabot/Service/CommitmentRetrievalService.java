@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 
-@Service
-@EnableScheduling
+//@Service
+//@EnableScheduling
 public class CommitmentRetrievalService {
     private final RedisHandler redisHandler;
     private final String crawlCommitmentUrl;
@@ -26,13 +26,13 @@ public class CommitmentRetrievalService {
         String tabotCrawlerPort = env.getProperty("tabot-crawler.port");
         String crawlCommitmentPath = env.getProperty("crawl-commitment.path");
         this.crawlCommitmentUrl = "http://" + tabotCrawlerHost + ":" + tabotCrawlerPort + crawlCommitmentPath;
-        index();
+//        index();
     }
 
     /**
      * execute every hour
      */
-    @Scheduled(cron = "0 0 * * * *")
+//    @Scheduled(cron = "0 0 * * * *")
     private void index() {
         System.out.println("[DEBUG][CommitmentRetrievalService] trigger index regularly.");
         crawlCommitment();
