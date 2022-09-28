@@ -48,13 +48,13 @@ public class GradesCrawler {
         this.password = env.getProperty("tronclass.account.password");
 
         System.setProperty("webdriver.chrome.driver", Objects.requireNonNull(env.getProperty("chromedriver.path")));
-//        this.grades = getGrades();
+        this.grades = getGrades();
     }
 
     /**
      * execute every hour
      */
-//    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void updateSheet() {
         List<List<Object>> gradeList = new ArrayList<>();
         gradeList.add(new ArrayList<Object>(gradeHeaders));
@@ -72,8 +72,8 @@ public class GradesCrawler {
      * login to tronclass
      *
      * @param gradesUrl grades page of java course
-     * @param username  temporarily use the student ID of sheng-kai-wang
-     * @param password  temporarily use the password of sheng-kai-wang
+     * @param username  temporarily use the student ID of soselabta
+     * @param password  temporarily use the password of soselabta
      */
     private void login(String gradesUrl, String username, String password) {
         // use headless mode without open the browser window
