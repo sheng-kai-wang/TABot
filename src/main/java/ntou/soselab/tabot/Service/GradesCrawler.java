@@ -30,11 +30,10 @@ public class GradesCrawler {
     private String gradesUrl;
     private String username;
     private String password;
-    private List<StudentGrade> grades;
     private WebDriver driver;
 
     // the header of the grade date in the table
-    private List<String> gradeHeaders = new ArrayList<String>();
+    private List<String> gradeHeaders = new ArrayList<>();
 
     /**
      * automatically get students grades as long as it is constructed
@@ -48,7 +47,7 @@ public class GradesCrawler {
         this.password = env.getProperty("tronclass.account.password");
 
         System.setProperty("webdriver.chrome.driver", Objects.requireNonNull(env.getProperty("chromedriver.path")));
-        this.grades = getGrades();
+        updateSheet();
     }
 
     /**
@@ -57,8 +56,8 @@ public class GradesCrawler {
     @Scheduled(cron = "0 0 * * * *")
     public void updateSheet() {
         List<List<Object>> gradeList = new ArrayList<>();
-        gradeList.add(new ArrayList<Object>(gradeHeaders));
-        for (StudentGrade student : grades) {
+        gradeList.add(new ArrayList<>(gradeHeaders));
+        for (StudentGrade student : getGrades()) {
             ArrayList<Object> tableRow = new ArrayList<Object>();
             tableRow.add(student.getStudentId());
             tableRow.addAll(student.getGrades());
@@ -102,7 +101,7 @@ public class GradesCrawler {
      *
      * @return list of student grades
      */
-    public List<StudentGrade> getGrades() {
+    private List<StudentGrade> getGrades() {
 
         login(gradesUrl, username, password);
 
