@@ -213,7 +213,7 @@ public class SlashCommandHandleService {
                 .sorted()
                 .forEach(key -> {
                     String value = scoreMap.get(key).toString().split("\"")[1];
-                    key = key.replaceAll(" ", "_");
+                    key = key.replaceAll(" ", "_").replace("&amp;", "&");
                     mb.append(key).append(": ").append(value).append("\n");
                 });
         mb.append("```");
