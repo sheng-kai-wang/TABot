@@ -107,7 +107,7 @@ public class GradesCrawler {
         allGradeHeaders.add(driver.findElement(By.cssSelector("div.column.member")).getText());
         List<WebElement> headers = driver.findElements(By.cssSelector("ul.activity-list > li a"));
         for (WebElement e : headers) {
-            String title = e.getText();
+            String title = e.getText().replace("&amp;", "&");
             if (title.isEmpty()) title = e.getAttribute("title");
             allGradeHeaders.add(title);
         }
