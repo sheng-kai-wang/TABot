@@ -118,6 +118,7 @@ public class GradesCrawler {
         List<WebElement> scoreBars = driver.findElements(By.cssSelector("div.activity-body.sync-scroll > ul > li"));
 
         // construct StudentGrade and put in the list
+        allStudentGrade.clear();
         for (int i = 0; i < names.size(); i++) {
             String name = names.get(i).getText();
             String studentID = studentIDs.get(i).getText();
