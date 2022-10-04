@@ -28,7 +28,7 @@ public class RedisHandler {
 
     @Autowired
     public RedisHandler(Environment env) {
-        RedisHandler.JUDGE_GROUP_NAME_PREFIX = env.getProperty(" judge-group-name.prefix");
+        RedisHandler.JUDGE_GROUP_NAME_PREFIX = env.getProperty("judge-group-name.prefix");
     }
 
     @PostConstruct
