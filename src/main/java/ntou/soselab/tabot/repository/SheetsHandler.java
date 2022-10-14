@@ -23,15 +23,13 @@ import java.util.*;
  * CURD of Google Sheets API.
  */
 public class SheetsHandler {
-    private Sheets sheetsService;
-    private String applicationName;
-    private String spreadsheetId;
-    private String credentialsFilePath;
-    private String chromedriverPath;
+    private final Sheets sheetsService;
+    private final String applicationName;
+    private final String spreadsheetId;
+    private final String credentialsFilePath;
     private final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
-
-    private Gson gson;
-    private static final int INDEX_TO_CHAR = 65;
+    private final Gson gson;
+    private static final int INT_TO_CHAR = 65;
 
     /**
      * It's the constructor,
@@ -50,7 +48,6 @@ public class SheetsHandler {
         this.applicationName = properties.getProperty("sheets.application.name");
         this.spreadsheetId = properties.getProperty("sheets." + sheetName + ".id");
         this.credentialsFilePath = properties.getProperty("sheets.credentials.path");
-        this.chromedriverPath = properties.getProperty("chromedriver-path");
         this.sheetsService = getSheetsService();
         this.gson = new Gson();
         trimWorksheet();
@@ -152,7 +149,7 @@ public class SheetsHandler {
             }
 //          "65" is for convert int to char
             updateContent(titleString,
-                    (char) (65 + columnNum) + "1" + ":" + (char) (65 + columnNum + 2) + rowNum,
+                    (char) (INT_TO_CHAR + columnNum) + "1" + ":" + (char) (INT_TO_CHAR + columnNum + 2) + rowNum,
                     updateContents);
         }
     }
@@ -198,9 +195,6 @@ public class SheetsHandler {
      * @return is a string of the sheet content, similar in form to a matrix.
      */
     public String readContent(String worksheet, String range) {
-//        System.setProperty("webdriver.chrome.driver", chromedriverPath);
-//        System.setProperty("webdriver.chrome.driver", "/opt/google/chrome/chromedriver");
-
         String requestRange = null;
         if ("".equals(range)) requestRange = worksheet;
         else requestRange = worksheet + "!" + range;
@@ -261,7 +255,7 @@ public class SheetsHandler {
         for (int i = 0; i < headers.length(); i++) {
             if (headers.get(i).equals(header)) columnIndex = i;
         }
-        char coordinateChar = (char) (columnIndex + INDEX_TO_CHAR);
+        char coordinateChar = (char) (columnIndex + INT_TO_CHAR);
 
         // get the values in the column
         JSONArray values = new JSONArray(readContent(worksheet, coordinateChar + ":" + coordinateChar));
@@ -333,42 +327,13 @@ public class SheetsHandler {
      * @param index     The row index will be deleted.
      */
     public void deleteContent(String worksheet, int index) {
-
-//        delete by "read" and "update" methods
-        JSONArray sheetsContent = new JSONArray(readContent(worksheet, ""));
-        int columnNum = new JSONArray(new JSONArray(sheetsContent).get(0).toString()).length();
-
-        ArrayList<Object> list = new ArrayList<>();
-        for (int i = 0; i < columnNum; i++) {
-            list.add("");
+        try {
+            sheetsService.spreadsheets().values()
+                    .clear(spreadsheetId, worksheet + "!" + index + ":" + index, new ClearValuesRequest())
+                    .execute();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        List<List<Object>> contents = List.of(list);
-        updateContent(worksheet, index + ":" + index, contents);
-
-
-//        Delete by "DeleteDimensionRequest"
-//        response = sheetsService.spreadsheets().values()
-//                    .get(spreadsheetId, range)
-//                    .execute();
-
-//        DeleteDimensionRequest deleteRequest = new DeleteDimensionRequest()
-//                .setRange(
-//                        new DimensionRange()
-//                                .setSheetId(0)
-//                                .setDimension("ROWS")
-//                                .setStartIndex(startIndex)
-//                                .setEndIndex(endIndex)
-//                );
-////
-//        List<Request> requests = new ArrayList<>();
-//        requests.add(new Request().setDeleteDimension(deleteRequest));
-////
-//        BatchUpdateSpreadsheetRequest body = new BatchUpdateSpreadsheetRequest().setRequests(requests);
-//        try {
-//            sheetsService.spreadsheets().batchUpdate(spreadsheetId, body).execute();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
     /**
@@ -377,9 +342,15 @@ public class SheetsHandler {
      * @param worksheet The worksheet will be clear.
      */
     public void clearContent(String worksheet) {
+        JSONArray sheetsContent = new JSONArray(new JSONArray(readContent(worksheet, "")));
+
+        int rowNum = sheetsContent.length();
+        int columnNum = new JSONArray(sheetsContent.get(0).toString()).length();
+        String range = worksheet + "!A1:" + (char) (INT_TO_CHAR + columnNum) + rowNum;
+
         try {
             sheetsService.spreadsheets().values()
-                    .clear(worksheet, "", new ClearValuesRequest())
+                    .clear(spreadsheetId, range, new ClearValuesRequest())
                     .execute();
         } catch (IOException e) {
             throw new RuntimeException(e);
