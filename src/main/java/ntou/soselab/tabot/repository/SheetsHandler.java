@@ -370,4 +370,19 @@ public class SheetsHandler {
 //            e.printStackTrace();
 //        }
     }
+
+    /**
+     * Clear the contents of the sheets.
+     *
+     * @param worksheet The worksheet will be clear.
+     */
+    public void clearContent(String worksheet) {
+        try {
+            sheetsService.spreadsheets().values()
+                    .clear(worksheet, "", new ClearValuesRequest())
+                    .execute();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
