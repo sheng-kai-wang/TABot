@@ -181,8 +181,9 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         String currentNickname = event.getNewNickname();
 
         // check user's current role, return if already registered
-        if (event.getMember().getRoles().size() > 0) {
+        if (event.getMember().getRoles().stream().anyMatch(r -> r.getName().contains("STUDENT"))) {
             System.out.println("[DEBUG][nickname update]" + event.getNewNickname() + " already has role. do nothing.");
+            System.out.println("event.getMember().getRoles(): " + event.getMember().getRoles());
             return;
         }
 

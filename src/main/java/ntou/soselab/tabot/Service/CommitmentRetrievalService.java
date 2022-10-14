@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 
-//@Service
+@Service
 //@EnableScheduling
 public class CommitmentRetrievalService {
     private final RedisHandler redisHandler;
