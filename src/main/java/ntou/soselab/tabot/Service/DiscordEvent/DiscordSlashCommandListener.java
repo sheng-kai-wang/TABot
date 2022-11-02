@@ -206,14 +206,32 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             if (event.getName().equals("commitment_retrieval")) {
                 String keywords = event.getOption("keywords").getAsString();
                 System.out.println("[Keywords] " + keywords);
-                String repository = event.getOption("repository_name").getAsString();
-                System.out.println("[Repository Name] " + repository);
-                String branch = event.getOption("branch_name").getAsString();
-                System.out.println("[Branch Name] " + branch);
-                int quantity = (int) event.getOption("quantity").getAsLong();
-                System.out.println("[Quantity] " + quantity);
-                Message response = slashCommandHandleService.commitmentRetrieval(groupName, repository, branch, keywords, quantity);
-                event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+                String repository = null;
+                String branch = null;
+                int quantity = 5;
+                try {
+                    repository = event.getOption("repository_name").getAsString();
+                    System.out.println("[Repository Name] " + repository);
+                } catch (Exception e) {
+                    System.out.println("[Repository Name] all repo");
+                } finally {
+                    try {
+                        branch = event.getOption("branch_name").getAsString();
+                        System.out.println("[Branch Name] " + branch);
+                    } catch (Exception e) {
+                        System.out.println("[Branch Name] all branch");
+                    } finally {
+                        try {
+                            quantity = (int) event.getOption("quantity").getAsLong();
+                            System.out.println("[Quantity] " + quantity);
+                        } catch (Exception e) {
+                            System.out.println("[Quantity] 5 (default value)");
+                        } finally {
+                            Message response = slashCommandHandleService.commitmentRetrieval(groupName, repository, branch, keywords, quantity);
+                            event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+                        }
+                    }
+                }
             }
         }
         System.out.println("<<< end of current slash command event");

@@ -288,7 +288,13 @@ public class IntentHandleService {
         String resultKeyword = "";
         for (JsonElement keywordSet : keywordSheet) {
             JsonArray temp = keywordSet.getAsJsonArray();
-            if (Arrays.stream(temp.get(0).getAsString().split(",")).anyMatch(keyword -> keyword.strip().equals(target))) {
+            // chinese keywords
+            if (Arrays.stream(temp.get(1).getAsString().split(",")).anyMatch(keyword -> keyword.strip().equals(target))) {
+                resultKeyword = temp.get(0).getAsString().strip();
+                return resultKeyword;
+            }
+            // english keywords
+            if (Arrays.stream(temp.get(2).getAsString().split(",")).anyMatch(keyword -> keyword.strip().equals(target))) {
                 resultKeyword = temp.get(0).getAsString().strip();
                 return resultKeyword;
             }
