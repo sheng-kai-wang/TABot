@@ -108,8 +108,8 @@ public class RedisHandler {
                                 String repo = k.split(",")[0].replace(GITHUB_REPOSITORY_KEEP_KEY_PREFIX, "");
                                 String username = Objects.requireNonNull(hashOperations.get(groupName, k)).split("/")[3];
                                 JsonObject content = new JsonObject();
-                                content.addProperty("username", username);
-                                content.addProperty("repository", repo);
+                                content.addProperty("userName", username);
+                                content.addProperty("repoName", repo);
                                 groupRepos.add(content);
                             }
                         });

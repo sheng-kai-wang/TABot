@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 @Service
 @EnableScheduling
 public class CommitmentRetrievalService {
@@ -21,6 +24,7 @@ public class CommitmentRetrievalService {
     private final String commitMsgSearcherUrl;
     private final String commitMsgSearcherRegisterUrl;
     private final String commitMsgSearcherRetrievalUrl;
+    public final static String NO_RESULT = "all cosine is 0";
 
     @Autowired
     public CommitmentRetrievalService(Environment env, RedisHandler redisHandler) {
@@ -71,15 +75,23 @@ public class CommitmentRetrievalService {
                 .queryParam("keywords", keywords)
                 .queryParam("range", range)
                 .queryParam("quantity", quantity);
-        ResponseEntity<String> response = template.getForEntity(uriBuilder.toUriString(), String.class);
+        URI uri;
+        try {
+            uri = new URI(uriBuilder.toUriString());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        ResponseEntity<String> response = template.getForEntity(uri, String.class);
         JsonObject responseMsg = new Gson().fromJson(response.getBody(), JsonObject.class);
         System.out.println("[DEBUG] " + responseMsg.get("status"));
         if (responseMsg.get("rank").isJsonNull()) return null;
+        if (responseMsg.get("rank").toString().equals(NO_RESULT)) return new JsonArray();
         return responseMsg.get("rank").getAsJsonArray();
     }
 
     /**
      * Override timeouts in request factory
+     *
      * @param time millisecond
      * @return request timeout config
      */

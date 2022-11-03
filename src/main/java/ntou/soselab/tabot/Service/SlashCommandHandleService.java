@@ -550,13 +550,13 @@ public class SlashCommandHandleService {
 
         if (quantity <= 0) {
             System.out.println("[WARNING] Quantity must be a positive integer.");
-            return mb.append("[WARNING] Sorry, quantity must be a positive integer.").build();
+            return mb.append("```properties" + "\n[WARNING] Sorry, quantity must be a positive integer.```").build();
         }
 
         if (repositories == null) {
             if (branches != null) {
                 System.out.println("[WARNING] There's not specify the repository.");
-                return mb.append("[WARNING] Sorry, you didn't specify the repository.").build();
+                return mb.append("```properties" + "\n[WARNING] Sorry, you didn't specify the repository.```").build();
             }
             range.add("*:*");
         } else {
@@ -576,22 +576,14 @@ public class SlashCommandHandleService {
             }
         }
 
-//        [
-        //       {
-        //           "id": "<<id>>",
-        //           "message": "<<完整 commit 訊息>>",
-        //           "repo": "<<user_name>>,<<repo_name>>:<<branch_name>>"
-        //       },...
-        //    ]
-
-//        https://github.com/sheng-kai-wang/TABot-Rasa/commit/5b0555c5d297f8dd21fb0e958e2053409294d52a
-//        https://github.com/sheng-kai-wang/TABot-Rasa/tree/5b0555c5d297f8dd21fb0e958e2053409294d52a
-
-
         JsonArray rank = commitmentRetrievalService.retrievalCommitMsg(groupName, keywords, range, quantity);
         if (rank == null) {
             System.out.println("[WARNING] Something was wrong, maybe a non-existent branch was entered.");
-            return mb.append("[WARNING] Sorry, something was wrong, maybe a non-existent branch was entered.").build();
+            return mb.append("```properties" + "\n[WARNING] Sorry, something was wrong, maybe a non-existent branch was entered.```").build();
+        }
+        if (rank.isEmpty()) {
+            System.out.println("[WARNING] Could not find any similar results.");
+            return mb.append("```properties" + "\n[WARNING] Sorry, could not find any similar results.```").build();
         }
         mb.append("ok, got it.\n");
         mb.append("The following are the similarity ranking of your group's commit messages,\n");
@@ -599,7 +591,7 @@ public class SlashCommandHandleService {
         int number = 1;
         for (JsonElement item : rank) {
             JsonObject commitment = item.getAsJsonObject();
-            String commitMsg = "[" + number + "] " + commitment.get("message");
+            String commitMsg = "[" + (number++) + "] " + commitment.get("message");
             String[] repoData = commitment.get("repo").toString().split(",|:");
             String username = repoData[0];
             String repository = repoData[1];
@@ -617,11 +609,11 @@ public class SlashCommandHandleService {
                     .replace("<<hash_id>>", id);
 
             String commitData = new StringBuilder()
-                    .append("username: ").append(username)
-                    .append("repository: ").append(repository)
-                    .append("branch: ").append(branch)
-                    .append("[view the commitment](").append(currentViewTheCommitmentUrl).append(")")
-                    .append("[browse the files](").append(currentBrowseCommitFilesUrl).append(")")
+                    .append("username: ").append(username).append("\n")
+                    .append("repository: ").append(repository).append("\n")
+                    .append("branch: ").append(branch).append("\n")
+                    .append("[view the commitment](").append(currentViewTheCommitmentUrl).append(")").append("\n")
+                    .append("[browse the files](").append(currentBrowseCommitFilesUrl).append(")").append("\n")
                     .toString();
 
             eb.addField(commitMsg, commitData, false);
