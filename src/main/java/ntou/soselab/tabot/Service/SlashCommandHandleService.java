@@ -23,25 +23,32 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class SlashCommandHandleService {
-    @Autowired
-    Neo4jHandler neo4jHandler;
-    @Autowired
-    RedisHandler redisHandler;
+    private final Neo4jHandler neo4jHandler;
+    private final RedisHandler redisHandler;
+    private final CommitmentRetrievalService commitmentRetrievalService;
     private static HashMap<String, JsonObject> ongoingQuizMap;
 
     private final String anonymousQuestionChannelUrl;
     private final String userRequirementsFolderPath;
     private final String contributionAnalysisUrl;
+    private final String viewTheCommitmentUrl;
+    private final String browseCommitFilesUrl;
     public final static String NO_GROUP = "no group";
     public final static String NOT_STUDENT = "not student";
     private final static String DOWN_ARROW = "↓";
 
     @Autowired
-    public SlashCommandHandleService(Environment env) {
+    public SlashCommandHandleService(Environment env, Neo4jHandler neo4jHandler, RedisHandler redisHandler, CommitmentRetrievalService commitmentRetrievalService) {
         ongoingQuizMap = new HashMap<>();
         this.userRequirementsFolderPath = env.getProperty("user-requirements.folder.path");
         this.anonymousQuestionChannelUrl = env.getProperty("discord.channel.anonymous-question.url");
-        this.contributionAnalysisUrl = env.getProperty("contribution-analysis-url");
+        this.contributionAnalysisUrl = env.getProperty("contribution-analysis.url");
+        this.viewTheCommitmentUrl = env.getProperty("view-the-commitment.url");
+        this.browseCommitFilesUrl = env.getProperty("browse-commit-files.url");
+
+        this.neo4jHandler = neo4jHandler;
+        this.redisHandler = redisHandler;
+        this.commitmentRetrievalService = commitmentRetrievalService;
     }
 
     public static HashMap<String, JsonObject> getOngoingQuizMap() {
@@ -536,9 +543,91 @@ public class SlashCommandHandleService {
         return mb.build();
     }
 
-    public Message commitmentRetrieval(String groupName, String repository, String branch, String keywords, int quantity) {
+    public Message commitmentRetrieval(String groupName, String repositories, String branches, String keywords, int quantity) {
         MessageBuilder mb = new MessageBuilder();
-        System.out.println("[WARNING] Sorry, this feature is coming soon.");
-        return mb.append("```properties" + "\n[WARNING] Sorry, this feature is coming soon.```").build();
+        EmbedBuilder eb = new EmbedBuilder();
+        JsonArray range = new JsonArray();
+
+        if (quantity <= 0) {
+            System.out.println("[WARNING] Quantity must be a positive integer.");
+            return mb.append("[WARNING] Sorry, quantity must be a positive integer.").build();
+        }
+
+        if (repositories == null) {
+            if (branches != null) {
+                System.out.println("[WARNING] There's not specify the repository.");
+                return mb.append("[WARNING] Sorry, you didn't specify the repository.").build();
+            }
+            range.add("*:*");
+        } else {
+            for (String repo : repositories.split(",")) {
+                String repoName = repo.trim();
+                if (!redisHandler.hasSameKey(groupName, redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repoName)) {
+                    System.out.println("[WARNING] The input contains some repositories that doesn't exist in the keep.");
+                    return mb.append("```properties" + "\n[WARNING] Sorry, your input contains some repositories that doesn't exist in the keep.```").build();
+                }
+                String userNameAndRepoName = redisHandler.getUserNameAndRepoName(groupName, repoName);
+                if (branches == null) range.add(userNameAndRepoName + ":*");
+                else {
+                    for (String branch : branches.split(",")) {
+                        range.add(userNameAndRepoName + ":" + branch.trim());
+                    }
+                }
+            }
+        }
+
+//        [
+        //       {
+        //           "id": "<<id>>",
+        //           "message": "<<完整 commit 訊息>>",
+        //           "repo": "<<user_name>>,<<repo_name>>:<<branch_name>>"
+        //       },...
+        //    ]
+
+//        https://github.com/sheng-kai-wang/TABot-Rasa/commit/5b0555c5d297f8dd21fb0e958e2053409294d52a
+//        https://github.com/sheng-kai-wang/TABot-Rasa/tree/5b0555c5d297f8dd21fb0e958e2053409294d52a
+
+
+        JsonArray rank = commitmentRetrievalService.retrievalCommitMsg(groupName, keywords, range, quantity);
+        if (rank == null) {
+            System.out.println("[WARNING] Something was wrong, maybe a non-existent branch was entered.");
+            return mb.append("[WARNING] Sorry, something was wrong, maybe a non-existent branch was entered.").build();
+        }
+        mb.append("ok, got it.\n");
+        mb.append("The following are the similarity ranking of your group's commit messages,\n");
+        mb.append("it's descending order:\n");
+        int number = 1;
+        for (JsonElement item : rank) {
+            JsonObject commitment = item.getAsJsonObject();
+            String commitMsg = "[" + number + "] " + commitment.get("message");
+            String[] repoData = commitment.get("repo").toString().split(",|:");
+            String username = repoData[0];
+            String repository = repoData[1];
+            String branch = repoData[2];
+            String id = commitment.get("id").getAsString();
+
+            String currentViewTheCommitmentUrl = viewTheCommitmentUrl
+                    .replace("<<username>>", username)
+                    .replace("<<repository>>", repository)
+                    .replace("<<hash_id>>", id);
+
+            String currentBrowseCommitFilesUrl = browseCommitFilesUrl
+                    .replace("<<username>>", username)
+                    .replace("<<repository>>", repository)
+                    .replace("<<hash_id>>", id);
+
+            String commitData = new StringBuilder()
+                    .append("username: ").append(username)
+                    .append("repository: ").append(repository)
+                    .append("branch: ").append(branch)
+                    .append("[view the commitment](").append(currentViewTheCommitmentUrl).append(")")
+                    .append("[browse the files](").append(currentBrowseCommitFilesUrl).append(")")
+                    .toString();
+
+            eb.addField(commitMsg, commitData, false);
+        }
+
+        mb.setEmbeds(eb.build());
+        return mb.build();
     }
 }

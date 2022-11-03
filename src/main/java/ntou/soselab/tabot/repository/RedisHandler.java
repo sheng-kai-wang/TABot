@@ -23,7 +23,7 @@ public class RedisHandler {
     RedisTemplate<String, HashMap<String, String>> redisTemplate;
 
     HashOperations<String, String, String> hashOperations;
-    public final String GITHUB_REPOSITORY_KEEP_KEY_PREFIX = "[repo]";
+    public final String GITHUB_REPOSITORY_KEEP_KEY_PREFIX = "[repo]_";
     private static String JUDGE_GROUP_NAME_PREFIX;
 
     @Autowired
@@ -32,7 +32,7 @@ public class RedisHandler {
     }
 
     @PostConstruct
-    public void init() {
+    private void init() {
         this.hashOperations = redisTemplate.opsForHash();
     }
 
@@ -48,8 +48,8 @@ public class RedisHandler {
 
     public String readPairByKey(String groupName, String key) {
         setSerializer();
-        String oldKeyString = getCompletedKey(groupName, key);
-        return hashOperations.get(groupName, oldKeyString);
+        String keyString = getCompletedKey(groupName, key);
+        return hashOperations.get(groupName, keyString);
     }
 
     public String updatePair(String groupName, String key, String value) {
@@ -117,6 +117,14 @@ public class RedisHandler {
             }
         }
         return allRepo;
+    }
+
+    public String getUserNameAndRepoName(String groupName, String repoName) {
+        setSerializer();
+        String repoUrl = readPairByKey(groupName, GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repoName);
+        String username = repoUrl.split("/")[3];
+        String repo = repoUrl.split("/")[4].split("\\.")[0];
+        return username + "," + repo;
     }
 
     private void setSerializer() {

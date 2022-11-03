@@ -94,7 +94,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         event.getJDA()
                 .getGuildById(serverId)
                 .upsertCommand("create_keep", "Create content to group keep note, all group members can see the content.")
-                .addOption(OptionType.STRING, "keys", "the keys of content, you can use multiple keys seperated by commas like (alias_1,alias_2,...)", true)
+                .addOption(OptionType.STRING, "keys", "the keys of content, you can use multiple keys seperated by commas like \"alias_1,alias_2,...\")", true)
                 .addOption(OptionType.STRING, "value", "the value of content", true)
                 .queue();
 
@@ -102,14 +102,14 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
                 .getGuildById(serverId)
                 .upsertCommand("create_aliases_of_key", "create aliases of keep's key")
                 .addOption(OptionType.STRING, "key", "one key of the content", true)
-                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like (alias_1,alias_2,...)", true)
+                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like \"alias_1,alias_2,...\"", true)
                 .queue();
 
         event.getJDA()
                 .getGuildById(serverId)
                 .upsertCommand("delete_aliases_of_key", "delete aliases of keep's key")
                 .addOption(OptionType.STRING, "key", "one key of the content", true)
-                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like (alias_1,alias_2,...)", true)
+                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like \"alias_1,alias_2,...\"", true)
                 .queue();
 
         event.getJDA()
@@ -142,14 +142,14 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
                 .upsertCommand("contribution_analysis", "Analyze team members' contributions to the MAIN branch, and you have to make it PUBLIC.")
                 .queue();
 
-//        event.getJDA()
-//                .getGuildById(serverId)
-//                .upsertCommand("commitment_retrieval", "Search the repository's commitment, view the content or revert the version.")
-//                .addOption(OptionType.STRING, "keywords", "keywords for commit message", true)
-//                .addOption(OptionType.STRING, "repository_name", "you can use (repo_1,repo_2,...) or keep empty to search multiple or all repositories.", false)
-//                .addOption(OptionType.STRING, "branch_name", "you can use (branch_1,branch_2,...) or keep empty to search multiple or all branches.", false)
-//                .addOption(OptionType.INTEGER, "quantity", "the quantity of response, keep empty to return 5 commitments (default value).", false)
-//                .queue();
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("commitment_retrieval", "Search the repository's commitment, view the commitment or browse the files. It's descending order.")
+                .addOption(OptionType.STRING, "keywords", "keywords for commit message", true)
+                .addOption(OptionType.STRING, "repository_name", "you can use \"repo_1,repo_2,...\" or keep empty to search multiple or all repositories.", false)
+                .addOption(OptionType.STRING, "branch_name", "you can use \"branch_1,branch_2,...\" or keep empty to search multiple or all branches.", false)
+                .addOption(OptionType.INTEGER, "quantity", "the quantity of response, keep empty to return 5 commitments (default value).", false)
+                .queue();
 
         /* print current slash command */
         event.getJDA().retrieveCommands().queue(commands -> {
