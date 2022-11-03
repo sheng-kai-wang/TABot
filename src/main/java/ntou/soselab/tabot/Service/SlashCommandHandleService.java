@@ -591,11 +591,10 @@ public class SlashCommandHandleService {
         int number = 1;
         for (JsonElement item : rank) {
             JsonObject commitment = item.getAsJsonObject();
-            String commitMsg = "[" + (number++) + "] " + commitment.get("message");
-            String[] repoData = commitment.get("repo").toString().split(",|:");
+            String commitMsg = "[" + (number++) + "] " + commitment.get("message").getAsString();
+            String[] repoData = commitment.get("repo").getAsString().split(",|:");
             String username = repoData[0];
             String repository = repoData[1];
-            String branch = repoData[2];
             String id = commitment.get("id").getAsString();
 
             String currentViewTheCommitmentUrl = viewTheCommitmentUrl
@@ -609,9 +608,7 @@ public class SlashCommandHandleService {
                     .replace("<<hash_id>>", id);
 
             String commitData = new StringBuilder()
-                    .append("username: ").append(username).append("\n")
-                    .append("repository: ").append(repository).append("\n")
-                    .append("branch: ").append(branch).append("\n")
+                    .append("from: ").append(commitment.get("repo").getAsString().replace(",", "/"))
                     .append("[view the commitment](").append(currentViewTheCommitmentUrl).append(")").append("\n")
                     .append("[browse the files](").append(currentBrowseCommitFilesUrl).append(")").append("\n")
                     .toString();
