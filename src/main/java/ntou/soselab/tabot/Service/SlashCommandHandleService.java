@@ -596,6 +596,9 @@ public class SlashCommandHandleService {
             String username = repoData[0];
             String repository = repoData[1];
             String id = commitment.get("id").getAsString();
+            String fromWhere = commitment.get("repo").getAsString()
+                    .replace(",", "/")
+                    .replace(":", " : ");
 
             String currentViewTheCommitmentUrl = viewTheCommitmentUrl
                     .replace("<<username>>", username)
@@ -608,7 +611,7 @@ public class SlashCommandHandleService {
                     .replace("<<hash_id>>", id);
 
             String commitData = new StringBuilder()
-                    .append("from: ").append(commitment.get("repo").getAsString().replace(",", "/"))
+                    .append("from: ").append(fromWhere).append("\n")
                     .append("[view the commitment](").append(currentViewTheCommitmentUrl).append(")").append("\n")
                     .append("[browse the files](").append(currentBrowseCommitFilesUrl).append(")").append("\n")
                     .toString();
