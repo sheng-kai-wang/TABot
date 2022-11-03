@@ -65,7 +65,7 @@ public class CommitmentRetrievalService {
         HttpEntity<String> entity = new HttpEntity<>(payload.toString(), headers);
         ResponseEntity<String> response = template.exchange(commitMsgSearcherRegisterUrl, HttpMethod.POST, entity, String.class);
         JsonObject responseMsg = new Gson().fromJson(response.getBody(), JsonObject.class);
-        System.out.println("[DEBUG] " + responseMsg.get("status"));
+        System.out.println("[DEBUG] " + responseMsg.get("status").getAsString());
     }
 
     public JsonArray retrieveCommitMsg(String projectName, String keywords, JsonArray range, int quantity) {

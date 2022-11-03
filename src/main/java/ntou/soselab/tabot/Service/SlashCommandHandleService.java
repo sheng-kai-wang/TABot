@@ -611,7 +611,7 @@ public class SlashCommandHandleService {
                     .replace("<<hash_id>>", id);
 
             String commitData = new StringBuilder()
-                    .append("from: ").append(fromWhere).append("\n")
+                    .append("from -> ").append(fromWhere).append("\n")
                     .append("[view the commitment](").append(currentViewTheCommitmentUrl).append(")").append("\n")
                     .append("[browse the files](").append(currentBrowseCommitFilesUrl).append(")").append("\n")
                     .toString();
