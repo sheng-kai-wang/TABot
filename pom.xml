@@ -134,12 +134,6 @@
             <version>1.41.4</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.google.http-client</groupId>
-            <artifactId>google-http-client-jackson2</artifactId>
-            <version>1.41.4</version>
-            <scope>compile</scope>
-        </dependency>
 
         <!-- selenium -->
         <dependency>
