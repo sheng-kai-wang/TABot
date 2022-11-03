@@ -610,7 +610,7 @@ public class IntentHandleService {
         msgBuilder.mentionUsers(user);
         msgBuilder.append("Sorry, i'm not sure what do you mean, can you please say it again in another way ? :pray:");
 //        EmbedBuilder builder  = new EmbedBuilder();
-//        builder.setDescription("<@" + user + "> Sorry, i'm not sure what do you mean, can you please say it again in another way ? :(");
+//        builder.setDescription("<@" + user + "> Sorry, I'm not sure what do you mean, can you please say it again in another way ? :(");
 //        builder.setColor(Color.orange);
 //        return builder.build();
         return msgBuilder.build();
