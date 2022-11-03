@@ -576,7 +576,7 @@ public class SlashCommandHandleService {
             }
         }
 
-        JsonArray rank = commitmentRetrievalService.retrievalCommitMsg(groupName, keywords, range, quantity);
+        JsonArray rank = commitmentRetrievalService.retrieveCommitMsg(groupName, keywords, range, quantity);
         if (rank == null) {
             System.out.println("[WARNING] Something was wrong, maybe a non-existent branch was entered.");
             return mb.append("```properties" + "\n[WARNING] Sorry, something was wrong, maybe a non-existent branch was entered.```").build();

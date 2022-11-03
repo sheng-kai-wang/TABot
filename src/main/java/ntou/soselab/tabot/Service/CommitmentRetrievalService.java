@@ -68,7 +68,7 @@ public class CommitmentRetrievalService {
         System.out.println("[DEBUG] " + responseMsg.get("status"));
     }
 
-    public JsonArray retrievalCommitMsg(String projectName, String keywords, JsonArray range, int quantity) {
+    public JsonArray retrieveCommitMsg(String projectName, String keywords, JsonArray range, int quantity) {
         RestTemplate template = new RestTemplate();
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(commitMsgSearcherRetrievalUrl)
                 .queryParam("projectName", projectName)
