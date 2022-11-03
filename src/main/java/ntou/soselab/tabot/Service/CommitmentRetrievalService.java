@@ -83,7 +83,7 @@ public class CommitmentRetrievalService {
         }
         ResponseEntity<String> response = template.getForEntity(uri, String.class);
         JsonObject responseMsg = new Gson().fromJson(response.getBody(), JsonObject.class);
-        System.out.println("[DEBUG] " + responseMsg.get("status"));
+        System.out.println("[DEBUG] " + responseMsg.get("status").getAsString());
         if (responseMsg.get("rank").isJsonNull()) return null;
         if (responseMsg.get("rank").toString().equals(NO_RESULT)) return new JsonArray();
         return responseMsg.get("rank").getAsJsonArray();
