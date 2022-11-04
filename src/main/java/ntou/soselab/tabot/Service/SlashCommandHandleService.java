@@ -503,6 +503,7 @@ public class SlashCommandHandleService {
         MessageBuilder mb = new MessageBuilder();
         String repository = url.split("/")[4].split("\\.")[0];
         redisHandler.createPair(groupName, redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository, url);
+        commitmentRetrievalService.registerRepository();
         mb.append("ok, got it.\n");
         mb.append("you created a content:\n");
         mb.append("```properties\n");

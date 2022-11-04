@@ -39,7 +39,7 @@ public class CommitmentRetrievalService {
      * execute every hour
      */
     @Scheduled(cron = "0 0 * * * *")
-    private void registerRepository() {
+    public void registerRepository() {
         System.out.println("[DEBUG] start to register all repos");
 
         // setup request payload
