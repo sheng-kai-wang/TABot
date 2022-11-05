@@ -12,7 +12,7 @@ public class CommitmentRetrievalController {
 
     @GetMapping(value = "/status/{message}")
     public ResponseEntity<String> printStatus(@PathVariable String message){
-        System.out.println("[DEBUG] [CommitmentRetrievalController] " + message);
+        System.out.println("[DEBUG][CommitmentRetrievalController] " + message);
         return ResponseEntity.ok("ok");
     }
 }

@@ -40,7 +40,7 @@ public class CommitmentRetriever {
      */
     @Scheduled(cron = "0 0 0 * * *")
     public void registerRepository() {
-        System.out.println("[DEBUG] [CommitmentRetriever] start to register all repos");
+        System.out.println("[DEBUG][CommitmentRetriever] start to register all repos");
 
         // setup request payload
         JsonObject payload = new JsonObject();
@@ -65,7 +65,7 @@ public class CommitmentRetriever {
         HttpEntity<String> entity = new HttpEntity<>(payload.toString(), headers);
         ResponseEntity<String> response = template.exchange(commitMsgSearcherRegisterUrl, HttpMethod.POST, entity, String.class);
         JsonObject responseMsg = new Gson().fromJson(response.getBody(), JsonObject.class);
-        System.out.println("[DEBUG] " + responseMsg.get("status").getAsString());
+        System.out.println("[DEBUG][CommitmentRetriever] " + responseMsg.get("status").getAsString());
     }
 
     public JsonArray retrieveCommitMsg(String projectName, String keywords, JsonArray range, int quantity) {
@@ -83,7 +83,7 @@ public class CommitmentRetriever {
         }
         ResponseEntity<String> response = template.getForEntity(uri, String.class);
         JsonObject responseMsg = new Gson().fromJson(response.getBody(), JsonObject.class);
-        System.out.println("[DEBUG] [CommitmentRetriever] " + responseMsg.get("status").getAsString());
+        System.out.println("[DEBUG][CommitmentRetriever] " + responseMsg.get("status").getAsString());
         if (responseMsg.get("rank").isJsonNull()) return null;
         if (responseMsg.get("rank").toString().equals(NO_RESULT)) return new JsonArray();
         return responseMsg.get("rank").getAsJsonArray();
