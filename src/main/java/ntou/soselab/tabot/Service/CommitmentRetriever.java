@@ -19,7 +19,7 @@ import java.net.URISyntaxException;
 
 @Service
 @EnableScheduling
-public class CommitmentRetrievalService {
+public class CommitmentRetriever {
     private final RedisHandler redisHandler;
     private final String commitMsgSearcherUrl;
     private final String commitMsgSearcherRegisterUrl;
@@ -27,7 +27,7 @@ public class CommitmentRetrievalService {
     public final static String NO_RESULT = "all cosine is 0";
 
     @Autowired
-    public CommitmentRetrievalService(Environment env, RedisHandler redisHandler) {
+    public CommitmentRetriever(Environment env, RedisHandler redisHandler) {
         this.redisHandler = redisHandler;
         this.commitMsgSearcherUrl = env.getProperty("github-commit-message-searcher.url");
         this.commitMsgSearcherRegisterUrl = commitMsgSearcherUrl + env.getProperty("github-commit-message-searcher.register.path");
@@ -36,11 +36,11 @@ public class CommitmentRetrievalService {
     }
 
     /**
-     * execute every hour
+     * execute every day
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void registerRepository() {
-        System.out.println("[DEBUG] start to register all repos");
+        System.out.println("[DEBUG] [CommitmentRetriever] start to register all repos");
 
         // setup request payload
         JsonObject payload = new JsonObject();
@@ -83,7 +83,7 @@ public class CommitmentRetrievalService {
         }
         ResponseEntity<String> response = template.getForEntity(uri, String.class);
         JsonObject responseMsg = new Gson().fromJson(response.getBody(), JsonObject.class);
-        System.out.println("[DEBUG] " + responseMsg.get("status").getAsString());
+        System.out.println("[DEBUG] [CommitmentRetriever] " + responseMsg.get("status").getAsString());
         if (responseMsg.get("rank").isJsonNull()) return null;
         if (responseMsg.get("rank").toString().equals(NO_RESULT)) return new JsonArray();
         return responseMsg.get("rank").getAsJsonArray();

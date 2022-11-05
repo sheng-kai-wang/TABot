@@ -25,7 +25,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class SlashCommandHandleService {
     private final Neo4jHandler neo4jHandler;
     private final RedisHandler redisHandler;
-    private final CommitmentRetrievalService commitmentRetrievalService;
+    private final CommitmentRetriever commitmentRetriever;
     private static HashMap<String, JsonObject> ongoingQuizMap;
 
     private final String anonymousQuestionChannelUrl;
@@ -38,7 +38,7 @@ public class SlashCommandHandleService {
     private final static String DOWN_ARROW = "↓";
 
     @Autowired
-    public SlashCommandHandleService(Environment env, Neo4jHandler neo4jHandler, RedisHandler redisHandler, CommitmentRetrievalService commitmentRetrievalService) {
+    public SlashCommandHandleService(Environment env, Neo4jHandler neo4jHandler, RedisHandler redisHandler, CommitmentRetriever commitmentRetriever) {
         ongoingQuizMap = new HashMap<>();
         this.userRequirementsFolderPath = env.getProperty("user-requirements.folder.path");
         this.anonymousQuestionChannelUrl = env.getProperty("discord.channel.anonymous-question.url");
@@ -48,7 +48,7 @@ public class SlashCommandHandleService {
 
         this.neo4jHandler = neo4jHandler;
         this.redisHandler = redisHandler;
-        this.commitmentRetrievalService = commitmentRetrievalService;
+        this.commitmentRetriever = commitmentRetriever;
     }
 
     public static HashMap<String, JsonObject> getOngoingQuizMap() {
@@ -503,7 +503,7 @@ public class SlashCommandHandleService {
         MessageBuilder mb = new MessageBuilder();
         String repository = url.split("/")[4].split("\\.")[0];
         redisHandler.createPair(groupName, redisHandler.GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repository, url);
-        commitmentRetrievalService.registerRepository();
+        commitmentRetriever.registerRepository();
         mb.append("ok, got it.\n");
         mb.append("you created a content:\n");
         mb.append("```properties\n");
@@ -577,7 +577,7 @@ public class SlashCommandHandleService {
             }
         }
 
-        JsonArray rank = commitmentRetrievalService.retrieveCommitMsg(groupName, keywords, range, quantity);
+        JsonArray rank = commitmentRetriever.retrieveCommitMsg(groupName, keywords, range, quantity);
         if (rank == null) {
             System.out.println("[WARNING] Something was wrong, maybe a non-existent branch was entered.");
             return mb.append("```properties" + "\n[WARNING] Sorry, something was wrong, maybe a non-existent branch was entered.```").build();
@@ -587,8 +587,8 @@ public class SlashCommandHandleService {
             return mb.append("```properties" + "\n[WARNING] Sorry, could not find any similar results.```").build();
         }
         mb.append("ok, got it.\n");
-        mb.append("The following are the similarity ranking of your group's commit messages,\n");
-        mb.append("it's descending order:\n");
+        mb.append("The following are the similarity ranking of your group's commit messages.\n");
+        mb.append("This is in descending order and the content is ONLY updated to an hour ago:\n");
         int number = 1;
         for (JsonElement item : rank) {
             JsonObject commitment = item.getAsJsonObject();
