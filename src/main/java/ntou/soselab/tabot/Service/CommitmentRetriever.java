@@ -59,7 +59,8 @@ public class CommitmentRetriever {
         }
         payload.add("allProjects", allReposData);
 
-        RestTemplate template = new RestTemplate(getRequestTimeoutConfig(1000_000));
+//        RestTemplate template = new RestTemplate(getRequestTimeoutConfig(1000_000));
+        RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
         HttpEntity<String> entity = new HttpEntity<>(payload.toString(), headers);
@@ -85,8 +86,9 @@ public class CommitmentRetriever {
         JsonObject responseMsg = new Gson().fromJson(response.getBody(), JsonObject.class);
         System.out.println("[DEBUG][CommitmentRetriever] " + responseMsg.get("status").getAsString());
         if (responseMsg.get("rank").isJsonNull()) return null;
-        if (responseMsg.get("rank").toString().equals(NO_RESULT)) return new JsonArray();
-        return responseMsg.get("rank").getAsJsonArray();
+        if (responseMsg.get("rank").isJsonArray()) return responseMsg.get("rank").getAsJsonArray();
+        if (responseMsg.get("rank").getAsString().equals(NO_RESULT)) return new JsonArray();
+        return null;
     }
 
     /**
