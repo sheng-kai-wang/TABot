@@ -29,8 +29,8 @@ services:
     - $(pwd)/redis/SE/data:/data
     - $(pwd)/redis/SE/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
-    environment:
-    - ENV=develop
+#    environment:
+#    - ENV=develop
 
   # msdobot:
   #   image: msdobot/msdobot:v1

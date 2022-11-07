@@ -1,5 +1,7 @@
+# !/bin/sh
+
 # cd to /workspace/TABot
-# created folders for volumes
+# created some folders for volumes
 mkdir redis
 cd redis
 mkdir SE

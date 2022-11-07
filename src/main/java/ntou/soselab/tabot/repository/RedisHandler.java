@@ -119,6 +119,29 @@ public class RedisHandler {
         return allRepo;
     }
 
+    /**
+     * @return like {"GROUP 1": [{"username":"sheng-kai-wang", "repository":"TABot"}, ...]}
+     */
+    public JsonObject getGroupRepository(String groupName) {
+        setSerializer();
+        JsonObject result = new JsonObject();
+        JsonArray groupRepos = new JsonArray();
+        hashOperations
+                .keys(groupName)
+                .forEach(k -> {
+                    if (k.contains(GITHUB_REPOSITORY_KEEP_KEY_PREFIX)) {
+                        String repo = k.split(",")[0].replace(GITHUB_REPOSITORY_KEEP_KEY_PREFIX, "");
+                        String username = Objects.requireNonNull(hashOperations.get(groupName, k)).split("/")[3];
+                        JsonObject content = new JsonObject();
+                        content.addProperty("userName", username);
+                        content.addProperty("repoName", repo);
+                        groupRepos.add(content);
+                    }
+                });
+        result.add(groupName, groupRepos);
+        return result;
+    }
+
     public String getUserNameAndRepoName(String groupName, String repoName) {
         setSerializer();
         String repoUrl = readPairByKey(groupName, GITHUB_REPOSITORY_KEEP_KEY_PREFIX + repoName);
