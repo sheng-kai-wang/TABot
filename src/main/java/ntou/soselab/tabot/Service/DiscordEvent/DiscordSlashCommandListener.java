@@ -206,6 +206,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             }
 
             if (event.getName().equals("commitment_retrieval")) {
+                event.deferReply().queue();
                 String keywords = event.getOption("keywords").getAsString();
                 System.out.println("[Keywords] " + keywords);
                 String repository = null;
@@ -230,7 +231,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                             System.out.println("[Quantity] 5 (default value)");
                         } finally {
                             Message response = slashCommandHandleService.commitmentRetrieval(groupName, repository, branch, keywords, quantity);
-                            event.reply(response).setEphemeral(isOutsideTheGroup(event)).queue();
+                            event.getHook().sendMessage(response).setEphemeral(true).queue();
                         }
                     }
                 }

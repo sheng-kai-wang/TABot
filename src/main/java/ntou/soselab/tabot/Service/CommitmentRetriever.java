@@ -129,7 +129,7 @@ public class CommitmentRetriever {
     }
 
     public JsonArray retrieveCommitMsg(String groupName, String keywords, JsonArray range, int quantity) {
-        RestTemplate template = new RestTemplate();
+        RestTemplate template = new RestTemplate(getRequestTimeoutConfig(5_0000));
         String baseUrl = judgeGroupUrl(groupName) + retrievalPath;
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .queryParam("projectName", groupName)
