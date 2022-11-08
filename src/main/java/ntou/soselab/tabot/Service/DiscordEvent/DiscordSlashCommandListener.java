@@ -98,7 +98,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         if (event.getName().equals("personal_quiz")) {
 //            event.reply("Set a question...").setEphemeral(true).queue();
-            event.deferReply().queue();
+            event.deferReply().setEphemeral(true).queue();
             String studentId = judgeStudentId(event);
             System.out.println("[Student ID] " + studentId);
             Message response = slashCommandHandleService.personalQuiz(studentId);
@@ -107,7 +107,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         if (event.getName().equals("personal_score")) {
 //            event.reply("Loading...").setEphemeral(true).queue();
-            event.deferReply().queue();
+            event.deferReply().setEphemeral(true).queue();
             String studentId = judgeStudentId(event);
             System.out.println("[Student ID] " + studentId);
             Message response = slashCommandHandleService.personalScore(studentId);

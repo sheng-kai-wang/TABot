@@ -60,14 +60,16 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
         String ansContent = quiz.get("opt" + ansOpt).getAsString();
         if (componentId.equals(ansOpt)) {
             // correct
-//            event.reply("Correct !").queue();
-            event.getHook().sendMessage("Correct !").queue(m -> {
+//            event.reply("Correct !").setEphemeral(true).queue();
+            event.getHook().sendMessage("Correct !").setEphemeral(true).queue(m -> {
                 m.delete().queueAfter(DELAY_TIME, TimeUnit.SECONDS);
             });
         } else {
             // wrong
-//            event.reply("Wrong. Correct answer is `" + ansContent + "`").queue();
-            event.getHook().sendMessage("Wrong. Correct answer is `" + ansContent + "`").queue();
+//            event.reply("Wrong. Correct answer is `" + ansContent + "`").setEphemeral(true).queue();
+            event.getHook().sendMessage("Wrong. Correct answer is `" + ansContent + "`").setEphemeral(true).queue(m -> {
+                m.delete().queueAfter(DELAY_TIME, TimeUnit.SECONDS);
+            });
         }
         // remove quiz from ongoing quiz map
         SlashCommandHandleService.getOngoingQuizMap().remove(studentId);

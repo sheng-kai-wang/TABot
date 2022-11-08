@@ -119,8 +119,13 @@ public class SlashCommandHandleService {
     private String setExamAlgorithm(JsonArray incorrectExamList) throws Exception {
         JsonArray correctExamList = getCorrectExamList(incorrectExamList);
         int randomInt = ThreadLocalRandom.current().nextInt(0, 10);
-        if (randomInt >= 8) return getRandomExam(correctExamList);
-        else return getRandomExam(incorrectExamList);
+        try {
+            if (randomInt >= 8) return getRandomExam(correctExamList);
+            else return getRandomExam(incorrectExamList);
+        } catch (Exception e) {
+            System.out.println("[WARNING] no exam record yet");
+            return getRandomExam(incorrectExamList);
+        }
 //        may be wrong
 //        return quizList.get(ThreadLocalRandom.current().nextInt(0, quizList.size())).getAsString();
     }
