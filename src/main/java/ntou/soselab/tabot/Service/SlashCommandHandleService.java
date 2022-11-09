@@ -592,6 +592,7 @@ public class SlashCommandHandleService {
             return mb.append("```properties" + "\n[WARNING] Sorry, could not find any similar results.```").build();
         }
         mb.append("ok, got it.\n");
+        mb.append("keywords: `").append(keywords).append("`\n");
         mb.append("The following are the similarity ranking of your group's commit messages.\n");
         mb.append("This is in descending order and the content is ONLY updated to an hour ago:\n");
         int number = 1;
