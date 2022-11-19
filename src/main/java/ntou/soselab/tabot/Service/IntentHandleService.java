@@ -64,10 +64,10 @@ public class IntentHandleService {
      * declare what bot should do with each intent
      * <br>Note: expect STUDENT id passed as parameter
      *
-     * @param userStudentId student id
      * @param intent        incoming intent
      */
-    public Message checkIntent(String userStudentId, String groupName, Intent intent) {
+//    public Message checkIntent(String userStudentId, String groupName, Intent intent) {
+        public Message checkIntent(String groupName, Intent intent) {
         String intentName = intent.getCustom().getIntent();
         switch (intentName) {
             case "greet":
@@ -89,8 +89,8 @@ public class IntentHandleService {
                     return confirmHandler(intent);
                 else if (intentName.startsWith("faq"))
                     return faqHandle(intent);
-                else if (intentName.startsWith("personal"))
-                    return personalFuncHandler(userStudentId, intent);
+//                else if (intentName.startsWith("personal"))
+//                    return personalFuncHandler(userStudentId, intent);
                 else
                     System.out.printf("[DEBUG][intent analyze]: '%s' detected, no correspond result found.", intentName);
                 break;

@@ -249,7 +249,7 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         String receivedMsgId = received.getId();
         String senderDiscordId = event.getAuthor().getId();
         try {
-            String senderStudentId = userService.getStudentIdFromDiscordId(senderDiscordId);
+//            String senderStudentId = userService.getStudentIdFromDiscordId(senderDiscordId);
             if (received.isFromGuild()) {
                 rawMsg = received.getContentDisplay().strip().replace("@TABot", "").strip();
 //                receivedMsgId = received.getId();
@@ -270,11 +270,12 @@ public class DiscordOnMessageListener extends ListenerAdapter {
 
             String groupName = judgeGroupName(event);
             // get intent response message
-            Message result = intentHandleService.checkIntent(senderStudentId, groupName, intent);
+            Message result = intentHandleService.checkIntent(groupName, intent);
             // reply message
             if (received.isFromGuild()) {
                 System.out.println("+++ [DEBUG][handle normal] groupName: " + groupName);
-                System.out.println("+++ [DEBUG][handle normal] sender: " + userService.getFullNameFromDiscordId(senderDiscordId));
+//                System.out.println("+++ [DEBUG][handle normal] sender: " + userService.getFullNameFromDiscordId(senderDiscordId));
+                System.out.println("+++ [DEBUG][handle normal] sender: " + event.getAuthor().getName());
                 System.out.println("+++ [DEBUG][handle normal] dc id: " + senderDiscordId);
                 System.out.println("+++ [DEBUG][handle normal] channel: " + received.getTextChannel().getName());
                 jdaMsgHandleService.replyPublicMessage(result, receivedMsgId, received.getTextChannel().getName());
@@ -282,13 +283,13 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 jdaMsgHandleService.replyPrivateMessage(result, senderDiscordId, receivedMsgId);
 //            jdaMsgHandleService.replyPrivateMessage(result, testDiscordId, received.getId()); /* test */
             }
-        } catch (NoAccountFoundError e) {
-            System.out.println("[DEBUG][handleNormalMsg] " + e.getMessage());
-            e.printStackTrace();
+//        } catch (NoAccountFoundError e) {
+//            System.out.println("[DEBUG][handleNormalMsg] " + e.getMessage());
+//            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
-            Message result = new MessageBuilder().append("Sorry, I don't know what you mean. :cry:").build();
             // reply message
+            Message result = new MessageBuilder().append("Sorry, I don't know what you mean. :cry:").build();
             if (received.isFromGuild()) {
                 jdaMsgHandleService.replyPublicMessage(result, receivedMsgId, received.getTextChannel().getName());
             } else {
