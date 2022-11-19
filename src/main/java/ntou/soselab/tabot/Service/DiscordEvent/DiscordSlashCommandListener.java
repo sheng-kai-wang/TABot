@@ -26,14 +26,14 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     @Autowired
     UserService userService;
     private final String anonymousQuestionChannelName;
-    private final String groupWorkspaceChannelName;
+    private final String groupWorkspaceChannelNamePrefix;
     private final Map<String, String> groupTopicMap;
     private final String groupNamePrefix;
 
     @Autowired
     public DiscordSlashCommandListener(Environment env) {
         this.anonymousQuestionChannelName = env.getProperty("discord.channel.anonymous-question.name");
-        this.groupWorkspaceChannelName = env.getProperty("discord.channel.group-workspace.name");
+        this.groupWorkspaceChannelNamePrefix = env.getProperty("discord.channel.group-workspace.name.prefix");
 
         InputStream is = getClass().getResourceAsStream(env.getProperty("group-topic-map.path"));
         this.groupTopicMap = new Yaml().load(is);
@@ -305,6 +305,6 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     }
 
     private boolean isOutsideTheGroup(SlashCommandEvent event) {
-        return !event.getChannel().getName().equals(groupWorkspaceChannelName);
+        return !event.getChannel().getName().startsWith(groupWorkspaceChannelNamePrefix);
     }
 }
