@@ -1,7 +1,7 @@
 package ntou.soselab.tabot.Service;
 
 import ntou.soselab.tabot.Entity.Student.StudentGrade;
-import ntou.soselab.tabot.repository.SheetsHandler;
+import ntou.soselab.tabot.Repository.SheetsHandler;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;

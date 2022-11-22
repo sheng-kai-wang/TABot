@@ -1,4 +1,4 @@
-package ntou.soselab.tabot.repository;
+package ntou.soselab.tabot.Repository;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

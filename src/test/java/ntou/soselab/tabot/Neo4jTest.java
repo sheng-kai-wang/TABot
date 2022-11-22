@@ -1,6 +1,6 @@
 package ntou.soselab.tabot;
 
-import ntou.soselab.tabot.repository.Neo4jHandler;
+import ntou.soselab.tabot.Repository.Neo4jHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

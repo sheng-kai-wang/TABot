@@ -1,4 +1,4 @@
-package ntou.soselab.tabot.repository;
+package ntou.soselab.tabot.Repository;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,7 +8,6 @@ import org.neo4j.driver.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;

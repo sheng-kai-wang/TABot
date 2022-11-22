@@ -3,7 +3,7 @@ package ntou.soselab.tabot.Service;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import ntou.soselab.tabot.repository.RedisHandler;
+import ntou.soselab.tabot.Repository.RedisHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;

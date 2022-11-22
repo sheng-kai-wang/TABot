@@ -10,7 +10,7 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.gson.JsonObject;
 import ntou.soselab.tabot.Entity.Student.StudentDiscordProfile;
-import ntou.soselab.tabot.repository.SheetsHandler;
+import ntou.soselab.tabot.Repository.SheetsHandler;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
