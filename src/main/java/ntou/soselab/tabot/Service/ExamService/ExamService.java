@@ -17,7 +17,6 @@ import java.util.List;
 @EnableScheduling
 public class ExamService {
 
-    @Autowired
     private ExamUpdater examUpdater;
 
     // exam correspondence table, like "24" to "1-1".
@@ -28,10 +27,12 @@ public class ExamService {
     /**
      * get exam correspondence table
      */
-    public ExamService() {
+    @Autowired
+    public ExamService(ExamUpdater examUpdater) {
         SheetsHandler sheetsHandler = new SheetsHandler("course");
         this.examCorresponding = sheetsHandler.readContentByHeader("QuestionBank", "corresponding exam");
         this.examPublishable = sheetsHandler.readContentByHeader("QuestionBank", "publishable");
+        this.examUpdater = examUpdater;
         updateNeo4jExam();
     }
 

@@ -3,8 +3,12 @@ package ntou.soselab.tabot;
 import ntou.soselab.tabot.Service.ExamService.ExamCrawler;
 import ntou.soselab.tabot.Service.ExamService.ExamService;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ExamServiceTest {
+
+    @Autowired
+    ExamService examService;
 
     /**
      * test for getting all exam records from Google sheets.
@@ -19,6 +23,6 @@ public class ExamServiceTest {
      */
     @Test
     public void examUpdateTest() {
-        new ExamService().updateNeo4jExam();
+        examService.updateNeo4jExam();
     }
 }
