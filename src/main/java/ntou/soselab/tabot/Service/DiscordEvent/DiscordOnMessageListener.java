@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +50,8 @@ public class DiscordOnMessageListener extends ListenerAdapter {
 
     // current chatting status
     private HashMap<String, ChatStatus> chatStatusMap;
-    private final String groupNamePrefix;
+    private final String ANONYMOUS_QUESTION_CHANNEL_NAME;
+    private final String GROUP_NAME_PREFIX;
 
     @Autowired
     public DiscordOnMessageListener(RasaService rasa, IntentHandleService intentHandle, JDAMessageHandleService jdaMsgHandle, UserService userService, Environment env) {
@@ -66,7 +66,8 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         this.rasa = rasa;
         this.userService = userService;
         this.chatStatusMap = new HashMap<>();
-        this.groupNamePrefix = env.getProperty("judge-group-name.prefix");
+        this.ANONYMOUS_QUESTION_CHANNEL_NAME = env.getProperty("discord.channel.anonymous-question.name");
+        this.GROUP_NAME_PREFIX = env.getProperty("judge-group-name.prefix");
     }
 
     @Override
@@ -142,9 +143,15 @@ public class DiscordOnMessageListener extends ListenerAdapter {
                 handleAdminMessage(event);
                 /* reply private message to private channel from manager channel */
 //            jdaMsgHandleService.sendPrivateMessageOnReply(extractStudentIdFromMessageLog(event.getMessage()), event);
+
             } else {
                 /* general channel (public) */
                 System.out.println("[DEBUG] received from general channel.");
+                if (isFromAnonymousQuestionChannel(event)) {
+                    System.out.println("<< [DEBUG][onMessage] end of current onMessage event.");
+                    return;
+                }
+
                 // only react to incoming message if bot got mentioned in general channels (student user available channel, to be specific)
                 if (isBotMentioned(event)) {
                     // normal function
@@ -577,12 +584,16 @@ public class DiscordOnMessageListener extends ListenerAdapter {
         return false;
     }
 
+    private boolean isFromAnonymousQuestionChannel(MessageReceivedEvent event) {
+        return event.getChannel().getName().equals(ANONYMOUS_QUESTION_CHANNEL_NAME);
+    }
+
     private String judgeGroupName(MessageReceivedEvent event) {
         if (event.isFromType(ChannelType.PRIVATE)) return intentHandleService.PRIVATE_MESSAGE;
         try {
             List<Role> userRoles = event.getGuild().getMember(event.getAuthor()).getRoles();
             return userRoles.stream()
-                    .filter(r -> r.getName().startsWith(groupNamePrefix))
+                    .filter(r -> r.getName().startsWith(GROUP_NAME_PREFIX))
                     .findFirst()
                     .get()
                     .getName();
