@@ -36,6 +36,7 @@ public class SlashCommandHandleService {
     public final static String NO_GROUP = "no group";
     public final static String NOT_STUDENT = "not student";
     private final static String DOWN_ARROW = "↓";
+    private final static int MESSAGE_EMBED_LENGTH_LIMIT = 256;
 
     @Autowired
     public SlashCommandHandleService(Environment env, Neo4jHandler neo4jHandler, RedisHandler redisHandler, CommitmentRetriever commitmentRetriever) {
@@ -598,7 +599,11 @@ public class SlashCommandHandleService {
         int number = 1;
         for (JsonElement item : rank) {
             JsonObject commitment = item.getAsJsonObject();
-            String commitMsg = "[" + (number++) + "] " + commitment.get("message").getAsString();
+            String commitMsg = commitment.get("message").getAsString();
+            if (commitMsg.length() > MESSAGE_EMBED_LENGTH_LIMIT) {
+                commitMsg = commitMsg.substring(0, MESSAGE_EMBED_LENGTH_LIMIT - 3) + "...";
+            }
+            String formattedCommitMsg = "[" + (number++) + "] " + commitMsg;
             String[] repoData = commitment.get("repo").getAsString().split(",|:");
             String username = repoData[0];
             String repository = repoData[1];
@@ -623,7 +628,7 @@ public class SlashCommandHandleService {
                     .append("[browse the files](").append(currentBrowseCommitFilesUrl).append(")").append("\n")
                     .toString();
 
-            eb.addField(commitMsg, commitData, false);
+            eb.addField(formattedCommitMsg, commitData, false);
         }
 
         mb.setEmbeds(eb.build());
