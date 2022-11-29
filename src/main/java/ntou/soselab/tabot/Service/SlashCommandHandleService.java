@@ -36,7 +36,8 @@ public class SlashCommandHandleService {
     public final static String NO_GROUP = "no group";
     public final static String NOT_STUDENT = "not student";
     private final static String DOWN_ARROW = "↓";
-    private final static int MESSAGE_EMBED_LENGTH_LIMIT = 256;
+    // the actual limit is 256, but it is set to 240 just to be on the safe side.
+    private final static int MESSAGE_EMBED_LENGTH_LIMIT = 240;
 
     @Autowired
     public SlashCommandHandleService(Environment env, Neo4jHandler neo4jHandler, RedisHandler redisHandler, CommitmentRetriever commitmentRetriever) {
