@@ -76,12 +76,6 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 //        }
         /* global command */
         if (event.getName().equals("send_anonymous_question")) {
-            // check user identity
-//            if(event.getMember().getRoles().stream().anyMatch(role -> role.getId().equals(adminRoleId))){
-//            }else {
-//                event.reply("not enough permission to access").setEphemeral(true).queue();
-////                event.reply("ok send send").setEphemeral(true).queue();
-//            }
             MessageChannel targetChannel = DiscordGeneralEventListener.channelMap.get(anonymousQuestionChannelName);
             String question = event.getOption("question").getAsString();
             System.out.println("[Question] " + question);
@@ -119,7 +113,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             System.out.println("[Channel] " + event.getChannel().getName());
             String groupName = judgeGroupName(event);
             System.out.println("[Group Name] " + groupName);
-            if (groupName.equals(slashCommandHandleService.NO_GROUP)) {
+            if (groupName.equals(SlashCommandHandleService.NO_GROUP)) {
                 System.out.println("<<< end of current slash command event");
                 System.out.println();
                 if (!event.isAcknowledged()) {
@@ -286,7 +280,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         } catch (Exception e) {
             System.out.println("[WARNING] no group");
-            return slashCommandHandleService.NO_GROUP;
+            return SlashCommandHandleService.NO_GROUP;
         }
     }
 
@@ -295,7 +289,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             return userService.getStudentIdFromDiscordId(event.getUser().getId());
         } catch (NoAccountFoundError e) {
             e.printStackTrace();
-            return slashCommandHandleService.NOT_STUDENT;
+            return SlashCommandHandleService.NOT_STUDENT;
         }
 //            try {
 //                studentId = userName.split("-")[0];
