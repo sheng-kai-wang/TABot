@@ -56,22 +56,28 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
         /* --- end of test block --- */
         JsonObject quiz = SlashCommandHandleService.getOngoingQuizMap().get(studentId);
         System.out.println("--- [DEBUG][onButton] retrieve quiz: " + quiz);
+        if (quiz == null) {
+            replyButtonMessage(event, "Sorry, you can't answer again.");
+            return;
+        }
+
         String ansOpt = quiz.get("ans").getAsString();
         String ansContent = quiz.get("opt" + ansOpt).getAsString();
         if (componentId.equals(ansOpt)) {
             // correct
-//            event.reply("Correct !").setEphemeral(true).queue();
-            event.getHook().sendMessage("Correct !").setEphemeral(true).queue(m -> {
-                m.delete().queueAfter(DELAY_TIME, TimeUnit.SECONDS);
-            });
+            replyButtonMessage(event, "Correct !");
+
         } else {
             // wrong
-//            event.reply("Wrong. Correct answer is `" + ansContent + "`").setEphemeral(true).queue();
-            event.getHook().sendMessage("Wrong. Correct answer is `" + ansContent + "`").setEphemeral(true).queue(m -> {
-                m.delete().queueAfter(DELAY_TIME, TimeUnit.SECONDS);
-            });
+            replyButtonMessage(event, "Wrong. Correct answer is `" + ansContent + "`");
         }
         // remove quiz from ongoing quiz map
         SlashCommandHandleService.getOngoingQuizMap().remove(studentId);
+    }
+
+    private void replyButtonMessage(ButtonClickEvent event, String message) {
+        event.getHook().sendMessage(message).setEphemeral(true).queue(m -> {
+            m.delete().queueAfter(DELAY_TIME, TimeUnit.SECONDS);
+        });
     }
 }
