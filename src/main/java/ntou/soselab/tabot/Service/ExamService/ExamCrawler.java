@@ -1,7 +1,7 @@
 package ntou.soselab.tabot.Service.ExamService;
 
 import ntou.soselab.tabot.Entity.Student.StudentExam;
-import ntou.soselab.tabot.repository.SheetsHandler;
+import ntou.soselab.tabot.Repository.SheetsHandler;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -22,8 +22,8 @@ public class ExamCrawler {
      * construct "SheetsHandler" for course data and exam data.
      */
     public ExamCrawler() {
-        this.courseSheetsHandler = new SheetsHandler("Java");
-        this.examSheetsHandler = new SheetsHandler("Java-exam");
+        this.courseSheetsHandler = new SheetsHandler("course");
+        this.examSheetsHandler = new SheetsHandler("exam");
         readExamRecords();
     }
 

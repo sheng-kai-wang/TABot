@@ -88,7 +88,7 @@ public class UserService {
             if(userList == null) {
 //                throw new NullPointerException("[DEBUG][init firestore] no previous registered user found on firestore.");
                 // insert fake data and try to retrieve data again
-                insertFakeUserDataToFirestore();
+//                insertFakeUserDataToFirestore();
                 userList = (ArrayList) db.collection(COLLECTION_NAME).document(DOCUMENT_NAME).get().get().get(FIELD_NAME);
             }else{
             }

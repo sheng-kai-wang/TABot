@@ -38,4 +38,5 @@ application.properties
 
 ## configuration file
 *.json
-/src/main/resources/application.yml
+/src/main/resources/static/chromedriver
+/src/main/resources/static/user_requirements/

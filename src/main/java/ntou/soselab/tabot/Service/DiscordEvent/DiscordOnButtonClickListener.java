@@ -5,11 +5,14 @@ import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ntou.soselab.tabot.Exception.NoAccountFoundError;
 import ntou.soselab.tabot.Service.IntentHandleService;
+import ntou.soselab.tabot.Service.SlashCommandHandleService;
 import ntou.soselab.tabot.Service.UserService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * define what bot should do whenever somebody clicked button
@@ -19,9 +22,10 @@ import org.springframework.stereotype.Service;
 public class DiscordOnButtonClickListener extends ListenerAdapter {
 
     private final UserService userService;
+    private final static int DELAY_TIME = 5;
 
     @Autowired
-    public DiscordOnButtonClickListener(UserService userService, Environment env){
+    public DiscordOnButtonClickListener(UserService userService, Environment env) {
         this.userService = userService;
     }
 
@@ -50,20 +54,30 @@ public class DiscordOnButtonClickListener extends ListenerAdapter {
 //        if(studentId.equals("286145047169335298"))
 //        studentId = "00000000";
         /* --- end of test block --- */
-        JsonObject quiz = IntentHandleService.getOngoingQuizMap().get(studentId);
+        JsonObject quiz = SlashCommandHandleService.getOngoingQuizMap().get(studentId);
         System.out.println("--- [DEBUG][onButton] retrieve quiz: " + quiz);
+        if (quiz == null) {
+            replyButtonMessage(event, "Sorry, you can't answer again.");
+            return;
+        }
+
         String ansOpt = quiz.get("ans").getAsString();
         String ansContent = quiz.get("opt" + ansOpt).getAsString();
-        if(componentId.equals(ansOpt)){
+        if (componentId.equals(ansOpt)) {
             // correct
-//            event.reply("Correct !").queue();
-            event.getHook().sendMessage("Correct !").queue();
-        }else{
+            replyButtonMessage(event, "Correct !");
+
+        } else {
             // wrong
-//            event.reply("Wrong. Correct answer is `" + ansContent + "`").queue();
-            event.getHook().sendMessage("Wrong. Correct answer is `" + ansContent + "`").queue();
+            replyButtonMessage(event, "Wrong. Correct answer is `" + ansContent + "`");
         }
         // remove quiz from ongoing quiz map
-        IntentHandleService.getOngoingQuizMap().remove(studentId);
+        SlashCommandHandleService.getOngoingQuizMap().remove(studentId);
+    }
+
+    private void replyButtonMessage(ButtonClickEvent event, String message) {
+        event.getHook().sendMessage(message).setEphemeral(true).queue(m -> {
+            m.delete().queueAfter(DELAY_TIME, TimeUnit.SECONDS);
+        });
     }
 }

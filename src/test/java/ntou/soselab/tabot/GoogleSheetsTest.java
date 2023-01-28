@@ -1,19 +1,18 @@
 package ntou.soselab.tabot;
 
-import ntou.soselab.tabot.repository.SheetsHandler;
+import ntou.soselab.tabot.Repository.SheetsHandler;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.ArrayList;
-import java.util.List;
-
+@SpringBootTest
 public class GoogleSheetsTest {
     /**
      * Clear unimportant characters in google sheet
      */
     @Test
     public void trimTest() {
-        new SheetsHandler("Java");
+        new SheetsHandler("course");
     }
 
     /**
@@ -21,7 +20,7 @@ public class GoogleSheetsTest {
      */
     @Test
     public void readWithRangeTest() {
-        String result = new SheetsHandler("Java").readContent("FAQ", "A1:C3");
+        String result = new SheetsHandler("course").readContent("FAQ", "A1:C3");
         System.out.println(result);
     }
 
@@ -30,7 +29,7 @@ public class GoogleSheetsTest {
      */
     @Test
     public void readAllWorksheetTest() {
-        String result = new SheetsHandler("Java").readContent("FAQ", "");
+        String result = new SheetsHandler("course").readContent("FAQ", "");
         System.out.println(result);
     }
 
@@ -40,7 +39,7 @@ public class GoogleSheetsTest {
     @Test
     public void readByKeyTest() {
 //        JSONObject result = new SheetsHandler("Java").readContentByKey("FAQ", "garbage_collection");
-        JSONObject result = new SheetsHandler("Java").readContentByKey("Grades", "00457122");
+        JSONObject result = new SheetsHandler("course").readContentByKey("Grades", "00457122");
         System.out.println(result);
     }
 
@@ -52,7 +51,7 @@ public class GoogleSheetsTest {
     public void readByHeaderTest() {
 //        JSONObject result = new SheetsHandler("Java").readContentByHeader("QuestionBank", "corresponding exam / exam");
 //        System.out.println("result: " + result);
-        JSONObject result = new SheetsHandler("Java").readContentByHeader("QuestionBank", "publishable");
+        JSONObject result = new SheetsHandler("course").readContentByHeader("QuestionBank", "publishable");
         System.out.println("result: " + result);
     }
 

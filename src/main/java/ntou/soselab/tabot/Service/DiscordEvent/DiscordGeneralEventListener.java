@@ -24,11 +24,9 @@ import java.util.regex.Pattern;
  */
 @Service
 public class DiscordGeneralEventListener extends ListenerAdapter {
-
-    private final String testUserId = "286145047169335298";
     private final String serverId;
     private final String studentRoleId;
-    private final String adminCategoryId;
+    private final String taCategoryId;
     public static Guild guild;
     public static HashMap<String, MessageChannel> channelMap;
     public static HashMap<String, MessageChannel> adminChannelMap;
@@ -36,10 +34,10 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
     private final UserService userService;
 
     @Autowired
-    public DiscordGeneralEventListener(Environment env, UserService userService){
+    public DiscordGeneralEventListener(Environment env, UserService userService) {
         this.serverId = env.getProperty("discord.server.id");
-        this.studentRoleId = env.getProperty("discord.role.student");
-        this.adminCategoryId = env.getProperty("discord.admin.category.id");
+        this.studentRoleId = env.getProperty("discord.role.student.id");
+        this.taCategoryId = env.getProperty("discord.category.ta-office.id");
         this.userService = userService;
     }
 
@@ -48,18 +46,18 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         // all jda entity loaded successfully
         System.out.println(">> onReady");
         /*
-        * load channel setting from property and create map instance,
-        * all existed setting should be TextChannel,
-        * assume only one guild exist in this server/application for now
-        */
+         * load channel setting from property and create map instance,
+         * all existed setting should be TextChannel,
+         * assume only one guild exist in this server/application for now
+         */
         System.out.println("[JDA onReady]: try to initialize channel map.");
         channelMap = new HashMap<>();
         adminChannelMap = new HashMap<>();
-        for(TextChannel channel: event.getJDA().getGuildById(serverId).getTextChannels()){
+        for (TextChannel channel : event.getJDA().getGuildById(serverId).getTextChannels()) {
             channelMap.put(channel.getName(), channel);
         }
 //        System.out.println(event.getJDA().getGuildById(serverId).getCategoryById(adminCategoryId).getTextChannels());
-        for(TextChannel channel: event.getJDA().getGuildById(serverId).getCategoryById(adminCategoryId).getTextChannels()){
+        for (TextChannel channel : event.getJDA().getGuildById(serverId).getCategoryById(taCategoryId).getTextChannels()) {
             adminChannelMap.put(channel.getName(), channel);
         }
         guild = event.getJDA().getGuildById(serverId);
@@ -70,38 +68,98 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         System.out.println("[JDA onReady]: channel map init complete.");
 
         // create global slash command
-        event.getJDA().upsertCommand("global_test", "global command test").queue();
-        event.getJDA().upsertCommand("contact_ta", "direct contact ta")
-                .addOption(OptionType.STRING, "msg", "message content", true)
+        event.getJDA()
+                .upsertCommand("send_anonymous_question", "Send an anonymous question during class.")
+                .addOption(OptionType.STRING, "question", "anonymous question", true)
                 .queue();
+
+        event.getJDA()
+                .upsertCommand("read_ppt", "Read the all course ppt.")
+                .queue();
+
+        event.getJDA()
+                .upsertCommand("personal_quiz", "This quiz will be adjusted according to the answering status of the usual exams.")
+                .queue();
+
+        event.getJDA()
+                .upsertCommand("personal_score", "Check exam and homework scores.")
+                .queue();
+
         // create guild slash command
-        event.getJDA().getGuildById(serverId).upsertCommand("guild_test", "testing guild command")
-                .addOption(OptionType.STRING, "msg", "test option", true)
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("read_user_requirements", "Check out the user requirements of our group.")
                 .queue();
-        event.getJDA().getGuildById(serverId).upsertCommand("send_public_as_bot", "send message as bot")
-                .addOption(OptionType.CHANNEL, "channel", "target channel", true)
-                .addOption(OptionType.STRING, "message", "message content", true)
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("create_keep", "Create content to group keep note, all group members can see the content.")
+                .addOption(OptionType.STRING, "keys", "the keys of content, you can use multiple keys seperated by commas like \"alias_1,alias_2,...\")", true)
+                .addOption(OptionType.STRING, "value", "the value of content", true)
                 .queue();
-        event.getJDA().getGuildById(serverId).upsertCommand("send_private_as_bot", "send private message as bot")
-                .addOption(OptionType.USER, "user", "target user", true)
-                .addOption(OptionType.STRING, "message", "message content", true)
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("create_aliases_of_key", "create aliases of keep's key")
+                .addOption(OptionType.STRING, "key", "one key of the content", true)
+                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like \"alias_1,alias_2,...\"", true)
                 .queue();
-        event.getJDA().getGuildById(serverId).upsertCommand("suggest_material", "suggest material")
-                .addOption(OptionType.STRING, "section", "suggest section", true)
-                .addOption(OptionType.STRING, "title", "suggest title", true)
-                .addOption(OptionType.STRING, "content", "suggestion content", true)
-                .addOption(OptionType.STRING, "note", "suggestion remark", true)
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("delete_aliases_of_key", "delete aliases of keep's key")
+                .addOption(OptionType.STRING, "key", "one key of the content", true)
+                .addOption(OptionType.STRING, "key_aliases", "the aliases of key, you can use multiple keys seperated by commas like \"alias_1,alias_2,...\"", true)
                 .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("read_keep", "Read content in group keep note, all group members can see the content.")
+                .addOption(OptionType.STRING, "key", "one key of the content", false)
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("update_keep", "Update content in group keep note, all group members can see the content.")
+                .addOption(OptionType.STRING, "key", "one key of the content", true)
+                .addOption(OptionType.STRING, "value", "the value of content", true)
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("delete_keep", "Delete content from group keep note, all group members can see the content.")
+                .addOption(OptionType.STRING, "key", "one key of the content", true)
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("set_github_repository", "Set up the group's GitHub repository for full TABot functionality.")
+                .addOption(OptionType.STRING, "https_url", "https url of your group's repository", true)
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("contribution_analysis", "Analyze team members' contributions to the MAIN branch, and you have to make it PUBLIC.")
+                .queue();
+
+        event.getJDA()
+                .getGuildById(serverId)
+                .upsertCommand("commitment_retrieval", "Search the repository's commitment, view the commitment or browse the files. It's descending order.")
+                .addOption(OptionType.STRING, "keywords", "keywords for commit message", true)
+                .addOption(OptionType.STRING, "repository_name", "you can use \"repo_1,repo_2,...\" or keep empty to search multiple or all repositories.", false)
+                .addOption(OptionType.STRING, "branch_name", "you can use \"branch_1,branch_2,...\" or keep empty to search multiple or all branches.", false)
+                .addOption(OptionType.INTEGER, "quantity", "the quantity of response, keep empty to return 5 commitments (default value).", false)
+                .queue();
+
         /* print current slash command */
+        event.getJDA().retrieveCommands().queue(commands -> {
+            System.out.println("[DEBUG][onReady] available global command: " + commands);
+        });
         event.getJDA().getGuildById(serverId).retrieveCommands().queue(commands -> {
-            System.out.println("[DEBUG][onReady] available command: " + commands);
+            System.out.println("[DEBUG][onReady] available guild command: " + commands);
         });
         System.out.println("<< [DEBUG] all role: " + guild.getRoles());
         System.out.println("<< [DEBUG] bot role: " + guild.getBotRole());
-        /* testing: send hyperlink in message */
-//        channelMap.get("test").sendMessage(new MessageBuilder().setEmbeds(new EmbedBuilder().addField("link", ":smile: [test](https://google.com)", false).build()).build()).queue();
-        // testing: send message with action row
-//        channelMap.get("test").sendMessage(new MessageBuilder().append("testing content").setActionRows(ActionRow.of(Button.primary("optB", "b"), Button.success("optA", "a"))).build()).queue();
     }
 
     @Override
@@ -112,6 +170,7 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
     /**
      * listen to GuildMemberUpdateNickname event, basically, do stuff when any guild member updates his/her nickname
+     *
      * @param event GuildMemberUpdateNicknameEvent
      */
     @Override
@@ -122,20 +181,21 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
         String currentNickname = event.getNewNickname();
 
         // check user's current role, return if already registered
-        if(event.getMember().getRoles().size() > 0){
+        if (event.getMember().getRoles().stream().anyMatch(r -> r.getName().contains("STUDENT"))) {
             System.out.println("[DEBUG][nickname update]" + event.getNewNickname() + " already has role. do nothing.");
+            System.out.println("event.getMember().getRoles(): " + event.getMember().getRoles());
             return;
         }
 
         // check new nickname, if nickname fits specific format, assign role to user and store their id and name in database
-        if(UserService.verifyNickNameFormat(currentNickname)) {
+        if (UserService.verifyNickNameFormat(currentNickname)) {
             String userName = UserService.getNameByNickName(currentNickname);
             String userStudentId = UserService.getStudentIdByNickName(currentNickname);
             // create profile for current user
             StudentDiscordProfile studentDiscordProfile = new StudentDiscordProfile(userName, userStudentId, event.getUser().getId());
 
             // check if user is trying to change application content
-            if(UserService.verifyList.entrySet().stream().anyMatch(user -> user.getValue().getDiscordId().equals(event.getUser().getId()))){
+            if (UserService.verifyList.entrySet().stream().anyMatch(user -> user.getValue().getDiscordId().equals(event.getUser().getId()))) {
                 System.out.println("[DEBUG][nickname update] remove previous application for " + event.getNewNickname());
                 UserService.verifyList.values().removeIf(profile -> profile.getDiscordId().equals(event.getUser().getId()));
             }
@@ -148,13 +208,14 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 //            event.getGuild().addRoleToMember(event.getMember(), event.getGuild().getRoleById(studentRoleId)).queue();
 //            System.out.println("[GuildMemberUpdateNicknameEvent]: role assigned, try to store user info in database.");
 //            storeUserIdentity(event.getUser(), event.getNewNickname());
-        }else{
+        } else {
             System.out.println("[GuildMemberUpdateNicknameEvent] Nickname update detected with wrong format, do nothing.");
         }
     }
 
     /**
      * verify user and assign role to user
+     *
      * @param uuid target user's uuid
      */
     public void verifyUserAndAssignRole(String uuid) throws Exception {
@@ -175,16 +236,17 @@ public class DiscordGeneralEventListener extends ListenerAdapter {
 
     /**
      * try to store user's information in database, include discord id and name(student id)
-     * @param user target user
+     *
+     * @param user     target user
      * @param nickname user nickname
      */
-    private void storeUserIdentity(User user, String nickname){
+    private void storeUserIdentity(User user, String nickname) {
         String name = user.getName();
         String discordId = user.getId();
         String studentId = "00000000";
         Pattern namePattern = Pattern.compile("^([0-9]{8})-.*$");
         Matcher matcher = namePattern.matcher(nickname);
-        if(matcher.find())
+        if (matcher.find())
             studentId = matcher.group(1);
         System.out.println("[storeUserIdentity] student id '" + studentId + "' extracted.");
         // todo: do stuff in database

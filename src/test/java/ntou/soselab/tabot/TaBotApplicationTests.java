@@ -10,9 +10,10 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.gson.JsonObject;
 import ntou.soselab.tabot.Entity.Student.StudentDiscordProfile;
-import ntou.soselab.tabot.repository.SheetsHandler;
+import ntou.soselab.tabot.Repository.SheetsHandler;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
@@ -21,7 +22,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-//@SpringBootTest
+@SpringBootTest
 class TaBotApplicationTests {
 
     @Test
@@ -89,7 +90,7 @@ class TaBotApplicationTests {
     @Test
     void testParsePersonalScoreSheet() {
         HashMap<String, String> personalScoreMap = new HashMap<>();
-        JSONObject scoreMap = new SheetsHandler("Java").readContentByKey("Grades", "0053A018");
+        JSONObject scoreMap = new SheetsHandler("course").readContentByKey("Grades", "0053A018");
         Iterator<String> jsonKey = scoreMap.keys();
         while (jsonKey.hasNext()) {
             String key = jsonKey.next();
@@ -120,7 +121,7 @@ class TaBotApplicationTests {
 
     @Test
     void quizSearchTest() {
-        JSONObject resp = new SheetsHandler("Java").readContentByKey("QuestionBank", "1");
+        JSONObject resp = new SheetsHandler("course").readContentByKey("QuestionBank", "1");
         System.out.println(resp);
         JsonObject result = new JsonObject();
         Iterator<String> jsonKey = resp.keys();
@@ -154,7 +155,7 @@ class TaBotApplicationTests {
     public void readByValueTest() {
 //        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "常見問題_Java亂碼");
 //        JSONObject value = new SheetsHandler("Java").readContentByKey("FAQ", "java_garbled_code");
-        JSONObject value = new SheetsHandler("Java").readContentByKey("Grades", "0053A018");
+        JSONObject value = new SheetsHandler("course").readContentByKey("Grades", "0053A018");
         System.out.println(value);
 
         // test iterator (iterate score map)

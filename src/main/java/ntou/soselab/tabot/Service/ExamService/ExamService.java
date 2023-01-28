@@ -1,8 +1,9 @@
 package ntou.soselab.tabot.Service.ExamService;
 
 import ntou.soselab.tabot.Entity.Student.StudentExam;
-import ntou.soselab.tabot.repository.SheetsHandler;
+import ntou.soselab.tabot.Repository.SheetsHandler;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,6 +17,8 @@ import java.util.List;
 @EnableScheduling
 public class ExamService {
 
+    private ExamUpdater examUpdater;
+
     // exam correspondence table, like "24" to "1-1".
     private JSONObject examCorresponding;
     private JSONObject examPublishable;
@@ -24,10 +27,13 @@ public class ExamService {
     /**
      * get exam correspondence table
      */
-    public ExamService() {
-        SheetsHandler sheetsHandler = new SheetsHandler("Java");
+    @Autowired
+    public ExamService(ExamUpdater examUpdater) {
+        SheetsHandler sheetsHandler = new SheetsHandler("course");
         this.examCorresponding = sheetsHandler.readContentByHeader("QuestionBank", "corresponding exam");
         this.examPublishable = sheetsHandler.readContentByHeader("QuestionBank", "publishable");
+        this.examUpdater = examUpdater;
+        updateNeo4jExam();
     }
 
     /**
@@ -39,7 +45,7 @@ public class ExamService {
     public void updateNeo4jExam() {
         List<String> commonExam = getCommonExam();
         this.allExamRecords = new ExamCrawler().getAllExamRecords();
-        new ExamUpdater().updateNeo4jExam(commonExam, allExamRecords, examCorresponding);
+        this.examUpdater.updateNeo4jExam(commonExam, allExamRecords, examCorresponding);
         System.out.println("[DEBUG][ExamService] update student's exam data to neo4j: " + allExamRecords);
     }
 

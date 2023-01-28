@@ -12,13 +12,15 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import ntou.soselab.tabot.Entity.Rasa.Intent;
-import ntou.soselab.tabot.repository.Neo4jHandler;
-import ntou.soselab.tabot.repository.SheetsHandler;
+import ntou.soselab.tabot.Repository.Neo4jHandler;
+import ntou.soselab.tabot.Repository.SheetsHandler;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -27,16 +29,31 @@ import java.util.regex.Pattern;
 
 @Service
 public class IntentHandleService {
+    @Autowired
+    private Neo4jHandler neo4jHandler;
 
     // ConcurrentHashMap
     private static HashMap<String, JsonObject> ongoingQuizMap;
     private final String SUGGEST_FORM_URL;
+    private final String userRequirementsFolderPath;
+    private final Map<String, String> groupTopicMap;
+    public final String PRIVATE_MESSAGE = "private message";
+    public final String NO_GROUP = "no group";
 
     @Autowired
     public IntentHandleService(Environment env) {
         ongoingQuizMap = new HashMap<>();
         this.SUGGEST_FORM_URL = null;
 //        this.SUGGEST_FORM_URL = env.getProperty("env.setting.suggest");
+        this.userRequirementsFolderPath = env.getProperty("user-requirements.folder.path");
+        InputStream is = getClass().getResourceAsStream(env.getProperty("group-topic-map.path"));
+        this.groupTopicMap = new Yaml().load(is);
+        try {
+            assert is != null;
+            is.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static HashMap<String, JsonObject> getOngoingQuizMap() {
@@ -47,10 +64,10 @@ public class IntentHandleService {
      * declare what bot should do with each intent
      * <br>Note: expect STUDENT id passed as parameter
      *
-     * @param userStudentId student id
      * @param intent        incoming intent
      */
-    public Message checkIntent(String userStudentId, Intent intent) {
+//    public Message checkIntent(String userStudentId, String groupName, Intent intent) {
+        public Message checkIntent(String groupName, Intent intent) {
         String intentName = intent.getCustom().getIntent();
         switch (intentName) {
             case "greet":
@@ -59,6 +76,8 @@ public class IntentHandleService {
             case "help":
                 System.out.println("[DEBUG][checkIntent] help");
                 return generateHelpMessage();
+            case "read_user_requirements":
+                return getUserRequirements(groupName);
             case "classmap_search":
                 return searchClassMap(intent);
             case "classmap_ppt":
@@ -70,8 +89,8 @@ public class IntentHandleService {
                     return confirmHandler(intent);
                 else if (intentName.startsWith("faq"))
                     return faqHandle(intent);
-                else if (intentName.startsWith("personal"))
-                    return personalFuncHandler(userStudentId, intent);
+//                else if (intentName.startsWith("personal"))
+//                    return personalFuncHandler(userStudentId, intent);
                 else
                     System.out.printf("[DEBUG][intent analyze]: '%s' detected, no correspond result found.", intentName);
                 break;
@@ -110,9 +129,9 @@ public class IntentHandleService {
     public Message faqHandle(Intent faqIntent) {
         System.out.println("[DEBUG][intentHandle] faq handle triggered.");
         String faqName = faqIntent.getCustom().getIntent().replace("faq/", "");
-        System.out.println(" --- [DEBUG][faq] " + faqName + " detected.");
+        System.out.println("--- [DEBUG][faq] " + faqName + " detected.");
         // call google sheet api to query correspond result of faq
-        JSONObject searchResult = new SheetsHandler("Java").readContentByKey("FAQ", faqName);
+        JSONObject searchResult = new SheetsHandler("course").readContentByKey("FAQ", faqName);
         System.out.println("--- [DEBUG][faq] searchResult: " + searchResult);
         String response = searchResult.getJSONArray("answer").get(0).toString();
         return new MessageBuilder().append(response).build();
@@ -138,6 +157,36 @@ public class IntentHandleService {
         return builder.build();
     }
 
+    private Message getUserRequirements(String groupName) {
+        System.out.println("[DEBUG][intentHandle] get user requirements.");
+        System.out.println("[Group Name] " + groupName);
+        MessageBuilder mb = new MessageBuilder();
+        if (groupName.equals(PRIVATE_MESSAGE)) {
+            mb.append("```Sorry, the user requirements can only be obtained from the channel in the SE_1111 server.```");
+            return mb.build();
+        }
+        if (groupName.equals(NO_GROUP)) return mb.append("```Sorry, you don't have a group yet.```").build();
+        String groupTopic = groupTopicMap.get(groupName);
+        System.out.println("[Group Topic] " + groupTopic);
+        String groupDocPath = userRequirementsFolderPath + File.separator + groupTopic + ".md";
+        InputStream is = getClass().getResourceAsStream(groupDocPath);
+        if (is != null) {
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            mb.append("here are the user requirements of your group. ( ").append(groupName).append(" )\n");
+            mb.append("```markdown").append("\n");
+            while (true) {
+                try {
+                    if (!br.ready()) break;
+                    mb.append(br.readLine()).append("\n");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            mb.append("```");
+        }
+        return mb.build();
+    }
+
     private Message searchSlide(Intent intent) {
         System.out.println("[DEBUG][intentHandle] slide search triggered.");
         String targetLesson = intent.getCustom().getEntity();
@@ -149,7 +198,7 @@ public class IntentHandleService {
         System.out.println("--- [DEBUG][search slide] lessonNum: " + lessonNum);
         System.out.println("--- [DEBUG][search slide] raw lesson name: " + targetLesson);
         // search neo4j for lesson slide info
-        String queryResp = new Neo4jHandler("Java").readSlideshowById(lessonNum);
+        String queryResp = neo4jHandler.readSlideshowById(lessonNum);
         MessageBuilder builder = new MessageBuilder();
         builder.append("Here you are ! :grinning:");
         builder.setEmbeds(new EmbedBuilder().addField("Lesson " + lessonNum, "[link](" + queryResp + ")", false).build());
@@ -187,9 +236,9 @@ public class IntentHandleService {
         if (sectionName.isEmpty())
             return sendErrorMessage(intent);
         // check query result from neo4j
-        String lessonTitle = removeBrackets(new Neo4jHandler("Java").readCurriculumMap(sectionName));
+        String lessonTitle = removeBrackets(neo4jHandler.readCurriculumMap(sectionName));
         System.out.println("--- [DEBUG][search class map][neo4j] found correspond lesson title: " + lessonTitle);
-        String slideLink = new Neo4jHandler("Java").readSlideshowByName(sectionName);
+        String slideLink = neo4jHandler.readSlideshowByName(sectionName);
         System.out.println("--- [DEBUG][search class map][neo4j] found section slideLink: " + slideLink);
         // build response message
         Message result = generateSearchClassMapResponseMessage(sectionName, lessonTitle, slideLink);
@@ -203,7 +252,7 @@ public class IntentHandleService {
      *
      * @param sectionName
      * @param lessonTitle correspond lesson title
-     * @param slideLink    slide link
+     * @param slideLink   slide link
      * @return
      */
     private Message generateSearchClassMapResponseMessage(String sectionName, String lessonTitle, String slideLink) {
@@ -232,14 +281,20 @@ public class IntentHandleService {
     }
 
     private String searchKeywordSheet(String target) {
-        String rawKeywordSheet = new SheetsHandler("Java").readContent("Keyword", "");
+        String rawKeywordSheet = new SheetsHandler("course").readContent("Keyword", "");
         System.out.println("--- [DEBUG][class map search] retrieve all keyword data from google sheet.");
         Gson gson = new Gson();
         JsonArray keywordSheet = gson.fromJson(rawKeywordSheet, JsonArray.class);
         String resultKeyword = "";
         for (JsonElement keywordSet : keywordSheet) {
             JsonArray temp = keywordSet.getAsJsonArray();
-            if (Arrays.stream(temp.get(0).getAsString().split(",")).anyMatch(keyword -> keyword.strip().equals(target))) {
+            // chinese keywords
+            if (Arrays.stream(temp.get(1).getAsString().split(",")).anyMatch(keyword -> keyword.strip().equals(target))) {
+                resultKeyword = temp.get(0).getAsString().strip();
+                return resultKeyword;
+            }
+            // english keywords
+            if (Arrays.stream(temp.get(2).getAsString().split(",")).anyMatch(keyword -> keyword.strip().equals(target))) {
                 resultKeyword = temp.get(0).getAsString().strip();
                 return resultKeyword;
             }
@@ -294,7 +349,7 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] personal textbook triggered.");
         System.out.println("[DEBUG] try to search personal textbook for " + studentId);
         Gson gson = new Gson();
-        String queryResp = new Neo4jHandler("Java").readPersonalizedSubjectMatter(studentId);
+        String queryResp = neo4jHandler.readPersonalizedSubjectMatter(studentId);
         System.out.println("--- [DEBUG][personal textbook][neo4j] raw queryResp: " + queryResp);
         // get textbook title from neo4j
         JsonArray queryResult = gson.fromJson(queryResp, JsonArray.class);
@@ -305,7 +360,7 @@ public class IntentHandleService {
         // search neo4j for each slide data
         HashMap<String, String> resultMap = new HashMap<>();
         for (JsonElement lessonName : queryResult) {
-            String lessonData = new Neo4jHandler("Java").readSlideshowByName(lessonName.getAsString());
+            String lessonData = neo4jHandler.readSlideshowByName(lessonName.getAsString());
             System.out.println("--- [DEBUG][personal textbook] lessonData: " + lessonData);
             resultMap.put(lessonName.getAsString(), lessonData);
         }
@@ -364,12 +419,12 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] personal quiz triggered.");
         Gson gson = new Gson();
         // search quiz number from neo4j
-        String quizResp = new Neo4jHandler("Java").readPersonalizedExam(studentId);
+        String quizResp = neo4jHandler.readPersonalizedExam(studentId);
         System.out.println("--- [DEBUG][personal quiz] id: " + studentId);
         System.out.println("--- [DEBUG][personal quiz][neo4j] quizResp: " + quizResp);
         JsonArray quizNumList = gson.fromJson(quizResp, JsonArray.class);
         // random pick one of the quiz, retrieve quiz data from Google sheet
-        JsonObject quiz = parsePersonalQuiz(new SheetsHandler("Java").readContentByKey("QuestionBank", setExamAlgorithm(quizNumList)));
+        JsonObject quiz = parsePersonalQuiz(new SheetsHandler("course").readContentByKey("QuestionBank", setExamAlgorithm(quizNumList)));
         System.out.println("--- [DEBUG][personal quiz] quiz: " + quiz);
         // store user data and quiz in ongoing quiz map
         ongoingQuizMap.put(studentId, quiz);
@@ -413,7 +468,7 @@ public class IntentHandleService {
      * @return all publishable exam
      */
     private JsonArray getAllPublishableExam() {
-        JSONObject allPublishableExam = new SheetsHandler("Java").readContentByHeader("QuestionBank", "publishable");
+        JSONObject allPublishableExam = new SheetsHandler("course").readContentByHeader("QuestionBank", "publishable");
         JsonArray result = new JsonArray();
         for (String key : allPublishableExam.keySet()) {
             // ["v"] to v
@@ -508,7 +563,7 @@ public class IntentHandleService {
         System.out.println("[DEBUG][intentHandle] personal score triggered.");
         HashMap<String, String> personalScoreMap = new HashMap<>();
         System.out.println("--- [DEBUG][personal score] student id: " + studentId);
-        JSONObject scoreMap = new SheetsHandler("Java").readContentByKey("Grades", studentId);
+        JSONObject scoreMap = new SheetsHandler("course").readContentByKey("Grades", studentId);
         System.out.println("--- [DEBUG][personal score] scoreMap: " + scoreMap);
         Iterator<String> jsonKey = scoreMap.keys();
         while (jsonKey.hasNext()) {
@@ -555,7 +610,7 @@ public class IntentHandleService {
         msgBuilder.mentionUsers(user);
         msgBuilder.append("Sorry, i'm not sure what do you mean, can you please say it again in another way ? :pray:");
 //        EmbedBuilder builder  = new EmbedBuilder();
-//        builder.setDescription("<@" + user + "> Sorry, i'm not sure what do you mean, can you please say it again in another way ? :(");
+//        builder.setDescription("<@" + user + "> Sorry, I'm not sure what do you mean, can you please say it again in another way ? :(");
 //        builder.setColor(Color.orange);
 //        return builder.build();
         return msgBuilder.build();

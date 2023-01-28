@@ -1,8 +1,9 @@
 package ntou.soselab.tabot.Service.ExamService;
 
 import ntou.soselab.tabot.Entity.Student.StudentExam;
-import ntou.soselab.tabot.repository.Neo4jHandler;
+import ntou.soselab.tabot.Repository.Neo4jHandler;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,16 +11,11 @@ import java.util.List;
 /**
  * update exam data to neo4j.
  */
+@Service
 public class ExamUpdater {
 
+    @Autowired
     private Neo4jHandler neo4jHandler;
-
-    /**
-     * get neo4j handler
-     */
-    public ExamUpdater() {
-        this.neo4jHandler = new Neo4jHandler("Java");
-    }
 
     /**
      * neo4j exam data update method for external class.
@@ -43,7 +39,7 @@ public class ExamUpdater {
      */
     private void updateCommonExam(StudentExam student, List<String> commonExam) {
         for (String exam : commonExam) {
-            updateExamDate(student, exam);
+            updateExamData(student, exam);
         }
     }
 
@@ -60,7 +56,7 @@ public class ExamUpdater {
             for (String examKey : examCorresponding.keySet()) {
                 // mappedExam is just like "1-1".
                 String mappedExam = examCorresponding.get(examKey).toString().split("\"")[1];
-                if (mappedExam.equals(examStatus)) updateExamDate(student, examKey);
+                if (mappedExam.equals(examStatus)) updateExamData(student, examKey);
             }
         }
     }
@@ -71,7 +67,7 @@ public class ExamUpdater {
      * @param student one student's data.
      * @param exam    exam number
      */
-    private void updateExamDate(StudentExam student, String exam) {
+    private void updateExamData(StudentExam student, String exam) {
         if (student.getName() != null) {
             neo4jHandler.updatePersonalizedExam(student.getStudentId(), student.getName(), exam);
         } else {

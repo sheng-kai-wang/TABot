@@ -1,7 +1,7 @@
 package ntou.soselab.tabot.Service;
 
 import ntou.soselab.tabot.Entity.Student.StudentGrade;
-import ntou.soselab.tabot.repository.SheetsHandler;
+import ntou.soselab.tabot.Repository.SheetsHandler;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -10,13 +10,10 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -30,11 +27,11 @@ public class GradesCrawler {
     private String gradesUrl;
     private String username;
     private String password;
-    private List<StudentGrade> grades;
     private WebDriver driver;
 
     // the header of the grade date in the table
-    private List<String> gradeHeaders = new ArrayList<String>();
+    private List<String> allGradeHeaders = new ArrayList<>();
+    private List<StudentGrade> allStudentGrade = new ArrayList<>();
 
     /**
      * automatically get students grades as long as it is constructed
@@ -48,23 +45,26 @@ public class GradesCrawler {
         this.password = env.getProperty("tronclass.account.password");
 
         System.setProperty("webdriver.chrome.driver", Objects.requireNonNull(env.getProperty("chromedriver.path")));
-//        this.grades = getGrades();
+        updateSheet();
     }
 
     /**
      * execute every hour
      */
-//    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void updateSheet() {
+        getAllGrades();
         List<List<Object>> gradeList = new ArrayList<>();
-        gradeList.add(new ArrayList<Object>(gradeHeaders));
-        for (StudentGrade student : grades) {
+        gradeList.add(new ArrayList<>(allGradeHeaders));
+        for (StudentGrade student : allStudentGrade) {
             ArrayList<Object> tableRow = new ArrayList<Object>();
             tableRow.add(student.getStudentId());
             tableRow.addAll(student.getGrades());
             gradeList.add(tableRow);
         }
-        new SheetsHandler("Java").updateContent("Grades", "A1", gradeList);
+        SheetsHandler sheetsHandler = new SheetsHandler("course");
+        sheetsHandler.clearContent("Grades");
+        sheetsHandler.updateContent("Grades", "A1", gradeList);
         System.out.println("[DEBUG][GradesCrawler] update student's course grades on Google sheets");
     }
 
@@ -72,8 +72,8 @@ public class GradesCrawler {
      * login to tronclass
      *
      * @param gradesUrl grades page of java course
-     * @param username  temporarily use the student ID of sheng-kai-wang
-     * @param password  temporarily use the password of sheng-kai-wang
+     * @param username  temporarily use the student ID of soselabta
+     * @param password  temporarily use the password of soselabta
      */
     private void login(String gradesUrl, String username, String password) {
         // use headless mode without open the browser window
@@ -99,20 +99,19 @@ public class GradesCrawler {
 
     /**
      * use selenium to crawl tronclass scores
-     *
-     * @return list of student grades
      */
-    public List<StudentGrade> getGrades() {
+    private void getAllGrades() {
 
         login(gradesUrl, username, password);
 
         // get the list of table headers
-        gradeHeaders.add(driver.findElement(By.cssSelector("div.column.member")).getText());
+        allGradeHeaders.clear();
+        allGradeHeaders.add(driver.findElement(By.cssSelector("div.column.member")).getText());
         List<WebElement> headers = driver.findElements(By.cssSelector("ul.activity-list > li a"));
         for (WebElement e : headers) {
-            String title = e.getText();
-            if (title.isEmpty()) title = e.getAttribute("title");
-            gradeHeaders.add(title);
+            String title = e.getText().replace("&amp;", "&");
+            if (title.isEmpty()) title = e.getAttribute("title").replace("&amp;", "&");
+            allGradeHeaders.add(title);
         }
 
         // get the student data web element
@@ -121,7 +120,7 @@ public class GradesCrawler {
         List<WebElement> scoreBars = driver.findElements(By.cssSelector("div.activity-body.sync-scroll > ul > li"));
 
         // construct StudentGrade and put in the list
-        List<StudentGrade> allStudentGrade = new ArrayList<StudentGrade>();
+        allStudentGrade.clear();
         for (int i = 0; i < names.size(); i++) {
             String name = names.get(i).getText();
             String studentID = studentIDs.get(i).getText();
@@ -133,6 +132,5 @@ public class GradesCrawler {
             allStudentGrade.add(new StudentGrade(name, studentID, scoreList));
         }
         driver.quit();
-        return allStudentGrade;
     }
 }
